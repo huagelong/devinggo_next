@@ -8,6 +8,7 @@ package middleware
 
 import (
 	"devinggo/modules/system/pkg/i18n"
+
 	"github.com/gogf/gf/v2/net/ghttp"
 )
 

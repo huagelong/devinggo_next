@@ -54,8 +54,12 @@ func GetTenantId(ctx context.Context) int64                  { return std.GetTen
 func GetTakeUpTime(ctx context.Context) int64                { return std.GetTakeUpTime(ctx) }
 func GetRequestBody(ctx context.Context) string              { return std.GetRequestBody(ctx) }
 func SetRequestBody(ctx context.Context, requestBody string) { std.SetRequestBody(ctx, requestBody) }
+func SetLanguage(ctx context.Context, lang string)           { std.SetLanguage(ctx, lang) }
+func GetLanguage(ctx context.Context) string                 { return std.GetLanguage(ctx) }
 
-const ContextHTTPKey = "contextHTTPKey"
+const (
+	ContextHTTPKey = "contextHTTPKey"
+)
 
 func (s *sContexts) Init(r *ghttp.Request, customCtx *model.Context) {
 	r.SetCtxVar(ContextHTTPKey, customCtx)
@@ -214,4 +218,14 @@ func (s *sContexts) GetRequestBody(ctx context.Context) string {
 
 func (s *sContexts) SetRequestBody(ctx context.Context, requestBody string) {
 	s.setField(ctx, "contexts.SetRequestBody", func(c *model.Context) { c.RequestBody = requestBody })
+}
+
+// SetLanguage 设置当前请求语言
+func (s *sContexts) SetLanguage(ctx context.Context, lang string) {
+	s.setField(ctx, "contexts.SetLanguage", func(c *model.Context) { c.Language = lang })
+}
+
+// GetLanguage 获取当前请求语言
+func (s *sContexts) GetLanguage(ctx context.Context) string {
+	return getField(s, ctx, func(c *model.Context) string { return c.Language })
 }
