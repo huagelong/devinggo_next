@@ -9,7 +9,6 @@ package cache
 import (
 	"bufio"
 	"context"
-	"regexp"
 	"strings"
 	"time"
 
@@ -234,9 +233,89 @@ func Get(ctx context.Context, key interface{}) (*gvar.Var, error) {
 	return getTagCacheInstance().get(ctx, gconv.String(key))
 }
 
-// SetIfNotExist 仅在 key 不存在时设置缓存。
-func SetIfNotExist(ctx context.Context, key interface{}, value interface{}, duration time.Duration) (bool, error) {
-	return setIfNotExist(ctx, key, value, duration)
+// Set 设置缓存。可通过可选参数 tag 指定标签，用于批量清除缓存。
+//
+// 参数：
+//
+//	ctx: 上下文
+//	key: 缓存键
+//	value: 缓存值
+//	duration: 过期时间，0 表示永不过期
+//	tag: 可选的标签，支持多个
+//
+// 示例：
+//
+//	cache.Set(ctx, "user:1", userData, 5*time.Minute)                    // 不带标签
+//	cache.Set(ctx, "user:1", userData, 5*time.Minute, "user")            // 单个标签
+//	cache.Set(ctx, "user:1", userData, 5*time.Minute, "user", "profile") // 多个标签
+func Set(ctx context.Context, key interface{}, value interface{}, duration time.Duration, tag ...interface{}) error {
+	return set(ctx, key, value, duration, tag...)
+}
+
+// SetIfNotExist 仅在 key 不存在时设置缓存。可通过可选参数 tag 指定标签。
+//
+// 返回：
+//
+//	ok: true 表示设置成功，false 表示键已存在
+//	err: 错误信息
+func SetIfNotExist(ctx context.Context, key interface{}, value interface{}, duration time.Duration, tag ...interface{}) (bool, error) {
+	return setIfNotExist(ctx, key, value, duration, tag...)
+}
+
+// SetMap 批量设置缓存。可通过可选参数 tag 为所有键指定相同的标签。
+func SetMap(ctx context.Context, data map[interface{}]interface{}, duration time.Duration, tag ...interface{}) error {
+	if len(data) == 0 {
+		return nil
+	}
+	for k, v := range data {
+		if err := set(ctx, k, v, duration, tag...); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// GetOrSet 获取缓存，如果不存在则设置。可通过可选参数 tag 指定标签。
+func GetOrSet(ctx context.Context, key interface{}, value interface{}, duration time.Duration, tag ...interface{}) (*gvar.Var, error) {
+	return getOrSet(ctx, key, value, duration, tag...)
+}
+
+// GetOrSetFunc 使用函数获取或设置缓存。可通过可选参数 tag 指定标签。
+//
+// 仅在缓存不存在时才会执行函数 f，避免不必要的计算。
+func GetOrSetFunc(ctx context.Context, key interface{}, f gcache.Func, duration time.Duration, tag ...interface{}) (*gvar.Var, error) {
+	return getOrSetFunc(ctx, key, f, duration, tag...)
+}
+
+// Update 更新缓存值，保持原有过期时间。可通过可选参数 tag 更新标签。
+//
+// 返回：
+//
+//	oldValue: 更新前的旧值
+//	exist: true 表示键存在并已更新，false 表示键不存在
+//	err: 错误信息
+func Update(ctx context.Context, key interface{}, value interface{}, tag ...interface{}) (*gvar.Var, bool, error) {
+	return update(ctx, key, value, tag...)
+}
+
+// UpdateExpire 更新缓存过期时间。可通过可选参数 tag 更新标签。
+//
+// 返回：
+//
+//	oldDuration: 更新前的剩余过期时间
+//	err: 错误信息
+func UpdateExpire(ctx context.Context, key interface{}, duration time.Duration, tag ...interface{}) (time.Duration, error) {
+	return updateExpire(ctx, key, duration, tag...)
+}
+
+// GetExpire 获取缓存的剩余过期时间。
+func GetExpire(ctx context.Context, key interface{}) (time.Duration, error) {
+	return getExpire(ctx, key)
+}
+
+// Contains 判断缓存键是否存在。
+func Contains(ctx context.Context, key interface{}) (bool, error) {
+	return contains(ctx, key)
 }
 
 // Remove 删除一个或多个缓存 key，返回最后一个被删除 key 的旧值。
@@ -353,132 +432,4 @@ func GetInfo(ctx context.Context) (map[string]map[string]interface{}, error) {
 		res[k] = flat
 	}
 	return res, nil
-}
-
-// ──────────────────────────────────────────────
-// gcache.Adapter 实现
-// ──────────────────────────────────────────────
-
-type Adapter struct{}
-
-func newCacheAdapter() gcache.Adapter {
-	return &Adapter{}
-}
-
-func (a Adapter) getTable(ctx context.Context, key interface{}) string {
-	keyStr := gconv.String(key)
-	pattern := "^" + regexp.QuoteMeta(cachePrefixSelectCache) + "(.*?)@"
-	re := regexp.MustCompile(pattern)
-	if !re.MatchString(keyStr) {
-		return ""
-	}
-	return re.FindStringSubmatch(keyStr)[1]
-}
-
-func (a Adapter) Set(ctx context.Context, key interface{}, value interface{}, duration time.Duration) error {
-	return set(ctx, key, value, duration, a.getTable(ctx, key))
-}
-
-func (a Adapter) SetMap(ctx context.Context, data map[interface{}]interface{}, duration time.Duration) error {
-	if len(data) == 0 {
-		return nil
-	}
-	if duration < 0 {
-		keys := make([]string, 0, len(data))
-		for k := range data {
-			keys = append(keys, gconv.String(k))
-		}
-		for _, key := range keys {
-			if _, err := a.Remove(ctx, key); err != nil {
-				return err
-			}
-		}
-	} else {
-		for k, v := range data {
-			if err := a.Set(ctx, k, v, duration); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (a Adapter) SetIfNotExist(ctx context.Context, key interface{}, value interface{}, duration time.Duration) (bool, error) {
-	return setIfNotExist(ctx, key, value, duration, a.getTable(ctx, key))
-}
-
-func (a Adapter) SetIfNotExistFunc(ctx context.Context, key interface{}, f gcache.Func, duration time.Duration) (bool, error) {
-	return setIfNotExistFunc(ctx, key, f, duration, a.getTable(ctx, key))
-}
-
-func (a Adapter) SetIfNotExistFuncLock(ctx context.Context, key interface{}, f gcache.Func, duration time.Duration) (bool, error) {
-	return setIfNotExistFuncLock(ctx, key, f, duration, a.getTable(ctx, key))
-}
-
-func (a Adapter) Get(ctx context.Context, key interface{}) (*gvar.Var, error) {
-	return Get(ctx, key)
-}
-
-func (a Adapter) GetOrSet(ctx context.Context, key interface{}, value interface{}, duration time.Duration) (*gvar.Var, error) {
-	return getOrSet(ctx, key, value, duration, a.getTable(ctx, key))
-}
-
-func (a Adapter) GetOrSetFunc(ctx context.Context, key interface{}, f gcache.Func, duration time.Duration) (*gvar.Var, error) {
-	return getOrSetFunc(ctx, key, f, duration, a.getTable(ctx, key))
-}
-
-func (a Adapter) GetOrSetFuncLock(ctx context.Context, key interface{}, f gcache.Func, duration time.Duration) (*gvar.Var, error) {
-	return a.GetOrSetFunc(ctx, key, f, duration)
-}
-
-func (a Adapter) Contains(ctx context.Context, key interface{}) (bool, error) {
-	return contains(ctx, key)
-}
-
-func (a Adapter) Size(ctx context.Context) (int, error) {
-	return getAdapterRedis().Size(ctx)
-}
-
-func (a Adapter) Data(ctx context.Context) (map[interface{}]interface{}, error) {
-	return getAdapterRedis().Data(ctx)
-}
-
-func (a Adapter) Keys(ctx context.Context) ([]interface{}, error) {
-	return getAdapterRedis().Keys(ctx)
-}
-
-func (a Adapter) Values(ctx context.Context) ([]interface{}, error) {
-	return getAdapterRedis().Values(ctx)
-}
-
-func (a Adapter) Update(ctx context.Context, key interface{}, value interface{}) (*gvar.Var, bool, error) {
-	return update(ctx, key, value, a.getTable(ctx, key))
-}
-
-func (a Adapter) UpdateExpire(ctx context.Context, key interface{}, duration time.Duration) (time.Duration, error) {
-	return updateExpire(ctx, key, duration, a.getTable(ctx, key))
-}
-
-func (a Adapter) GetExpire(ctx context.Context, key interface{}) (time.Duration, error) {
-	return getExpire(ctx, key)
-}
-
-func (a Adapter) Remove(ctx context.Context, keys ...interface{}) (*gvar.Var, error) {
-	var lastValue *gvar.Var
-	for _, key := range keys {
-		v, err := Remove(ctx, key)
-		if err != nil {
-			return nil, err
-		}
-		lastValue = v
-	}
-	return lastValue, nil
-}
-
-func (a Adapter) Clear(ctx context.Context) error {
-	return getAdapterRedis().Clear(ctx)
-}
-
-func (a Adapter) Close(ctx context.Context) error {
-	return getAdapterRedis().Close(ctx)
 }
