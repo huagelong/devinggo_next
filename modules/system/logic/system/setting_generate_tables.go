@@ -586,11 +586,11 @@ func (s *sSettingGenerateTables) generateOneCode(ctx context.Context, codePath s
 	version := startTime.In(timezone).Format("20060102150405")
 	basename := fmt.Sprintf("%s_%s.%s%s", version, tables.TableName, "up", ext)
 	basenameDown := fmt.Sprintf("%s_%s.%s%s", version, tables.TableName, "down", ext)
-	err = gfile.PutContents(codePath+"/server/resource/migrations_pgsql/"+basename, sqlCode)
+	err = gfile.PutContents(codePath+"/server/resource/migrations/"+basename, sqlCode)
 	if err != nil {
 		return
 	}
-	err = gfile.PutContents(codePath+"/server/resource/migrations_pgsql/"+basenameDown, downSqlCode)
+	err = gfile.PutContents(codePath+"/server/resource/migrations/"+basenameDown, downSqlCode)
 	if err != nil {
 		return
 	}

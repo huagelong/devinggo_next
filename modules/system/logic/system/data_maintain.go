@@ -86,7 +86,7 @@ func (s *sDataMaintain) GetAllTableStatus(ctx context.Context, groupName string)
 
 func (s *sDataMaintain) getPgsqlAllTableStatus(ctx context.Context, db gdb.DB) (rs []*res.DataMaintain, err error) {
 	query := `
-		SELECT 
+		SELECT
 			tc.table_name as "Name",
 			pg_total_relation_size(quote_ident(tc.table_name)) as "Data_length",
 			obj_description(quote_ident(tc.table_name)::regclass::oid, 'pg_class') as "Comment",
@@ -94,8 +94,8 @@ func (s *sDataMaintain) getPgsqlAllTableStatus(ctx context.Context, db gdb.DB) (
 				COALESCE(last_vacuum, '1970-01-01'),
 				COALESCE(last_autovacuum, '1970-01-01')
 			), 'YYYY-MM-DD HH24:MI:SS') as "Update_time",
-			'InnoDB' as "Engine",
-			'utf8mb4_general_ci' as "Collation",
+			'PostgreSQL' as "Engine",
+			'UTF8' as "Collation",
 			0 as "Data_free"
 		FROM 
 			information_schema.tables tc
