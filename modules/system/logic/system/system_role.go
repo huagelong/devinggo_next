@@ -24,6 +24,7 @@ import (
 	"devinggo/modules/system/pkg/utils"
 	"devinggo/modules/system/pkg/utils/slice"
 	"devinggo/modules/system/service"
+
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -54,7 +55,7 @@ func (s *sSystemRole) GetByIds(ctx context.Context, ids []int64) (res []*entity.
 func (s *sSystemRole) Verify(r *ghttp.Request) bool {
 	ctx := r.GetCtx()
 	var (
-		userId = contexts.New().GetUserId(ctx)
+		userId = contexts.GetUserId(ctx)
 		err    error
 	)
 
@@ -71,7 +72,7 @@ func (s *sSystemRole) Verify(r *ghttp.Request) bool {
 	if isSuperAdmin {
 		return true
 	}
-	permission := contexts.New().GetPermission(ctx)
+	permission := contexts.GetPermission(ctx)
 	if g.IsEmpty(permission) {
 		g.Log().Debug(ctx, "permission is nil")
 		return false

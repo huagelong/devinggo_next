@@ -23,18 +23,18 @@ func AutoCreatedUpdatedByInsert(ctx context.Context, in *gdb.HookInsertInput) (e
 	hasCreatedBy := gstr.InArray(orm.GetTableFieds(in.Model), "created_by") || gstr.InArray(orm.GetTableFieds(in.Model), "\"created_by\"")
 	hasUpdatedBy := gstr.InArray(orm.GetTableFieds(in.Model), "updated_by") || gstr.InArray(orm.GetTableFieds(in.Model), "\"updated_by\"")
 	if hasCreatedBy || hasUpdatedBy {
-		userId := contexts.New().GetUserId(ctx)
+		userId := contexts.GetUserId(ctx)
 		//g.Log().Debug(ctx, "userId", userId)
 		if !g.IsEmpty(in.Data) && !g.IsEmpty(userId) {
 			for _, data := range in.Data {
 				if hasCreatedBy {
 					if _, ok := data["created_by"]; !ok {
-						data["created_by"] = contexts.New().GetUserId(ctx)
+						data["created_by"] = contexts.GetUserId(ctx)
 					}
 				}
 				if hasUpdatedBy {
 					if _, ok := data["updated_by"]; !ok {
-						data["updated_by"] = contexts.New().GetUserId(ctx)
+						data["updated_by"] = contexts.GetUserId(ctx)
 					}
 				}
 			}
@@ -48,7 +48,7 @@ func AutoCreatedUpdatedByUpdatefunc(ctx context.Context, in *gdb.HookUpdateInput
 	//g.Log().Debug(ctx, "in", in)
 	hasUpdatedBy := gstr.InArray(orm.GetTableFieds(in.Model), "updated_by") || gstr.InArray(orm.GetTableFieds(in.Model), "\"updated_by\"")
 	if hasUpdatedBy {
-		userId := contexts.New().GetUserId(ctx)
+		userId := contexts.GetUserId(ctx)
 		if !g.IsEmpty(in.Data) && !g.IsEmpty(userId) {
 			switch in.Data.(type) {
 			case map[string]interface{}:

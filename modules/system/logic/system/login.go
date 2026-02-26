@@ -21,6 +21,7 @@ import (
 	"devinggo/modules/system/pkg/utils/request"
 	"devinggo/modules/system/pkg/utils/secure"
 	"devinggo/modules/system/service"
+
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -91,7 +92,7 @@ func (s *sLogin) Login(ctx context.Context, username, password string) (token st
 	roleIds, _ := service.SystemUser().GetRoles(ctx, userInfo.Id)
 
 	deptIds, _ := service.SystemUser().GetDepts(ctx, userInfo.Id)
-	appId := contexts.New().GetAppId(ctx)
+	appId := contexts.GetAppId(ctx)
 	token, expire, err = service.Token().GenerateUserToken(ctx, consts2.AdminScene, appId, &model.Identity{
 		Id:       userInfo.Id,
 		AppId:    appId,

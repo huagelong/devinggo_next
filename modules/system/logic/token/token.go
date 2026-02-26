@@ -17,6 +17,7 @@ import (
 	"devinggo/modules/system/pkg/utils/config"
 	"devinggo/modules/system/service"
 	"fmt"
+
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/database/gredis"
 	"github.com/gogf/gf/v2/frame/g"
@@ -203,9 +204,9 @@ func (s *sToken) Logout(r *ghttp.Request) (err error) {
 		// 认证key
 		authKey = s.GetAuthKey(token)
 		// 登录token
-		tokenKey = s.GetTokenKey(contexts.New().GetModule(ctx), authKey)
+		tokenKey = s.GetTokenKey(contexts.GetModule(ctx), authKey)
 		// 身份绑定
-		bindKey = s.GetBindKey(contexts.New().GetModule(ctx), user.Id)
+		bindKey = s.GetBindKey(contexts.GetModule(ctx), user.Id)
 	)
 
 	// 删除token

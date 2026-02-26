@@ -23,6 +23,7 @@ import (
 	"devinggo/modules/system/pkg/utils/location"
 	"devinggo/modules/system/pkg/utils/request"
 	"devinggo/modules/system/service"
+
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -63,7 +64,7 @@ func (s *sSystemOperLog) Push(ctx context.Context) {
 		return
 	}
 
-	userId := contexts.New().GetUserId(ctx)
+	userId := contexts.GetUserId(ctx)
 	if g.IsEmpty(userId) {
 		return
 	}
@@ -73,7 +74,7 @@ func (s *sSystemOperLog) Push(ctx context.Context) {
 	}
 
 	serviceName := ""
-	permission := contexts.New().GetPermission(ctx)
+	permission := contexts.GetPermission(ctx)
 	if !g.IsEmpty(permission) {
 		var systemMenuEntity *entity.SystemMenu
 		systemMenuEntity, err = service.SystemMenu().GetMenuByPermission(ctx, permission)
@@ -104,7 +105,7 @@ func (s *sSystemOperLog) Push(ctx context.Context) {
 	if logSaveResponseData {
 		resJson = gconv.String(response.Json(r, bizCode, res))
 	}
-	postData := contexts.New().GetRequestBody(ctx)
+	postData := contexts.GetRequestBody(ctx)
 
 	systemOperLog := &do.SystemOperLog{
 		Username:     userInfo.Username,  // 用户名

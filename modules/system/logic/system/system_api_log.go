@@ -22,6 +22,7 @@ import (
 	"devinggo/modules/system/pkg/utils/location"
 	"devinggo/modules/system/pkg/utils/request"
 	"devinggo/modules/system/service"
+
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -97,7 +98,7 @@ func (s *sSystemApiLog) Push(ctx context.Context) {
 		return
 	}
 
-	permission := contexts.New().GetPermission(ctx)
+	permission := contexts.GetPermission(ctx)
 	var entity *entity.SystemApi
 	if !g.IsEmpty(permission) {
 		err := service.SystemApi().Model(ctx).Where("access_name", permission).Scan(&entity)
@@ -123,7 +124,7 @@ func (s *sSystemApiLog) Push(ctx context.Context) {
 
 	res, bizCode := response.ResponseHandler(r)
 	resJson := response.Json(r, bizCode, res)
-	postData := contexts.New().GetRequestBody(ctx)
+	postData := contexts.GetRequestBody(ctx)
 
 	systemApiLog := &do.SystemApiLog{
 		ApiId:        entity.Id,         // 用户名

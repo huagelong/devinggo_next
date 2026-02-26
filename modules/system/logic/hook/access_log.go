@@ -11,6 +11,7 @@ import (
 	"devinggo/modules/system/pkg/contexts"
 	"devinggo/modules/system/pkg/utils"
 	"devinggo/modules/system/service"
+
 	"github.com/gogf/gf/v2/net/ghttp"
 )
 
@@ -21,11 +22,11 @@ func (s *sHook) accessLog(r *ghttp.Request) {
 	}
 
 	var ctx = r.Context()
-	if contexts.New().Get(ctx) == nil {
+	if contexts.Get(ctx) == nil {
 		return
 	}
 
-	if contexts.New().GetExceptAccessLog(ctx) {
+	if contexts.GetExceptAccessLog(ctx) {
 		return
 	}
 

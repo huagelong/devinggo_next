@@ -15,12 +15,13 @@ import (
 	"devinggo/modules/system/pkg/utils"
 	"devinggo/modules/system/pkg/utils/config"
 	"devinggo/modules/system/pkg/utils/slice"
+	"reflect"
+	"time"
+
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
-	"reflect"
-	"time"
 )
 
 // FilterAuth 过滤数据权限
@@ -49,7 +50,7 @@ func FilterAuthWithField(filterField string) func(m *gdb.Model) *gdb.Model {
 		var (
 			roles []*entity.SystemRole
 			ctx   = m.GetCtx()
-			user  = contexts.New().GetUser(ctx)
+			user  = contexts.GetUser(ctx)
 		)
 
 		if user == nil {

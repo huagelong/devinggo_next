@@ -20,7 +20,7 @@ func (s *sMiddleware) ApiAuth(r *ghttp.Request) {
 	// 不需要验证登录的路由地址
 	if !s.isExceptLogin(ctx) {
 		// 检查登录
-		if g.IsEmpty(contexts.New().GetUser(ctx)) {
+		if g.IsEmpty(contexts.GetUser(ctx)) {
 			response.JsonError(r, codes.CodeNotLogged)
 			return
 		}

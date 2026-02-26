@@ -9,12 +9,13 @@ package response
 import (
 	"devinggo/modules/system/codes"
 	"devinggo/modules/system/pkg/contexts"
+	"net/http"
+
 	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gctx"
-	"net/http"
 )
 
 type Response struct {
@@ -67,7 +68,7 @@ func Json(r *ghttp.Request, bizCode gcode.Code, responseData interface{}) (jsonD
 	}
 
 	// 请求耗时
-	takeUpTime := contexts.New().GetTakeUpTime(r.GetCtx())
+	takeUpTime := contexts.GetTakeUpTime(r.GetCtx())
 
 	jsonData = Response{
 		Code:       bizCode.Code(),

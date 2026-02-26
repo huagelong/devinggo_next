@@ -27,16 +27,17 @@ import (
 	"devinggo/modules/system/service"
 	"encoding/base64"
 	"encoding/hex"
+	"net/url"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
-	"net/url"
-	"sort"
-	"strings"
-	"time"
 )
 
 type sSystemApp struct {
@@ -226,7 +227,7 @@ func (s *sSystemApp) ChangeStatus(ctx context.Context, id int64, status int) (er
 
 func (s *sSystemApp) Verify(r *ghttp.Request) (bool, error) {
 	ctx := r.Context()
-	permission := contexts.New().GetPermission(ctx)
+	permission := contexts.GetPermission(ctx)
 	if g.IsEmpty(permission) {
 		return false, myerror.ValidationFailed(ctx, "权限标识未定义")
 	}
@@ -238,7 +239,7 @@ func (s *sSystemApp) Verify(r *ghttp.Request) (bool, error) {
 	}
 	authMode := api.AuthMode
 	if authMode == 1 { //简易模式   HMAC（Hash-based Message Authentication Code）签名 + 时间戳防重放攻击
-		appId := contexts.New().GetAppId(ctx)
+		appId := contexts.GetAppId(ctx)
 		check, err := s.VerifyEasyMode(ctx, appId, api.Id)
 		if err != nil {
 			return false, err
@@ -267,7 +268,7 @@ func (s *sSystemApp) Verify(r *ghttp.Request) (bool, error) {
 
 // getAccessToken 获取access_token
 func (s *sSystemApp) GetAccessToken(ctx context.Context) (token string, exp int64, err error) {
-	appId := contexts.New().GetAppId(ctx)
+	appId := contexts.GetAppId(ctx)
 	var app *entity.SystemApp
 	err = s.Model(ctx).Where("app_id", appId).Scan(&app)
 	if utils.IsError(err) {
