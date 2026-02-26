@@ -28,7 +28,7 @@ values (1, 'access_key', '8aF6jkyh6bEnd4fkPHDc', 'Access Key Id', 'input', '', 9
 insert into "setting_config_group"("id", "name", "code", "created_by", "updated_by", "created_at", "updated_at",
                                    "remark")
 values (1, '站点配置', 'site_config', 1, 1, '2024-08-19 11:29:39', '2024-08-19 11:29:39', NULL),
-       (1, '上传配置', 'upload_config', 1, 1, '2024-08-19 11:29:39', '2024-08-19 11:29:39', NULL);
+       (2, '上传配置', 'upload_config', 1, 1, '2024-08-19 11:29:39', '2024-08-19 11:29:39', NULL);
 
 /*Data for the table "setting_crontab" */
 
@@ -72,7 +72,7 @@ values (1, 1);
 insert into "system_app_group"("id", "name", "status", "created_by", "updated_by", "created_at", "updated_at",
                                "deleted_at", "remark")
 values (1, '测试分组', 1, NULL, NULL, '2024-11-07 13:33:23', '2024-11-07 13:33:52', NULL, '测试分组'),
-       (1, '系统', 1, NULL, NULL, '2024-11-26 10:23:25', '2024-11-26 10:23:25', NULL, '系统超级分组');
+       (2, '系统', 1, NULL, NULL, '2024-11-26 10:23:25', '2024-11-26 10:23:25', NULL, '系统超级分组');
 
 /*Data for the table "system_dept" */
 
