@@ -17,14 +17,14 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type TagCache struct {
+type tagCache struct {
 	client               *gredis.Redis
 	setScript            string
 	deleteScript         string
 	invalidateTagsScript string
 }
 
-func newTagCache(ctx context.Context, client *gredis.Redis) (*TagCache, error) {
+func newTagCache(ctx context.Context, client *gredis.Redis) (*tagCache, error) {
 	const setScriptSrc = `
 local function split(input, sep)
     if sep == nil then
@@ -88,10 +88,10 @@ end
 	if err != nil {
 		return nil, err
 	}
-	return &TagCache{client: client, setScript: setScript, deleteScript: deleteScript, invalidateTagsScript: invalidateTagsScript}, nil
+	return &tagCache{client: client, setScript: setScript, deleteScript: deleteScript, invalidateTagsScript: invalidateTagsScript}, nil
 }
 
-func (c *TagCache) Set(ctx context.Context, key string, value interface{}, expiration time.Duration, tags []string) error {
+func (c *tagCache) set(ctx context.Context, key string, value interface{}, expiration time.Duration, tags []string) error {
 	keys := []string{key}
 	numkey := gconv.Int64(len(keys))
 	tagsStr := strings.Join(tags, ",")
@@ -103,7 +103,7 @@ func (c *TagCache) Set(ctx context.Context, key string, value interface{}, expir
 	return err
 }
 
-func (c *TagCache) Get(ctx context.Context, key string) (*gvar.Var, error) {
+func (c *tagCache) get(ctx context.Context, key string) (*gvar.Var, error) {
 	res, err := c.client.Get(ctx, key)
 	if err != nil {
 		if err == redis.Nil {
@@ -125,14 +125,14 @@ func (c *TagCache) Get(ctx context.Context, key string) (*gvar.Var, error) {
 	return res, nil
 }
 
-func (c *TagCache) Delete(ctx context.Context, key string) error {
+func (c *tagCache) delete(ctx context.Context, key string) error {
 	keys := []string{key}
 	numkeys := gconv.Int64(len(keys))
 	_, err := c.client.EvalSha(ctx, c.deleteScript, numkeys, keys, nil)
 	return err
 }
 
-func (c *TagCache) InvalidateTags(ctx context.Context, tags []string) error {
+func (c *tagCache) invalidateTags(ctx context.Context, tags []string) error {
 	var interfaceSlice []interface{}
 	for i := 0; i < len(tags); i++ {
 		interfaceSlice = append(interfaceSlice, tags[i])
@@ -141,7 +141,7 @@ func (c *TagCache) InvalidateTags(ctx context.Context, tags []string) error {
 	return err
 }
 
-func (c *TagCache) cleanUpItemTags(ctx context.Context, key string) error {
+func (c *tagCache) cleanUpItemTags(ctx context.Context, key string) error {
 	tags, err := c.client.SMembers(ctx, "item_tags:"+key)
 	if err != nil && err != redis.Nil {
 		return err
