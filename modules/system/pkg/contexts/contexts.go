@@ -108,12 +108,12 @@ func (s *sContexts) GetModule(ctx context.Context) string {
 }
 
 func (s *sContexts) SetUser(ctx context.Context, user *model.Identity) {
-	s.setField(ctx, "contexts.SetUser", func(c *model.Context) { c.User = user })
+	s.setField(ctx, "contexts.user", func(c *model.Context) { c.User = user })
 }
 
 // DelUser 清除当前用户信息
 func (s *sContexts) DelUser(ctx context.Context) {
-	s.setField(ctx, "contexts.DelUser", func(c *model.Context) { c.User = &model.Identity{Id: 0} })
+	s.setField(ctx, "contexts.user", func(c *model.Context) { c.User = &model.Identity{Id: 0} })
 }
 
 func (s *sContexts) GetUser(ctx context.Context) *model.Identity {
@@ -129,7 +129,7 @@ func (s *sContexts) GetUserId(ctx context.Context) int64 {
 }
 
 func (s *sContexts) SetAppId(ctx context.Context, appId string) {
-	s.setField(ctx, "contexts.SetAppId", func(c *model.Context) { c.AppId = appId })
+	s.setField(ctx, "contexts.appId", func(c *model.Context) { c.AppId = appId })
 }
 
 func (s *sContexts) GetAppId(ctx context.Context) string {
@@ -138,12 +138,12 @@ func (s *sContexts) GetAppId(ctx context.Context) string {
 
 // SetData 设置额外数据
 func (s *sContexts) SetData(ctx context.Context, k string, v interface{}) {
-	s.setField(ctx, "contexts.SetData", func(c *model.Context) { c.Data[k] = v })
+	s.setField(ctx, "contexts.data", func(c *model.Context) { c.Data[k] = v })
 }
 
 // SetDataMap 批量设置额外数据
 func (s *sContexts) SetDataMap(ctx context.Context, vs g.Map) {
-	s.setField(ctx, "contexts.SetDataMap", func(c *model.Context) {
+	s.setField(ctx, "contexts.data", func(c *model.Context) {
 		for k, v := range vs {
 			c.Data[k] = v
 		}
@@ -160,7 +160,7 @@ func (s *sContexts) GetPermission(ctx context.Context) string {
 }
 
 func (s *sContexts) SetPermission(ctx context.Context, permission string) {
-	s.setField(ctx, "contexts.SetPermission", func(c *model.Context) { c.Permission = permission })
+	s.setField(ctx, "contexts.permission", func(c *model.Context) { c.Permission = permission })
 }
 
 func (s *sContexts) GetExceptAuth(ctx context.Context) bool {
@@ -168,7 +168,7 @@ func (s *sContexts) GetExceptAuth(ctx context.Context) bool {
 }
 
 func (s *sContexts) SetExceptAuth(ctx context.Context, exceptAuth bool) {
-	s.setField(ctx, "contexts.SetExceptAuth", func(c *model.Context) { c.ExceptAuth = exceptAuth })
+	s.setField(ctx, "contexts.exceptAuth", func(c *model.Context) { c.ExceptAuth = exceptAuth })
 }
 
 func (s *sContexts) GetExceptLogin(ctx context.Context) bool {
@@ -176,7 +176,7 @@ func (s *sContexts) GetExceptLogin(ctx context.Context) bool {
 }
 
 func (s *sContexts) SetExceptLogin(ctx context.Context, exceptLogin bool) {
-	s.setField(ctx, "contexts.SetExceptLogin", func(c *model.Context) { c.ExceptLogin = exceptLogin })
+	s.setField(ctx, "contexts.exceptLogin", func(c *model.Context) { c.ExceptLogin = exceptLogin })
 }
 
 func (s *sContexts) GetExceptAccessLog(ctx context.Context) bool {
@@ -184,11 +184,11 @@ func (s *sContexts) GetExceptAccessLog(ctx context.Context) bool {
 }
 
 func (s *sContexts) SetExceptAccessLog(ctx context.Context, exceptAccessLog bool) {
-	s.setField(ctx, "contexts.SetExceptAccessLog", func(c *model.Context) { c.ExceptAccessLog = exceptAccessLog })
+	s.setField(ctx, "contexts.exceptAccessLog", func(c *model.Context) { c.ExceptAccessLog = exceptAccessLog })
 }
 
 func (s *sContexts) SetTenantId(ctx context.Context, tenantId int64) {
-	s.setField(ctx, "contexts.SetTenantId", func(c *model.Context) { c.TenantId = tenantId })
+	s.setField(ctx, "contexts.tenantId", func(c *model.Context) { c.TenantId = tenantId })
 }
 
 // GetTenantId 获取租户ID，未开启多租户时返回默认租户ID
@@ -217,12 +217,12 @@ func (s *sContexts) GetRequestBody(ctx context.Context) string {
 }
 
 func (s *sContexts) SetRequestBody(ctx context.Context, requestBody string) {
-	s.setField(ctx, "contexts.SetRequestBody", func(c *model.Context) { c.RequestBody = requestBody })
+	s.setField(ctx, "contexts.requestBody", func(c *model.Context) { c.RequestBody = requestBody })
 }
 
 // SetLanguage 设置当前请求语言
 func (s *sContexts) SetLanguage(ctx context.Context, lang string) {
-	s.setField(ctx, "contexts.SetLanguage", func(c *model.Context) { c.Language = lang })
+	s.setField(ctx, "contexts.language", func(c *model.Context) { c.Language = lang })
 }
 
 // GetLanguage 获取当前请求语言
