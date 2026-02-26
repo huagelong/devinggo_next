@@ -48,15 +48,26 @@ func GetQueryMap(rawQuery string) (map[string]interface{}, error) {
 
 // 获取db名称
 func GetConnectDbName(dsn string) (string, error) {
-	// 正则表达式匹配 protocol(address) 部分
-	re := regexp.MustCompile(`^(\w+):(.*)@(\w+)\(([^)]+)\)\/(\w+)`)
-	matches := re.FindStringSubmatch(dsn)
-
-	if len(matches) < 6 {
-		return "", fmt.Errorf("invalid DSN format")
+	// PostgreSQL 连接字符串格式: pgsql:host=... port=... dbname=... user=... password=...
+	if strings.HasPrefix(dsn, "pgsql:") || strings.HasPrefix(dsn, "postgres:") || strings.HasPrefix(dsn, "postgresql:") {
+		params := strings.Split(dsn, " ")
+		for _, param := range params {
+			if strings.HasPrefix(param, "dbname=") {
+				return strings.TrimPrefix(param, "dbname="), nil
+			}
+		}
+		return "", fmt.Errorf("dbname not found in DSN")
 	}
 
-	return matches[5], nil
+	// MySQL 连接字符串格式 (已废弃，保留用于向后兼容)
+	// mysql:user:password@protocol(host:port)/dbname
+	re := regexp.MustCompile(`^(\w+):(.*)@(\w+)\(([^)]+)\)\/(\w+)`)
+	matches := re.FindStringSubmatch(dsn)
+	if len(matches) >= 6 {
+		return matches[5], nil
+	}
+
+	return "", fmt.Errorf("invalid DSN format")
 }
 
 func SafeGo(ctx context.Context, f func(ctx context.Context), lv ...int) {
