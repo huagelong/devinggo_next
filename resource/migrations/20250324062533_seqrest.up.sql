@@ -19,20 +19,6 @@ SELECT setval(
                false
        );
 
--- setting_generate_columns
-SELECT setval(
-               'setting_generate_columns_id_seq',
-               (SELECT COALESCE(MAX(id), 0) + 1 FROM "setting_generate_columns"),
-               false
-       );
-
--- setting_generate_tables
-SELECT setval(
-               'setting_generate_tables_id_seq',
-               (SELECT COALESCE(MAX(id), 0) + 1 FROM "setting_generate_tables"),
-               false
-       );
-
 -- system_api
 SELECT setval(
                'system_api_id_seq',

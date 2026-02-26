@@ -2,8 +2,6 @@ TRUNCATE TABLE setting_config CASCADE;
 TRUNCATE TABLE setting_config_group CASCADE;
 TRUNCATE TABLE setting_crontab CASCADE;
 TRUNCATE TABLE setting_crontab_log CASCADE;
-TRUNCATE TABLE setting_generate_columns CASCADE;
-TRUNCATE TABLE setting_generate_tables CASCADE;
 TRUNCATE TABLE system_api CASCADE;
 TRUNCATE TABLE system_api_group CASCADE;
 TRUNCATE TABLE system_api_log CASCADE;

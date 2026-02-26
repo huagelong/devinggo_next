@@ -2,8 +2,6 @@ drop table if exists setting_config;
 drop table if exists setting_config_group;
 drop table if exists setting_crontab;
 drop table if exists setting_crontab_log;
-drop table if exists setting_generate_columns;
-drop table if exists setting_generate_tables;
 drop table if exists system_api;
 drop table if exists system_api_group;
 drop table if exists system_api_log;
