@@ -21,28 +21,13 @@ import (
 	"github.com/hibiken/asynq"
 )
 
-type cUrlCronWorker struct {
-	Type string
-}
-
 func init() {
-	// 自动注册Worker
-	worker.Register(NewUrlCronWorker())
+	// 使用新方式注册Worker
+	worker.RegisterWorkerFunc(consts.URL_CRON, executeUrlCronWorker)
 }
 
-// NewUrlCronWorker 创建URL请求Worker
-func NewUrlCronWorker() *cUrlCronWorker {
-	return &cUrlCronWorker{
-		Type: consts.URL_CRON,
-	}
-}
-
-func (s *cUrlCronWorker) GetType() string {
-	return s.Type
-}
-
-// Execute 执行任务
-func (s *cUrlCronWorker) Execute(ctx context.Context, t *asynq.Task) (err error) {
+// executeUrlCronWorker 执行URL请求Worker
+func executeUrlCronWorker(ctx context.Context, t *asynq.Task) error {
 	data, err := glob2.GetParamters[cron.UrlCronData](ctx, t)
 	if err != nil {
 		return err
@@ -51,8 +36,7 @@ func (s *cUrlCronWorker) Execute(ctx context.Context, t *asynq.Task) (err error)
 
 	url := data.Url
 	if g.IsEmpty(url) {
-		err = myerror.MissingParameter(ctx, `url为空`)
-		return
+		return myerror.MissingParameter(ctx, `url为空`)
 	}
 	method := data.Method
 	if g.IsEmpty(method) {
@@ -109,5 +93,5 @@ func (s *cUrlCronWorker) Execute(ctx context.Context, t *asynq.Task) (err error)
 	}
 
 	glob2.WithWorkLog().Infof(ctx, `type:%s, response:%+v`, t.Type(), resContent)
-	return
+	return nil
 }
