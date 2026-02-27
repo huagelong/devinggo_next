@@ -14,15 +14,20 @@ Upload 包是 DevingGo 框架中的文件上传工具包，提供了完整的文
 - ✅ MD5 校验
 - ✅ 自动资源类型识别
 - ✅ 文件大小格式化
+- ✅ 链式调用API
+- ✅ 类型安全的常量定义
 
 ## 文件说明
 
 | 文件名 | 说明 |
 |--------|------|
-| upload.go | 核心上传功能，处理普通文件上传 |
-| chunk_upload.go | 分片上传功能，用于大文件上传 |
+| constants.go | 常量定义（存储模式、资源类型等） |
+| validator.go | 统一的文件验证器 |
+| uploader.go | 支持链式调用的上传器（核心） |
+| upload.go | 工具函数（MD5计算、路径管理等） |
+| chunk_upload.go | 分片合并辅助功能 |
 | cloud.go | 云存储配置和操作 |
-| save_network_image.go | 网络图片保存功能 |
+| save_network_image.go | 文件信息获取辅助功能 |
 
 ## 快速开始
 
@@ -33,21 +38,27 @@ package main
 
 import (
     "context"
-    "devinggo/modules/system/model/req"
     "devinggo/modules/system/pkg/upload"
+    "github.com/gogf/gf/v2/net/ghttp"
 )
 
-func uploadFile(ctx context.Context, file *ghttp.UploadFile) {
-    // 构建上传参数
-    input := &req.FileUploadInput{
-        File:        file,
-        StorageMode: 1,         // 1: 本地存储, 2: 云存储
-        Name:        "",        // 可选：自定义文件名
-        RandomName:  true,      // 是否使用随机文件名
+// 最简单的方式（使用默认配置）
+func uploadFileSimple(ctx context.Context, file *ghttp.UploadFile) {
+    result, err := upload.NewUploader(ctx).UploadFile(file)
+    if err != nil {
+        return
     }
+    println("文件URL:", result.Url)
+}
+
+// 使用链式调用的优雅方式
+func uploadFile(ctx context.Context, file *ghttp.UploadFile) {
+    result, err := upload.NewUploader(ctx).
+        UseLocalStorage().      // 使用本地存储
+        SetRandomName(true).    // 使用随机文件名
+        SetValidateType(true).  // 启用类型验证
+        UploadFile(file)
     
-    // 执行上传
-    result, err := upload.Upload(ctx, input)
     if err != nil {
         // 处理错误
         return
@@ -63,22 +74,13 @@ func uploadFile(ctx context.Context, file *ghttp.UploadFile) {
 ### 2. 分片上传（大文件）
 
 ```go
-func chunkUpload(ctx context.Context, file *ghttp.UploadFile, index, total int64, hash string) {
-    // 构建分片上传参数
-    input := &req.ChunkUploadInput{
-        File:        file,
-        StorageMode: 1,
-        Index:       index,     // 当前分片索引（从1开始）
-        Total:       total,     // 总分片数
-        Hash:        hash,      // 文件唯一标识
-        Name:        "large_file.zip",
-        Ext:         "zip",
-        Type:        "application/zip",
-        RandomName:  true,
-    }
+func chunkUpload(ctx context.Context, file *ghttp.UploadFile, index, total int64, hash, ext, fileType, fileName string) {
+    // 使用新的分片上传API
+    result, err := upload.NewUploader(ctx).
+        UseLocalStorage().
+        SetRandomName(true).
+        UploadChunk(file, index, total, hash, ext, fileType, fileName)
     
-    // 执行分片上传
-    result, err := upload.ChunkUpload(ctx, input)
     if err != nil {
         // 处理错误
         return
@@ -95,13 +97,12 @@ func chunkUpload(ctx context.Context, file *ghttp.UploadFile, index, total int64
 
 ```go
 func saveNetworkImage(ctx context.Context, imageUrl string) {
-    // 保存网络图片到本地
-    result, err := upload.SaveNetworkImage(
-        ctx,
-        1,              // 存储模式
-        imageUrl,       // 图片URL
-        true,           // 是否使用随机文件名
-    )
+    // 从URL保存图片
+    result, err := upload.NewUploader(ctx).
+        UseLocalStorage().      // 使用本地存储
+        SetRandomName(true).    // 使用随机文件名
+        SaveFromURL(imageUrl)
+    
     if err != nil {
         // 处理错误
         return
@@ -112,76 +113,138 @@ func saveNetworkImage(ctx context.Context, imageUrl string) {
 }
 ```
 
-## 核心函数说明
+## 新特性说明
 
-### Upload - 普通文件上传
+### 🎯 链式调用API
 
-上传单个文件到服务器，支持本地存储和云存储。
+新版本提供了优雅的链式调用API，使代码更简洁易读：
 
-**函数签名:**
 ```go
-func Upload(ctx context.Context, in *req.FileUploadInput) (*res.SystemUploadFileRes, error)
+// 创建上传器并配置
+result, err := upload.NewUploader(ctx).
+    UseCloudStorage().              // 使用云存储
+    SetRandomName(true).            // 随机文件名
+    SetValidateType(true).          // 验证文件类型
+    SetCustomName("myfile.jpg").    // 自定义文件名（可选）
+    UploadFile(file)
 ```
 
-**参数说明:**
-- `ctx`: 上下文对象
-- `in.File`: 上传的文件对象
-- `in.StorageMode`: 存储模式（1: 本地, 2: 云存储）
-- `in.Name`: 自定义文件名（可选）
-- `in.RandomName`: 是否使用随机文件名
+### 📋 统一验证器
 
-**返回值:**
+提供独立的验证器，支持多种验证场景：
+
 ```go
-type SystemUploadFileRes struct {
-    StorageMode int     // 存储模式
-    OriginName  string  // 原始文件名
-    ObjectName  string  // 对象名称（保存后的文件名）
-    Hash        string  // 文件MD5值
-    MimeType    string  // 资源类型
-    StoragePath string  // 存储路径
-    Suffix      string  // 文件后缀
-    SizeByte    int64   // 文件大小（字节）
-    SizeInfo    string  // 格式化的文件大小
-    LocalPath   string  // 本地路径
-    Url         string  // 访问URL
+validator := upload.NewValidator(ctx)
+
+// 验证文件（文件+图片）
+err := validator.ValidateFile(file)
+
+// 仅验证图片
+err := validator.ValidateImage(file)
+
+// 验证扩展名
+err := validator.ValidateExtension("jpg", true)
+```
+
+### 🎨 常量定义
+
+所有魔法数字和字符串都定义为常量：
+
+```go
+// 存储模式
+upload.StorageModeLocal  // 本地存储 = 1
+upload.StorageModeCloud  // 云存储 = 2
+
+// 资源类型
+upload.ResourceTypeImage  // 图片
+upload.ResourceTypeVideo  // 视频
+upload.ResourceTypeAudio  // 音频
+upload.ResourceTypeText   // 文本/文档
+upload.ResourceTypeZip    // 压缩包
+upload.ResourceTypeOther  // 其他
+```
+
+## 核心API说明
+
+### NewUploader - 创建上传器
+
+创建一个新的文件上传器实例，支持链式配置。
+
+```go
+func NewUploader(ctx context.Context) *Uploader
+```
+
+**链式配置方法：**
+- `SetStorageMode(mode int)` - 设置存储模式
+- `SetRandomName(random bool)` - 设置是否使用随机文件名
+- `SetCustomName(name string)` - 设置自定义文件名
+- `SetValidateType(validate bool)` - 设置是否验证文件类型
+- `UseCloudStorage()` - 快捷设置云存储
+- `UseLocalStorage()` - 快捷设置本地存储
+
+**上传方法：**
+- `UploadFile(file)` - 上传文件
+- `UploadImage(file)` - 上传图片（自动验证图片类型）
+- `SaveFromURL(url)` - 从URL保存文件
+- `UploadChunk(...)` - 上传文件分片
+
+**使用示例:**
+```go
+// 基础上传
+result, err := upload.NewUploader(ctx).UploadFile(file)
+
+// 图片上传
+result, err := upload.NewUploader(ctx).
+    SetRandomName(true).
+    UploadImage(file)
+
+// 云存储上传
+result, err := upload.NewUploader(ctx).
+    UseCloudStorage().
+    SetValidateType(true).
+    UploadFile(file)
+
+// 分片上传
+result, err := upload.NewUploader(ctx).
+    SetRandomName(true).
+    UploadChunk(file, index, total, hash, ext, fileType, fileName)
+```
+
+### NewValidator - 创建验证器
+
+创建一个文件验证器实例，支持多种验证场景。
+
+```go
+func NewValidator(ctx context.Context) *Validator
+```
+
+**验证器方法：**
+- `ValidateFile(file)` - 验证文件类型（支持文件和图片）
+- `ValidateImage(file)` - 验证图片类型
+- `ValidateExtension(ext, allowImage)` - 验证文件扩展名
+
+**使用示例:**
+```go
+validator := upload.NewValidator(ctx)
+
+// 验证文件类型
+if err := validator.ValidateFile(file); err != nil {
+    // 文件类型不允许上传
+    return err
+}
+
+// 验证图片类型
+if err := validator.ValidateImage(file); err != nil {
+    // 图片类型不允许上传
+    return err
+}
+
+// 验证扩展名
+if err := validator.ValidateExtension("jpg", true); err != nil {
+    // 扩展名不允许
+    return err
 }
 ```
-
-### ChunkUpload - 分片上传
-
-用于上传大文件，将文件分割成多个分片依次上传，最后自动合并。
-
-**函数签名:**
-```go
-func ChunkUpload(ctx context.Context, in *req.ChunkUploadInput) (*res.SystemUploadFileRes, error)
-```
-
-**参数说明:**
-- `in.Index`: 当前分片索引（从1开始）
-- `in.Total`: 总分片数
-- `in.Hash`: 文件唯一标识（用于关联各个分片）
-- `in.Ext`: 文件扩展名
-- `in.Type`: 文件MIME类型
-
-**工作流程:**
-1. 客户端将大文件分割成多个分片
-2. 按顺序上传每个分片
-3. 所有分片上传完成后自动合并
-4. 返回完整文件信息
-
-### SaveNetworkImage - 保存网络图片
-
-从网络URL下载图片并保存到服务器。
-
-**函数签名:**
-```go
-func SaveNetworkImage(ctx context.Context, storageMode int, url string, randomName bool) (*res.SystemUploadFileRes, error)
-```
-
-**参数说明:**
-- `storageMode`: 存储模式
-- `url`: 图片URL地址
-- `randomName`: 是否使用随机文件名
 
 ## 工具函数
 
@@ -207,30 +270,6 @@ resourceType := upload.GetResourceType("image/jpeg")  // 返回 "image"
 resourceType := upload.GetResourceType("video/mp4")   // 返回 "video"
 ```
 
-### CheckFileMineType - 校验文件类型
-
-检查上传的文件类型是否在允许的范围内。
-
-```go
-func CheckFileMineType(ctx context.Context, file *ghttp.UploadFile) error
-```
-
-**使用示例:**
-```go
-if err := upload.CheckFileMineType(ctx, file); err != nil {
-    // 文件类型不允许上传
-    return err
-}
-```
-
-### CheckImageMineType - 校验图片类型
-
-专门用于检查图片文件类型。
-
-```go
-func CheckImageMineType(ctx context.Context, file *ghttp.UploadFile) error
-```
-
 ### CalcFileMd5 - 计算文件MD5
 
 计算上传文件的MD5哈希值，用于文件唯一性校验。
@@ -246,6 +285,21 @@ if err != nil {
     return err
 }
 println("文件MD5:", md5Hash)
+```
+
+### FormatSize - 格式化文件大小
+
+将字节数格式化为人类可读的文件大小。
+
+```go
+func FormatSize(size int64) string
+```
+
+**使用示例:**
+```go
+sizeStr := upload.FormatSize(1024)           // "1.00 KB"
+sizeStr := upload.FormatSize(1024 * 1024)    // "1.00 MB"
+sizeStr := upload.FormatSize(1024 * 1024 * 1024) // "1.00 GB"
 ```
 
 ## 云存储配置
@@ -281,56 +335,12 @@ func GetCloudUpload(ctx context.Context) (*goss.Goss, error)
 func PutFromFile(ctx context.Context, filePath string, remotePath string) error
 ```
 
-**使用示例:**
-```go
-err := upload.PutFromFile(ctx, "/local/path/file.jpg", "/remote/path/file.jpg")
-if err != nil {
-    return err
-}
-```
-
 ### IsLocalUpload - 判断是否本地存储
 
 检查当前配置的存储模式是否为本地存储。
 
 ```go
 func IsLocalUpload(ctx context.Context) bool
-```
-
-## 文件路径管理
-
-### GetUploadPath - 获取上传基础路径
-
-获取本地上传文件的基础路径。
-
-```go
-func GetUploadPath(ctx context.Context) string
-```
-
-### GetUploadFilePath - 获取上传文件完整路径
-
-根据资源类型和日期获取文件的完整存储路径。
-
-```go
-func GetUploadFilePath(ctx context.Context, resourceType, dateDirName string) string
-```
-
-**路径结构:**
-```
-resource/public/uploads/{resourceType}/{dateDirName}/
-```
-
-### GetUploadUrlPath - 获取文件访问URL路径
-
-获取上传文件的URL访问路径。
-
-```go
-func GetUploadUrlPath(ctx context.Context, resourceType, dateDirName, fileName string) string
-```
-
-**URL结构:**
-```
-/uploads/{resourceType}/{dateDirName}/{fileName}
 ```
 
 ## 完整使用示例
@@ -342,8 +352,8 @@ package controller
 
 import (
     "context"
-    "devinggo/modules/system/model/req"
     "devinggo/modules/system/pkg/upload"
+    "github.com/gogf/gf/v2/frame/g"
     "github.com/gogf/gf/v2/net/ghttp"
 )
 
@@ -360,23 +370,13 @@ func (c *FileController) Upload(ctx context.Context, r *ghttp.Request) {
         return
     }
     
-    // 校验文件类型
-    if err := upload.CheckFileMineType(ctx, file); err != nil {
-        r.Response.WriteJson(g.Map{
-            "code": 400,
-            "msg":  err.Error(),
-        })
-        return
-    }
+    // 使用新的链式API上传（自动验证类型）
+    result, err := upload.NewUploader(ctx).
+        UseLocalStorage().      // 本地存储
+        SetRandomName(true).    // 随机文件名
+        SetValidateType(true).  // 启用验证
+        UploadFile(file)
     
-    // 执行上传
-    input := &req.FileUploadInput{
-        File:        file,
-        StorageMode: 1,
-        RandomName:  true,
-    }
-    
-    result, err := upload.Upload(ctx, input)
     if err != nil {
         r.Response.WriteJson(g.Map{
             "code": 500,
@@ -398,7 +398,6 @@ func (c *FileController) Upload(ctx context.Context, r *ghttp.Request) {
 ### 示例2: 分片上传完整流程
 
 ```go
-// 前端分片上传流程
 func (c *FileController) ChunkUpload(ctx context.Context, r *ghttp.Request) {
     // 获取分片信息
     file := r.GetUploadFile("file")
@@ -407,31 +406,15 @@ func (c *FileController) ChunkUpload(ctx context.Context, r *ghttp.Request) {
     hash := r.GetString("hash")       // 文件唯一标识
     ext := r.GetString("ext")         // 文件扩展名
     fileName := r.GetString("name")   // 原始文件名
-    mimeType := r.GetString("type")   // MIME类型
-    
-    // 校验分片文件类型
-    if err := upload.CheckChunkFileMineType(ctx, ext); err != nil {
-        r.Response.WriteJson(g.Map{
-            "code": 400,
-            "msg":  err.Error(),
-        })
-        return
-    }
+    fileType := r.GetString("type")   // MIME类型
     
     // 执行分片上传
-    input := &req.ChunkUploadInput{
-        File:        file,
-        StorageMode: 1,
-        Index:       index,
-        Total:       total,
-        Hash:        hash,
-        Name:        fileName,
-        Ext:         ext,
-        Type:        mimeType,
-        RandomName:  true,
-    }
+    result, err := upload.NewUploader(ctx).
+        UseLocalStorage().
+        SetRandomName(true).
+        SetValidateType(true).
+        UploadChunk(file, index, total, hash, ext, fileType, fileName)
     
-    result, err := upload.ChunkUpload(ctx, input)
     if err != nil {
         r.Response.WriteJson(g.Map{
             "code": 500,
@@ -473,7 +456,12 @@ func (c *FileController) SaveNetworkImage(ctx context.Context, r *ghttp.Request)
     }
     
     // 保存网络图片
-    result, err := upload.SaveNetworkImage(ctx, 1, imageUrl, true)
+    result, err := upload.NewUploader(ctx).
+        UseLocalStorage().
+        SetRandomName(true).
+        SetValidateType(false).
+        SaveFromURL(imageUrl)
+    
     if err != nil {
         r.Response.WriteJson(g.Map{
             "code": 500,
@@ -492,20 +480,18 @@ func (c *FileController) SaveNetworkImage(ctx context.Context, r *ghttp.Request)
 }
 ```
 
-### 示例4: 同时使用云存储
+### 示例4: 使用云存储
 
 ```go
 func (c *FileController) UploadToCloud(ctx context.Context, r *ghttp.Request) {
     file := r.GetUploadFile("file")
     
-    // 上传到云存储
-    input := &req.FileUploadInput{
-        File:        file,
-        StorageMode: 2,  // 云存储模式
-        RandomName:  true,
-    }
+    // 使用新API上传到云存储
+    result, err := upload.NewUploader(ctx).
+        UseCloudStorage().      // 使用云存储
+        SetRandomName(true).    // 随机文件名
+        UploadFile(file)
     
-    result, err := upload.Upload(ctx, input)
     if err != nil {
         r.Response.WriteJson(g.Map{
             "code": 500,
@@ -554,16 +540,17 @@ upload_config:
 
 1. **文件大小限制**: 需要在服务器和框架配置中设置合适的上传大小限制
 2. **分片大小**: 建议分片大小为 5MB - 10MB，根据网络环境调整
-3. **文件类型校验**: 建议在上传前进行文件类型校验，防止上传危险文件
+3. **文件类型校验**: 使用 `SetValidateType(true)` 启用文件类型校验
 4. **MD5校验**: 可以使用MD5值进行文件去重和完整性校验
 5. **云存储**: 使用云存储时，需要确保配置正确且有相应的权限
 6. **路径安全**: 所有文件路径都经过处理，防止路径遍历攻击
 7. **并发上传**: 分片上传支持并发，但需要注意服务器负载
+8. **常量使用**: 使用预定义常量（如 `StorageModeLocal`）代替魔法数字
 
 ## 常见问题
 
 ### Q: 如何支持更大的文件？
-A: 使用分片上传功能，将大文件分割成多个小分片上传。
+A: 使用分片上传功能 `UploadChunk()`，将大文件分割成多个小分片上传。
 
 ### Q: 如何防止重复上传？
 A: 可以通过文件的MD5值进行判断，上传前先检查系统中是否已存在相同MD5的文件。
@@ -576,13 +563,6 @@ A: 可以修改配置文件中的 `upload.dir` 配置项，或直接调用相关
 
 ### Q: 支持哪些云存储服务？
 A: 支持所有S3兼容的对象存储服务，包括阿里云OSS、腾讯云COS、AWS S3、MinIO等。
-
-## 更新日志
-
-- v1.0.0: 初始版本，支持基本上传功能
-- v1.1.0: 增加分片上传功能
-- v1.2.0: 增加云存储支持
-- v1.3.0: 增加网络图片保存功能
 
 ## 技术支持
 
