@@ -22,7 +22,6 @@ type TestTaskData struct {
 func Send(ctx context.Context, data TestTaskData) error {
 	return worker.NewTaskBuilder(ctx, consts.TEST_TASK).
 		WithData(data).
-		WithTaskID(consts.TEST_TASK).
 		Send()
 }
 
@@ -30,7 +29,6 @@ func Send(ctx context.Context, data TestTaskData) error {
 func SendWithDelay(ctx context.Context, data TestTaskData, delay int) error {
 	return worker.NewTaskBuilder(ctx, consts.TEST_TASK).
 		WithData(data).
-		WithTaskID(consts.TEST_TASK).
 		WithDelay(time.Duration(delay) * time.Second).
 		Send()
 }
