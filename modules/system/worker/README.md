@@ -215,7 +215,7 @@ worker.NewTaskBuilder(ctx, consts.CMD_CRON).
 
 ## 添加新的Worker
 
-### 1. 创建Worker实现
+### 方式一：函数式注册（推荐）
 
 在 `modules/system/worker/server/` 目录下创建新文件：
 
@@ -229,22 +229,14 @@ import (
     "github.com/hibiken/asynq"
 )
 
-type MyWorker struct {
-    Type string
+// 定义数据结构
+type MyTaskData struct {
+    Field1 string `json:"field1"`
+    Field2 int    `json:"field2"`
 }
 
-// NewMyWorker 创建Worker实例
-func NewMyWorker() *MyWorker {
-    return &MyWorker{
-        Type: consts.MY_TASK,
-    }
-}
-
-func (w *MyWorker) GetType() string {
-    return w.Type
-}
-
-func (w *MyWorker) Execute(ctx context.Context, t *asynq.Task) error {
+// 定义执行函数
+func executeMyTask(ctx context.Context, t *asynq.Task) error {
     // 解析参数
     data, err := worker.GetParameters[MyTaskData](ctx, t)
     if err != nil {
@@ -257,28 +249,25 @@ func (w *MyWorker) Execute(ctx context.Context, t *asynq.Task) error {
     return nil
 }
 
-type MyTaskData struct {
-    Field1 string `json:"field1"`
-    Field2 int    `json:"field2"`
+// 自动注册
+func init() {
+    worker.RegisterWorkerFunc(consts.MY_TASK, executeMyTask)
 }
 ```
 
-### 2. 注册Worker
+### 方式二：使用Builder（进阶）
 
-在 `modules/system/worker/worker.go` 的 init 函数中添加注册：
+如果需要更多控制，可以使用WorkerBuilder：
 
 ```go
 func init() {
-    ctx := gctx.GetInitCtx()
-    globalManager = worker.New(ctx)
-
-    globalManager.RegisterWorker(server.NewTestWorker()).
-        RegisterWorker(server.NewMyWorker()).  // 添加新Worker
-        // ...其他Worker
+    worker.NewWorkerBuilder(consts.MY_TASK).
+        WithExecute(executeMyTask).
+        Register()
 }
 ```
 
-### 3. 发送任务
+### 发送任务
 
 ```go
 worker.NewTaskBuilder(ctx, consts.MY_TASK).
@@ -291,51 +280,121 @@ worker.NewTaskBuilder(ctx, consts.MY_TASK).
 
 ## 迁移说明
 
-### 旧代码
+### 从旧的结构体方式迁移到函数式注册
 
+#### Worker迁移
+
+**旧代码（结构体+接口）：**
 ```go
-// 旧的init注册方式（已删除）
-var testWorker = &cTestWorker{
-    Type: consts.TEST_TASK,
+type TestWorker struct {
+    Type string
 }
 
-func init() {
-    server.Register(testWorker)
-}
-
-// 旧的任务发送方式（已简化）
-taskItem := test_task.New()
-taskItem.Send(ctx, data)
-```
-
-### 新代码
-
-```go
-// 新的构造函数方式
-func NewTestWorker() *cTestWorker {
-    return &cTestWorker{
+func NewTestWorker() *TestWorker {
+    return &TestWorker{
         Type: consts.TEST_TASK,
     }
 }
 
-// 在 worker.go 的 init 函数中自动注册
-// 应用启动时自动执行，无需手动调用
+func (w *TestWorker) GetType() string {
+    return w.Type
+}
 
-// 新的任务发送方式
+func (w *TestWorker) Execute(ctx context.Context, t *asynq.Task) error {
+    data, err := worker.GetParameters[TestTaskData](ctx, t)
+    if err != nil {
+        return err
+    }
+    // 处理逻辑...
+    return nil
+}
+
+// 在worker.go中注册
+func init() {
+    globalManager.RegisterWorker(server.NewTestWorker())
+}
+```
+
+**新代码（函数式注册）：**
+```go
+// 定义执行函数
+func executeTestTask(ctx context.Context, t *asynq.Task) error {
+    data, err := worker.GetParameters[TestTaskData](ctx, t)
+    if err != nil {
+        return err
+    }
+    // 处理逻辑...
+    return nil
+}
+
+// 在本文件的init中直接注册
+func init() {
+    worker.RegisterWorkerFunc(consts.TEST_TASK, executeTestTask)
+}
+```
+
+#### Cron迁移
+
+**旧代码（结构体+5个接口方法）：**
+```go
+type TestCron struct {
+    Type string
+}
+
+func (c *TestCron) GetType() string { return consts.TEST_CRON }
+func (c *TestCron) GetDescription() string { return "测试定时任务" }
+func (c *TestCron) GetPayload(params string) (interface{}, error) {
+    return map[string]string{"data": params}, nil
+}
+
+func init() {
+    globalManager.RegisterCronTask(&TestCron{})
+}
+```
+
+**新代码（函数式注册）：**
+```go
+func init() {
+    worker.RegisterCronFunc(
+        consts.TEST_CRON,
+        "测试定时任务",
+        func(params string) (interface{}, error) {
+            return map[string]string{"data": params}, nil
+        },
+    )
+}
+```
+
+#### 任务发送方式
+
+**旧的任务发送方式（已简化）：**
+```go
+taskItem := test_task.New()
+taskItem.Send(ctx, data)
+```
+
+**新的任务发送方式（推荐）：**
+```go
+// 方式1：使用便捷函数
 test_task.Send(ctx, data)
-// 或使用TaskBuilder
+
+// 方式2：使用TaskBuilder（更强大）
 worker.NewTaskBuilder(ctx, consts.TEST_TASK).
     WithData(data).
+    WithQueue("critical").
+    WithDelay(5 * time.Minute).
     Send()
 ```
 
 ## 优势
 
-✅ **集中管理** - 所有Worker和Cron任务在一个地方注册，清晰明了  
-✅ **按需加载** - 不再依赖init函数的自动注册  
+✅ **函数式注册** - 使用RegisterWorkerFunc/RegisterCronFunc，代码减少90%  
+✅ **集中管理** - 所有Worker和Cron任务自动注册，清晰明了  
+✅ **按需加载** - 支持init函数自动注册，无需手动调用  
 ✅ **灵活配置** - 可以根据环境选择性注册Worker  
 ✅ **易于测试** - 可以为测试创建独立的Worker集合  
 ✅ **代码简洁** - 使用TaskBuilder大幅简化任务发送代码  
+✅ **无需结构体** - 不再需要定义Worker结构体和接口方法  
 
 ## 配置
 
