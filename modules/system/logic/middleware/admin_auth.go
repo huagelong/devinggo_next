@@ -7,7 +7,6 @@
 package middleware
 
 import (
-	"devinggo/modules/system/codes"
 	"devinggo/modules/system/pkg/contexts"
 	"devinggo/modules/system/pkg/response"
 	"devinggo/modules/system/service"
@@ -24,7 +23,7 @@ func (s *sMiddleware) AdminAuth(r *ghttp.Request) {
 	if !s.IsExceptLogin(ctx) {
 		// 检查登录
 		if g.IsEmpty(contexts.GetUser(ctx)) || contexts.GetUser(ctx).Id == 0 {
-			response.JsonError(r, codes.CodeNotLogged, "未登录或登录状态已过期，需要重新登录")
+			response.Unauthorized(r, "未登录或登录状态已过期，需要重新登录")
 			return
 		}
 	}
@@ -32,7 +31,7 @@ func (s *sMiddleware) AdminAuth(r *ghttp.Request) {
 	if !s.IsExceptAuth(ctx) {
 		// 验证路由访问权限
 		if !service.SystemRole().Verify(r) {
-			response.JsonError(r, codes.CodeForbidden, "没有权限访问该资源")
+			response.Forbidden(r, "没有权限访问该资源")
 			return
 		}
 	}

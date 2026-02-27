@@ -28,19 +28,16 @@ type Response struct {
 	TakeUpTime int64       `json:"takeUpTime"`
 }
 
-func JsonError(r *ghttp.Request, code gcode.Code, text ...string) {
-	var textData string
-	if len(text) > 0 {
-		textData = text[0]
-	}
-	r.SetError(gerror.NewCode(code, textData))
-}
+// ============================== 底层方法 ==============================
+// 以下方法为底层实现，建议使用下方的便捷方法（Success, Fail, Ok, Error 等）
 
 // Redirect 重定向
 func Redirect(r *ghttp.Request, location string, code ...int) {
 	r.Response.RedirectTo(location, code...)
 }
 
+// Json 构建响应对象（不直接输出）
+// 注意：通常情况下推荐使用便捷方法（Success, Fail 等），此方法用于特殊场景如日志记录
 func Json(r *ghttp.Request, bizCode gcode.Code, responseData interface{}) (jsonData Response) {
 	var (
 		msg string
@@ -82,6 +79,8 @@ func Json(r *ghttp.Request, bizCode gcode.Code, responseData interface{}) (jsonD
 	return
 }
 
+// JsonExit 输出 JSON 响应并退出
+// 注意：通常情况下推荐使用便捷方法（Success, Fail, Ok, Error 等），此方法用于需要自定义 code 的场景
 func JsonExit(r *ghttp.Request, code gcode.Code, data ...interface{}) {
 	responseData := interface{}(nil)
 	if len(data) > 0 {
@@ -91,6 +90,7 @@ func JsonExit(r *ghttp.Request, code gcode.Code, data ...interface{}) {
 	r.Response.WriteJsonExit(jsonData)
 }
 
+// ResponseHandler 响应处理器（用于中间件）
 func ResponseHandler(r *ghttp.Request) (res interface{}, bizCode gcode.Code) {
 	//ctx := r.Context()
 	var (
