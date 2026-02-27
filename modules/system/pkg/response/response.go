@@ -122,3 +122,102 @@ func ResponseHandler(r *ghttp.Request) (res interface{}, bizCode gcode.Code) {
 	}
 	return
 }
+
+// ============================== 便捷方法 ==============================
+
+// Success 成功响应，返回数据
+func Success(r *ghttp.Request, data ...interface{}) {
+	responseData := interface{}(nil)
+	if len(data) > 0 {
+		responseData = data[0]
+	}
+	JsonExit(r, gcode.CodeOK, responseData)
+}
+
+// SuccessWithMessage 成功响应，自定义消息
+func SuccessWithMessage(r *ghttp.Request, message string, data ...interface{}) {
+	responseData := interface{}(nil)
+	if len(data) > 0 {
+		responseData = data[0]
+	}
+	code := gcode.New(gcode.CodeOK.Code(), message, nil)
+	JsonExit(r, code, responseData)
+}
+
+// Ok Success 的别名，更符合 HTTP 语义
+func Ok(r *ghttp.Request, data ...interface{}) {
+	Success(r, data...)
+}
+
+// OkWithMessage SuccessWithMessage 的别名
+func OkWithMessage(r *ghttp.Request, message string, data ...interface{}) {
+	SuccessWithMessage(r, message, data...)
+}
+
+// Fail 失败响应，自定义错误消息
+func Fail(r *ghttp.Request, message string) {
+	code := gcode.New(gcode.CodeInternalError.Code(), message, nil)
+	JsonExit(r, code, nil)
+}
+
+// FailWithCode 失败响应，自定义错误码和消息
+func FailWithCode(r *ghttp.Request, code int, message string) {
+	bizCode := gcode.New(code, message, nil)
+	JsonExit(r, bizCode, nil)
+}
+
+// FailWithData 失败响应，带数据
+func FailWithData(r *ghttp.Request, message string, data interface{}) {
+	code := gcode.New(gcode.CodeInternalError.Code(), message, nil)
+	JsonExit(r, code, data)
+}
+
+// Error Fail 的别名，更直观的错误响应
+func Error(r *ghttp.Request, message string) {
+	Fail(r, message)
+}
+
+// ErrorWithCode FailWithCode 的别名
+func ErrorWithCode(r *ghttp.Request, code int, message string) {
+	FailWithCode(r, code, message)
+}
+
+// BadRequest 参数错误响应（400）
+func BadRequest(r *ghttp.Request, message ...string) {
+	msg := "请求参数错误"
+	if len(message) > 0 {
+		msg = message[0]
+	}
+	code := gcode.New(gcode.CodeInvalidParameter.Code(), msg, nil)
+	JsonExit(r, code, nil)
+}
+
+// Unauthorized 未授权响应（401）
+func Unauthorized(r *ghttp.Request, message ...string) {
+	msg := "未授权"
+	if len(message) > 0 {
+		msg = message[0]
+	}
+	code := gcode.New(codes.CodeNotLogged.Code(), msg, nil)
+	JsonExit(r, code, nil)
+}
+
+// Forbidden 无权限响应（403）
+func Forbidden(r *ghttp.Request, message ...string) {
+	msg := "无权限访问"
+	if len(message) > 0 {
+		msg = message[0]
+	}
+	code := gcode.New(codes.CodeForbidden.Code(), msg, nil)
+	JsonExit(r, code, nil)
+}
+
+// NotFound 资源未找到响应（404）
+func NotFound(r *ghttp.Request, message ...string) {
+	msg := "资源未找到"
+	if len(message) > 0 {
+		msg = message[0]
+	}
+	code := gcode.New(gcode.CodeNotFound.Code(), msg, nil)
+	JsonExit(r, code, nil)
+}
