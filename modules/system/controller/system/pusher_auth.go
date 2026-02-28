@@ -11,7 +11,6 @@ import (
 
 	"devinggo/modules/system/api/system"
 	"devinggo/modules/system/controller/base"
-	"devinggo/modules/system/myerror"
 	"devinggo/modules/system/pkg/websocket"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -28,12 +27,18 @@ type pusherAuthController struct {
 
 // PusherAuth Pusher频道认证端点
 // 用于Private/Presence频道的认证签名生成
+// 注意：此接口直接返回Pusher标准格式的JSON，不使用GoFrame响应包装
 func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.PusherAuthReq) (rs *system.PusherAuthRes, err error) {
-	rs = &system.PusherAuthRes{}
+	r := g.RequestFromCtx(ctx)
 
 	// 验证socket_id格式（防止伪造）
 	if req.SocketId == "" || req.ChannelName == "" {
-		err = myerror.ValidationFailed(ctx, "socket_id and channel_name are required")
+		// 返回Pusher标准错误格式
+		r.Response.Status = 403
+		r.Response.WriteJson(g.Map{
+			"error": "socket_id and channel_name are required",
+		})
+		r.ExitAll()
 		return
 	}
 
@@ -42,13 +47,21 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 	serverName := websocket.GetServerNameBySocketId4Redis(ctx, req.SocketId)
 	if serverName == "" {
 		g.Log().Warning(ctx, "Invalid socket_id:", req.SocketId)
-		err = myerror.ValidationFailed(ctx, "Invalid socket_id or connection not found")
+		r.Response.Status = 403
+		r.Response.WriteJson(g.Map{
+			"error": "Invalid socket_id or connection not found",
+		})
+		r.ExitAll()
 		return
 	}
 
 	// ⚠️ 安全检查：验证频道类型
 	if !websocket.RequiresAuth(req.ChannelName) {
-		err = myerror.ValidationFailed(ctx, "This channel does not require authentication")
+		r.Response.Status = 403
+		r.Response.WriteJson(g.Map{
+			"error": "This channel does not require authentication",
+		})
+		r.ExitAll()
 		return
 	}
 
@@ -68,22 +81,36 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 		channelData, err := websocket.EncodeChannelData(gconv.String(c.UserId), userInfo)
 		if err != nil {
 			g.Log().Warning(ctx, "EncodeChannelData error:", err)
-			err = myerror.ValidationFailed(ctx, "Failed to generate channel_data")
-			return rs, err
+			r.Response.Status = 500
+			r.Response.WriteJson(g.Map{
+				"error": "Failed to generate channel_data",
+			})
+			r.ExitAll()
+			return nil, err
 		}
 
 		// 生成认证签名（包含channel_data）
 		auth := websocket.GenerateAuthSignature(req.SocketId, req.ChannelName, channelData)
-		rs.Auth = auth
-		rs.ChannelData = channelData
 
 		g.Log().Debugf(ctx, "Generated presence auth for user:%d, socket:%s, channel:%s", c.UserId, req.SocketId, req.ChannelName)
+
+		// 直接返回Pusher标准格式（不包装在GoFrame响应中）
+		r.Response.WriteJson(g.Map{
+			"auth":         auth,
+			"channel_data": channelData,
+		})
+		r.ExitAll()
 	} else {
 		// Private频道认证（不包含channel_data）
 		auth := websocket.GenerateAuthSignature(req.SocketId, req.ChannelName, "")
-		rs.Auth = auth
 
 		g.Log().Debugf(ctx, "Generated private auth for user:%d, socket:%s, channel:%s", c.UserId, req.SocketId, req.ChannelName)
+
+		// 直接返回Pusher标准格式（不包装在GoFrame响应中）
+		r.Response.WriteJson(g.Map{
+			"auth": auth,
+		})
+		r.ExitAll()
 	}
 
 	return

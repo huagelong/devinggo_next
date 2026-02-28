@@ -412,17 +412,27 @@
                 
                 const result = await response.json();
                 
-                // 清空token
-                document.getElementById('token').value = '';
-                localStorage.removeItem('pusher_test_token');
-                localStorage.removeItem('pusher_test_username');
-                
-                updateLoginStatus('● 未登录', false);
-                log('✅ 已退出登录', 'event');
-                
-                // 断开WebSocket连接
-                if (pusher) {
-                    disconnect();
+                // 后端成功时返回: { code: 0, success: true }
+                if (result.success) {
+                    // 清空token
+                    document.getElementById('token').value = '';
+                    localStorage.removeItem('pusher_test_token');
+                    localStorage.removeItem('pusher_test_username');
+                    
+                    updateLoginStatus('● 未登录', false);
+                    log('✅ 已退出登录', 'event');
+                    
+                    // 断开WebSocket连接
+                    if (pusher) {
+                        disconnect();
+                    }
+                } else {
+                    log('⚠️ 退出登录响应异常: ' + (result.message || '未知错误'), 'error');
+                    // 即使后端返回失败也清空本地token（容错处理）
+                    document.getElementById('token').value = '';
+                    localStorage.removeItem('pusher_test_token');
+                    localStorage.removeItem('pusher_test_username');
+                    updateLoginStatus('● 未登录', false);
                 }
             } catch (error) {
                 log('❌ 退出请求失败: ' + error.message, 'error');
@@ -595,8 +605,23 @@
             presenceChannelObj.bind('pusher:subscription_succeeded', function(members) {
                 document.getElementById('presenceStatus').textContent = '✅ 已订阅';
                 log('✅ Presence频道订阅成功: ' + channel, 'event');
-                log('👥 当前成员数: ' + members.count, 'data');
-                log('👥 成员列表: ' + JSON.stringify(members.members), 'data');
+                
+                // 调试：打印members对象结构
+                console.log('🔍 Members对象:', members);
+                console.log('🔍 members.count:', members.count);
+                console.log('🔍 members.members:', members.members);
+                console.log('🔍 members.me:', members.me);
+                
+                // 修复：Pusher.js的count属性可能需要直接访问
+                const memberCount = members.count || Object.keys(members.members || {}).length || 0;
+                log('👥 当前成员数: ' + memberCount, 'data');
+                
+                // 打印所有成员
+                if (members.members) {
+                    log('👥 成员列表: ' + JSON.stringify(members.members), 'data');
+                } else {
+                    log('⚠️ members.members为空', 'data');
+                }
                 
                 updateMembersInfo(members);
             });
@@ -619,11 +644,25 @@
         
         function updateMembersInfo(members) {
             const membersInfo = document.getElementById('membersInfo');
-            membersInfo.innerHTML = '<strong>当前成员:</strong> ' + members.count + ' 人<br>';
             
-            members.each(function(member) {
-                membersInfo.innerHTML += '• ' + member.id + ': ' + JSON.stringify(member.info) + '<br>';
-            });
+            // 修复：正确计算成员数量
+            const memberCount = members.count || Object.keys(members.members || {}).length || 0;
+            membersInfo.innerHTML = '<strong>当前成员:</strong> ' + memberCount + ' 人<br>';
+            
+            // 修复：检查members.each是否存在
+            if (typeof members.each === 'function') {
+                members.each(function(member) {
+                    membersInfo.innerHTML += '• ' + member.id + ': ' + JSON.stringify(member.info) + '<br>';
+                });
+            } else if (members.members) {
+                // 如果没有each方法，手动遍历members.members对象
+                for (const memberId in members.members) {
+                    const member = members.members[memberId];
+                    membersInfo.innerHTML += '• ' + memberId + ': ' + JSON.stringify(member) + '<br>';
+                }
+            } else {
+                membersInfo.innerHTML += '<em>暂无成员信息</em><br>';
+            }
         }
         
         function testRateLimit() {
