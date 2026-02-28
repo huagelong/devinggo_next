@@ -327,8 +327,10 @@ npm install pusher-js@8.3.0
 - ✅ [config.yaml](../../../../hack/config.yaml) - Pusher配置
 
 ### 文档
-- ✅ [plan-websocketPusherProtocol.prompt8.3.0.md](plan-websocketPusherProtocol.prompt8.3.0.md) - 实现计划
+- ✅ [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - 实现总结
 - ✅ [TEST_VALIDATION.md](TEST_VALIDATION.md) - 本验证清单
+- ✅ [QUICKSTART.md](QUICKSTART.md) - 快速启动指南
+- ✅ [CHECKLIST.md](CHECKLIST.md) - 完整检查清单
 
 ---
 

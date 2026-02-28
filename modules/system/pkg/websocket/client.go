@@ -102,23 +102,16 @@ func (c *Client) write(ctx context.Context) {
 		glob.WithWsLog().Debug(ctx, "write conn close SocketID:", c.SocketID)
 		c.close(ctx)
 	}()
-	for {
-		select {
-		case message, ok := <-c.Send:
-			if !ok {
-				// 发送数据错误 关闭连接
-				return
-			}
-			// glob.WithWsLog().Debug(ctx, "response:", message)
+	for message := range c.Send {
+		// glob.WithWsLog().Debug(ctx, "response:", message)
 
-			err := c.Socket.WriteJSON(message)
-			if err != nil {
-				glob.WithWsLog().Warning(ctx, "WriteJSON error:", err)
-			}
-
-			// 发送完成后释放对象回池（性能优化）
-			ReleasePusherResponse(message)
+		err := c.Socket.WriteJSON(message)
+		if err != nil {
+			glob.WithWsLog().Warning(ctx, "WriteJSON error:", err)
 		}
+
+		// 发送完成后释放对象回池（性能优化）
+		ReleasePusherResponse(message)
 	}
 }
 
@@ -181,7 +174,6 @@ func (c *Client) SendSubscriptionError(channel, errorType, message string, statu
 // Heartbeat 心跳更新
 func (c *Client) Heartbeat(currentTime int64) {
 	c.HeartbeatTime = currentTime
-	return
 }
 
 // IsHeartbeatTimeout 心跳是否超时

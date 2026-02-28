@@ -84,7 +84,6 @@ func (manager *ClientManager) ClientsRange(f func(socketId string, client *Clien
 			return
 		}
 	}
-	return
 }
 
 // GetClientsLen 获取客户端总数
