@@ -56,9 +56,10 @@
   
 - ✅ **Encrypted Channels** (`private-encrypted-*`) **【新增】**
   - 需要 HTTP 认证
-  - 使用与 Private Channel 相同的认证流程
-  - 支持 Client Events
-  - ⚠️ 注意：实际加密由客户端 SDK 处理
+  - 返回 `auth` 和 `shared_secret`（32字节随机密钥）
+  - ⚠️ **不支持 Client Events**（Pusher.js 官方限制）
+  - 仅支持服务器推送的加密消息（HTTP Events API）
+  - 使用 TweetNaCl 进行端到端加密
 
 **实现文件**：
 - `websocket/channel.go`（✅ 刚刚更新 添加 Encrypted 支持）
@@ -200,14 +201,18 @@ wrappedData := map[string]interface{}{
 
 **描述**：
 - ✅ 支持 `private-encrypted-*` 频道订阅和认证
-- ❌ 服务器端不处理加密/解密（由客户端 SDK 处理）
-- ⚠️ 需要客户端使用 `pusher-js/with-encryption` 版本
+- ✅ 生成 `shared_secret`（32字节随机密钥，用于 NaCl 加密）
+- ✅ 服务器端支持路由加密消息（不解密）
+- ❌ **不支持 Client Events**（这是 Pusher.js 的官方限制，非实现缺陷）
+- ⚠️ 需要客户端使用 TweetNaCl 库
 
 **影响**：
 - 服务器只负责消息路由，不参与加密过程
-- 客户端必须正确配置加密库
+- 客户端必须正确配置 NaCl 加密库
+- **Encrypted Channels 仅用于接收服务器推送的加密消息**
+- 如需双向加密通信，应使用其他方案（如自定义加密 + Private Channel）
 
-**优先级**：低（客户端行为，服务器端已满足需求）
+**优先级**：低（功能已满足设计要求，Client Events 限制是协议规范）
 
 ### 3. **Stats 收集**
 

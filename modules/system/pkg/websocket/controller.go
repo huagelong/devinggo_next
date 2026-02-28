@@ -268,11 +268,19 @@ func ClientEventController(ctx context.Context, client *Client, req *PusherReque
 		return
 	}
 
-	// ⚠️ v8.3.0要求：仅允许Private/Presence/Encrypted频道使用Client Events
+	// ⚠️ v8.3.0要求：仅允许Private/Presence频道使用Client Events
+	// ⚠️ Encrypted Channels 不支持 Client Events（Pusher.js 官方限制）
 	channelType := GetChannelType(req.Channel)
 	if channelType == ChannelTypePublic {
 		glob.WithWsLog().Warning(ctx, "Client events not allowed on public channels:", req.Channel)
-		client.SendError("Client events only allowed on private, presence and encrypted channels", CodeClientEventForbidden)
+		client.SendError("Client events only allowed on private and presence channels", CodeClientEventForbidden)
+		return
+	}
+
+	// ⚠️ 加密频道不支持 Client Events（Pusher Protocol 规范）
+	if channelType == ChannelTypeEncrypted {
+		glob.WithWsLog().Warning(ctx, "Client events not supported on encrypted channels:", req.Channel)
+		client.SendError("Client events are not supported for encrypted channels", CodeClientEventForbidden)
 		return
 	}
 

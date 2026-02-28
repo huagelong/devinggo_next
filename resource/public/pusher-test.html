@@ -263,18 +263,30 @@
         <div style="margin-top: 10px;">
             <strong>状态:</strong> <span id="encryptedStatus">未订阅</span>
         </div>
-        <div style="margin-top: 10px;">
-            <input type="text" id="encryptedEventName" value="client-message" placeholder="client-*">
-            <input type="text" id="encryptedEventData" value='{"text":"加密消息"}' placeholder="JSON数据">
-            <button onclick="sendEncryptedEvent()">发送加密事件</button>
-        </div>
-        <div id="encryptedInfo" style="margin-top: 10px; padding: 10px; background: #f0f0f0; border-radius: 4px;">
-            <strong>📚 说明:</strong>
+        <div id="encryptedInfo" style="margin-top: 10px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>⚠️ 重要限制:</strong>
             <ul style="margin: 5px 0; padding-left: 20px; font-size: 13px;">
+                <li><strong style="color: #d9534f;">Encrypted Channels 不支持 Client Events</strong>（Pusher.js 官方限制）</li>
+                <li>仅支持服务器推送的加密消息（HTTP Events API）</li>
                 <li>需要 TweetNaCl 库支持（已自动加载）</li>
                 <li>加密由客户端自动处理，服务器端只负责路由</li>
-                <li>所有 Client Events 会自动加密和解密</li>
+                <li>使用场景：接收服务器推送的敏感数据（如支付通知、个人信息等）</li>
             </ul>
+        </div>
+        <div style="margin-top: 10px; padding: 10px; background: #e7f3ff; border-left: 4px solid #2196F3; border-radius: 4px;">
+            <strong>💡 测试说明:</strong>
+            <p style="margin: 5px 0; font-size: 13px;">
+                要测试加密消息接收，需要使用 HTTP Events API 推送消息。<br>
+                示例命令（PowerShell）：
+            </p>
+            <pre style="background: #f5f5f5; padding: 8px; border-radius: 4px; font-size: 12px; overflow-x: auto;">$body = @{
+    name = "encrypted-message"
+    channel = "private-encrypted-secure"
+    data = '{"message":"这是加密消息"}'
+} | ConvertTo-Json
+Invoke-RestMethod -Uri "http://localhost:8070/system/pusher/events" `
+    -Method POST -Body $body -ContentType "application/json" `
+    -Headers @{"X-API-Key"="your-api-key"}</pre>
         </div>
     </div>
     
@@ -938,6 +950,7 @@
                 document.getElementById('encryptedStatus').textContent = '✅ 已订阅（加密模式）';
                 log('✅ 加密频道订阅成功: ' + channel, 'event');
                 log('🔒 所有消息将自动加密/解密（NaCl 端到端加密）', 'data');
+                log('⚠️ 注意：Encrypted Channels 不支持 Client Events（仅接收服务器推送）', 'data');
             });
             
             encryptedChannelObj.bind('pusher:subscription_error', function(err) {
@@ -945,31 +958,21 @@
                 log('❌ 加密频道订阅失败: ' + JSON.stringify(err), 'error');
             });
             
-            // 监听 Client Events（会自动解密）
-            encryptedChannelObj.bind('client-message', function(data) {
+            // 监听服务器推送的加密消息（会自动解密）
+            encryptedChannelObj.bind('encrypted-message', function(data) {
                 log('📩 收到加密消息（已自动解密）: ' + JSON.stringify(data), 'event');
+            });
+            
+            // 监听所有事件用于调试
+            encryptedChannelObj.bind_global(function(eventName, data) {
+                if (!eventName.startsWith('pusher:')) {
+                    log('📨 收到加密频道事件: ' + eventName + ' => ' + JSON.stringify(data), 'event');
+                }
             });
         }
         
-        function sendEncryptedEvent() {
-            if (!encryptedChannelObj) {
-                alert('请先订阅加密频道！');
-                return;
-            }
-            
-            const eventName = document.getElementById('encryptedEventName').value;
-            const eventDataStr = document.getElementById('encryptedEventData').value;
-            
-            try {
-                const eventData = JSON.parse(eventDataStr);
-                log('📤 发送加密事件: ' + eventName + '（将自动加密）', 'event');
-                encryptedChannelObj.trigger(eventName, eventData);
-                log('✅ 加密事件已发送（NaCl 加密）', 'data');
-            } catch (e) {
-                alert('JSON数据格式错误: ' + e.message);
-                log('❌ JSON解析失败: ' + e.message, 'error');
-            }
-        }
+        // ⚠️ Encrypted Channels 不支持 Client Events（已移除 sendEncryptedEvent 功能）
+        // 这是 Pusher.js 的官方限制，加密频道仅支持服务器推送
         
         function unsubscribeEncrypted() {
             if (encryptedChannelObj) {
