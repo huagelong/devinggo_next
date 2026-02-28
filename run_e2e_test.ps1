@@ -18,7 +18,7 @@ if ($OnlyPush) {
     Write-Host ""
     
     try {
-        $null = Invoke-WebRequest -Uri "http://localhost:8070" -Method GET -TimeoutSec 2
+        $null = Invoke-WebRequest -Uri "http://localhost:8070/health" -Method GET -TimeoutSec 2
         Write-Host "Server is running" -ForegroundColor Green
     }
     catch {
@@ -125,7 +125,7 @@ while ($retries -lt $maxRetries) {
     $retries++
     
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:8070" -Method GET -TimeoutSec 2 -ErrorAction Stop
+        $response = Invoke-WebRequest -Uri "http://localhost:8070/health" -Method GET -TimeoutSec 2 -ErrorAction Stop
         
         if ($response.StatusCode -eq 200) {
             $serverReady = $true

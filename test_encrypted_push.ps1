@@ -1,8 +1,10 @@
-﻿# Encrypted Channels Push Test with Pusher Authentication
+﻿# Server Push Test with Pusher Authentication
+# Tests Encrypted Channel with server-side encryption
+# Server encrypts data using saved shared_secret
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Encrypted Channels Push Test" -ForegroundColor Cyan
+Write-Host "  Encrypted Channel Push Test" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -16,7 +18,7 @@ $authVersion = "1.0"
 Write-Host "[1/5] Checking server..." -ForegroundColor Yellow
 
 try {
-    $response = Invoke-WebRequest -Uri "http://localhost:8070" -Method GET -TimeoutSec 3
+    $response = Invoke-WebRequest -Uri "http://localhost:8070/health" -Method GET -TimeoutSec 3
     Write-Host "Server is running" -ForegroundColor Green
 }
 catch {
@@ -32,7 +34,7 @@ Write-Host ""
 Write-Host "Please confirm:" -ForegroundColor Yellow
 Write-Host "  1. Browser opened pusher-test.html" -ForegroundColor White
 Write-Host "  2. Connected to Pusher" -ForegroundColor White
-Write-Host "  3. Subscribed to private-encrypted-secure" -ForegroundColor White
+Write-Host "  3. Subscribed to 'private-encrypted-secure' channel" -ForegroundColor White
 Write-Host ""
 Write-Host "Press any key to continue..." -ForegroundColor Cyan
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
@@ -43,15 +45,15 @@ Write-Host "[3/5] Building message..." -ForegroundColor Yellow
 
 $timestamp = (Get-Date).ToString("yyyy-MM-ddTHH:mm:sszzz")
 $testData = @{
-    type = "encrypted-test"
-    message = "Test encrypted message"
+    type = "server-encrypted-test"
+    message = "Test encrypted message from server"
     amount = 12345.67
-    sensitive = "Bank account 6222 **** **** 1234"
+    sensitive = "Secret data: 6222 **** **** 1234"
     timestamp = $timestamp
     test_id = [guid]::NewGuid().ToString()
 }
 
-# Note: Pusher Events API expects 'channels' array
+# Use Encrypted Channel - server will encrypt using saved shared_secret
 $requestBody = @{
     name = "encrypted-message"
     channels = @("private-encrypted-secure")
@@ -124,13 +126,13 @@ try {
     Write-Host "========================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "Details:" -ForegroundColor Cyan
-    Write-Host "  Channel: private-encrypted-secure" -ForegroundColor White
-    Write-Host "  Event: encrypted-message" -ForegroundColor White
+    Write-Host "  Channel: private-test" -ForegroundColor White
+    Write-Host "  Event: server-push-event" -ForegroundColor White
     Write-Host "  Time: $timestamp" -ForegroundColor White
     Write-Host ""
     Write-Host "Check browser console for the message!" -ForegroundColor Yellow
     Write-Host "You should see:" -ForegroundColor Gray
-    Write-Host "  📨 收到加密频道事件: encrypted-message" -ForegroundColor Gray
+    Write-Host "  📨 收到私有频道事件: server-push-event" -ForegroundColor Gray
     
     if ($response) {
         Write-Host ""

@@ -65,11 +65,36 @@ func (c *cPusherEvents) Events(ctx context.Context, req *system.PusherEventsReq)
 	g.Log().Debugf(ctx, "HTTP Events API: event=%s, channels=%v, data=%s", req.Name, req.Channels, req.Data)
 
 	for _, channel := range req.Channels {
+		// 处理数据：如果是加密频道，需要加密
+		dataToSend := req.Data
+
+		// 检测是否为加密频道
+		if strings.HasPrefix(channel, "private-encrypted-") {
+			g.Log().Debugf(ctx, "Detected encrypted channel: %s, encrypting data...", channel)
+
+			// 获取 shared_secret
+			sharedSecret, err := websocket.GetSharedSecret(ctx, channel)
+			if err != nil {
+				g.Log().Warningf(ctx, "Failed to get shared_secret for channel %s: %v", channel, err)
+				continue // 跳过此频道
+			}
+
+			// 加密数据（req.Data 已经是 JSON 字符串）
+			encrypted, err := websocket.EncryptMessage(ctx, req.Data, sharedSecret)
+			if err != nil {
+				g.Log().Warningf(ctx, "Failed to encrypt message for channel %s: %v", channel, err)
+				continue // 跳过此频道
+			}
+
+			dataToSend = encrypted // 使用加密后的 JSON {ciphertext, nonce}
+			g.Log().Debugf(ctx, "Encrypted data for channel %s", channel)
+		}
+
 		// 构建Pusher响应消息
 		pusherResponse := &websocket.PusherResponse{
 			Event:   req.Name,
 			Channel: channel,
-			Data:    req.Data, // 已经是JSON字符串
+			Data:    dataToSend,
 		}
 
 		g.Log().Debugf(ctx, "Sending to channel: %s, event: %s", channel, req.Name)

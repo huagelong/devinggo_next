@@ -76,12 +76,21 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 		// shared_secret 是一个 32 字节的随机密钥（Base64 编码）
 		// Pusher.js 会使用此密钥进行端到端加密
 		sharedSecret := websocket.GenerateSharedSecret()
-		
+
+		// 保存 shared_secret 到 Redis（用于服务器端加密推送）
+		// Key: pusher:encrypted_secret:{channel_name}
+		// TTL: 24小时（可配置）
+		saveErr := websocket.SaveSharedSecret(ctx, req.ChannelName, sharedSecret)
+		if saveErr != nil {
+			g.Log().Warning(ctx, "Failed to save shared_secret:", saveErr)
+			// 继续执行，不影响客户端认证
+		}
+
 		// 生成认证签名（不包含 channel_data）
 		auth := websocket.GenerateAuthSignature(req.SocketId, req.ChannelName, "")
-		
+
 		g.Log().Debugf(ctx, "Generated encrypted channel auth for user:%d, socket:%s, channel:%s", c.UserId, req.SocketId, req.ChannelName)
-		
+
 		// 返回 Pusher 标准格式（包含 shared_secret）
 		r.Response.WriteJson(g.Map{
 			"auth":          auth,
