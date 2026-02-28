@@ -284,9 +284,8 @@
     channel = "private-encrypted-secure"
     data = '{"message":"这是加密消息"}'
 } | ConvertTo-Json
-Invoke-RestMethod -Uri "http://localhost:8070/system/pusher/events" `
-    -Method POST -Body $body -ContentType "application/json" `
-    -Headers @{"X-API-Key"="your-api-key"}</pre>
+Invoke-RestMethod -Uri "http://localhost:8070/apps/devinggo-app-id/events" `
+    -Method POST -Body $body -ContentType "application/json"</pre>
         </div>
     </div>
     
