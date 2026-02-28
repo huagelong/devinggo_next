@@ -739,34 +739,45 @@
         function updateMembersInfo(members) {
             const membersInfo = document.getElementById('membersInfo');
             
-            // Pusher.js Members 对象结构
+            // Pusher.js Members 对象结构调试
             console.log('🔍 [updateMembersInfo] members:', members);
             console.log('🔍 [updateMembersInfo] members.count:', members.count);
-            console.log('🔍 [updateMembersInfo] typeof members.each:', typeof members.each);
+            console.log('🔍 [updateMembersInfo] members.presence:', members.presence);
             
-            const memberCount = members.count || 0;
+            // 如果 members 本身没有 count，尝试从 presence 属性获取
+            let actualMembers = members;
+            if (members.presence && typeof members.presence === 'object') {
+                console.log('🔍 检测到 presence 嵌套结构，使用 members.presence');
+                actualMembers = members.presence;
+            }
+            
+            const memberCount = actualMembers.count || 0;
+            const memberIds = actualMembers.ids || [];
+            const memberHash = actualMembers.hash || {};
+            
+            console.log('🔍 memberCount:', memberCount);
+            console.log('🔍 memberIds:', memberIds);
+            console.log('🔍 memberHash:', memberHash);
+            
             membersInfo.innerHTML = '<strong>当前成员:</strong> ' + memberCount + ' 人<br>';
             
-            if (memberCount === 0) {
+            if (memberCount === 0 || memberIds.length === 0) {
                 membersInfo.innerHTML += '<em>暂无成员</em><br>';
                 return;
             }
             
-            // Pusher.js 的 members 对象使用 each() 方法遍历
-            if (typeof members.each === 'function') {
-                log('🔍 使用 members.each() 遍历成员', 'data');
-                try {
-                    members.each(function(member) {
-                        console.log('🔍 [each] member:', member);
-                        membersInfo.innerHTML += '• ' + member.id + ': ' + JSON.stringify(member.info) + '<br>';
-                    });
-                } catch (e) {
-                    log('❌ members.each() 执行失败: ' + e.message, 'error');
-                    console.error('members.each() error:', e);
+            // 直接遍历 ids 和 hash
+            memberIds.forEach(function(memberId) {
+                const memberInfo = memberHash[memberId];
+                if (memberInfo) {
+                    membersInfo.innerHTML += '• ' + memberId + ': ' + JSON.stringify(memberInfo) + '<br>';
+                    console.log('🔍 显示成员:', memberId, memberInfo);
                 }
-            } else {
-                log('⚠️ members.each() 不可用，尝试其他方法', 'error');
-                membersInfo.innerHTML += '<em>无法遍历成员列表</em><br>';
+            });
+            
+            // 显示当前用户信息
+            if (actualMembers.me) {
+                log('👤 当前用户: ' + JSON.stringify(actualMembers.me), 'data');
             }
         }
         
