@@ -17,8 +17,8 @@ import (
 	"devinggo/modules/system/model/res"
 	"devinggo/modules/system/pkg/orm"
 	"devinggo/modules/system/pkg/utils"
-	websocket2 "devinggo/modules/system/pkg/websocket"
 	"devinggo/modules/system/service"
+
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -187,17 +187,23 @@ func (s *sSystemQueueMessage) sendWs(ctx context.Context, userId int64) {
 		return
 	}
 	toId := gconv.String(userId)
-	clientIdWResponse := &websocket2.ClientIdWResponse{
-		ID: toId,
-		WResponse: &websocket2.WResponse{
-			BindEvent: "ev_new_message",
-			Event:     websocket2.IdMessage,
-			Data:      rs,
-			Code:      200,
-			RequestId: "0",
-		},
-	}
-	websocket2.PublishIdMessage(ctx, toId, clientIdWResponse)
+
+	// TODO: 适配Pusher协议的消息推送
+	// Pusher协议下需要通过HTTP API发送或使用频道广播
+	// 暂时注释掉旧的实现
+	/*
+		clientIdWResponse := &websocket2.ClientIdWResponse{
+			SocketID: toId,
+			PusherResponse: &websocket2.PusherResponse{
+				Event: "custom-new-message",
+				Channel: "",
+				Data: marshalData(rs),
+			},
+		}
+		websocket2.PublishSocketIdMessage(ctx, toId, clientIdWResponse)
+	*/
+	_ = toId
+	_ = rs
 }
 
 func (s *sSystemQueueMessage) saveAllUserMessageReceive(ctx context.Context, messageId int64, page int) (err error) {

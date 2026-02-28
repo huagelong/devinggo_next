@@ -11,6 +11,7 @@ import (
 	"devinggo/modules/system/myerror"
 	websocket2 "devinggo/modules/system/pkg/websocket"
 	"devinggo/modules/system/service"
+
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -24,21 +25,18 @@ func (s *sMiddleware) WsAuth(r *ghttp.Request) {
 	if err != nil && g.IsEmpty(sessionId) {
 		conn, err := websocket2.GetConnection(r)
 		if err != nil {
-			conn.WriteJSON(&websocket2.WResponse{
-				Event:     websocket2.Connected,
-				Message:   err.Error(),
-				Code:      500,
-				RequestId: "0",
-			})
+			// Pusher协议连接失败处理
+			r.Response.WriteStatus(400)
+			r.Response.WriteJson(g.Map{"error": err.Error()})
 		} else {
-			conn.WriteJSON(&websocket2.WResponse{
-				Event:     websocket2.Connected,
-				Message:   "sessionId miss",
-				Code:      500,
-				RequestId: "0",
-			})
+			// Pusher协议错误响应
+			errResponse := &websocket2.PusherResponse{
+				Event: websocket2.EventError,
+				Data:  `{"message":"sessionId miss","code":4009}`,
+			}
+			conn.WriteJSON(errResponse)
+			conn.Close()
 		}
-		conn.Close()
 		return
 	} else {
 		r.SetCtxVar(websocket2.SESSION_ID_KEY, sessionId)

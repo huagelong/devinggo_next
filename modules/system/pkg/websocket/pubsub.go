@@ -11,6 +11,7 @@ import (
 	"devinggo/modules/system/pkg/redispubsub"
 	"devinggo/modules/system/pkg/utils"
 	"devinggo/modules/system/pkg/websocket/glob"
+
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/util/gconv"
 )
@@ -36,24 +37,24 @@ func (s *sPubSub) SubscribeMessage(ctx context.Context, serverName string) (err 
 				select {
 				case msg := <-s.PubSub.Messages():
 					j := gjson.New(msg.Payload)
-					//send client id
-					if j.Contains("id") {
-						glob.WithWsLog().Debug(ctx, "SubscribeMessage client:", j.String())
-						var clientWresponse *ClientIdWResponse
-						if err := j.Scan(&clientWresponse); err == nil {
-							clientId := gconv.String(j.Get("id"))
-							SendToClientID(clientId, clientWresponse.WResponse)
+					//send socket id
+					if j.Contains("socketId") {
+						glob.WithWsLog().Debug(ctx, "SubscribeMessage socketId:", j.String())
+						var msgData *ClientIdWResponse
+						if err := j.Scan(&msgData); err == nil {
+							socketId := gconv.String(j.Get("socketId"))
+							SendToSocketID(socketId, msgData.PusherResponse)
 						} else {
 							glob.WithWsLog().Warning(ctx, "ClientIdWResponse parse error:", err)
 						}
 					}
-					// send topic
+					// send channel
 					if j.Contains("topic") {
-						glob.WithWsLog().Debug(ctx, "SubscribeMessage topic:", j.String())
-						var topicWresponse *TopicWResponse
-						if err := j.Scan(&topicWresponse); err == nil {
-							topic := gconv.String(j.Get("topic"))
-							SendToTopic(topic, topicWresponse.WResponse)
+						glob.WithWsLog().Debug(ctx, "SubscribeMessage channel:", j.String())
+						var msgData *TopicWResponse
+						if err := j.Scan(&msgData); err == nil {
+							channel := gconv.String(j.Get("topic"))
+							SendToChannel(channel, msgData.PusherResponse)
 						} else {
 							glob.WithWsLog().Warning(ctx, "TopicWResponse parse error:", err)
 						}
@@ -61,9 +62,9 @@ func (s *sPubSub) SubscribeMessage(ctx context.Context, serverName string) (err 
 					// send Broadcast
 					if j.Contains("broadcast") {
 						glob.WithWsLog().Debug(ctx, "SubscribeMessage broadcast:", j.String())
-						var broadcastWResponse *BroadcastWResponse
-						if err := j.Scan(&broadcastWResponse); err == nil {
-							SendToAll(broadcastWResponse.WResponse)
+						var msgData *BroadcastWResponse
+						if err := j.Scan(&msgData); err == nil {
+							SendToAll(msgData.PusherResponse)
 						} else {
 							glob.WithWsLog().Warning(ctx, "broadcastWResponse parse error:", err)
 						}

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pusher Protocol v8.3.0 测试客户端</title>
+    <script src="https://js.pusher.com/8.3.0/pusher.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #555;
+            margin-top: 0;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        input, button, select {
+            padding: 8px 12px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .danger {
+            background: #f44336;
+        }
+        
+        .danger:hover {
+            background: #da190b;
+        }
+        
+        #logs {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .log-event {
+            color: #4CAF50;
+        }
+        
+        .log-data {
+            color: #2196F3;
+        }
+        
+        .log-error {
+            color: #f44336;
+        }
+        
+        .log-time {
+            color: #999;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Pusher Protocol v8.3.0 测试客户端</h1>
+    
+    <div class="container">
+        <h2>📡 连接配置</h2>
+        <div>
+            <label>App Key: </label>
+            <input type="text" id="appKey" value="devinggo-app-key" style="width: 300px;">
+        </div>
+        <div>
+            <label>WebSocket Host: </label>
+            <input type="text" id="wsHost" value="localhost" style="width: 200px;">
+            <label>Port: </label>
+            <input type="number" id="wsPort" value="8000" style="width: 80px;">
+        </div>
+        <div>
+            <label>JWT Token: </label>
+            <input type="text" id="token" placeholder="Bearer token（可选）" style="width: 400px;">
+        </div>
+        <div>
+            <button onclick="connect()">🔌 连接</button>
+            <button onclick="disconnect()" class="danger">❌ 断开</button>
+        </div>
+        <div id="status" class="status disconnected">● 未连接</div>
+        <div class="info-box">
+            <strong>Socket ID:</strong> <span id="socketId">-</span>
+        </div>
+    </div>
+    
+    <div class="grid">
+        <div class="container">
+            <h2>📢 Public Channel</h2>
+            <div>
+                <input type="text" id="publicChannel" value="chat-room" placeholder="频道名">
+                <button onclick="subscribePublic()">订阅</button>
+            </div>
+            <div style="margin-top: 10px;">
+                <strong>状态:</strong> <span id="publicStatus">未订阅</span>
+            </div>
+            <div style="margin-top: 10px;">
+                <button onclick="testPublicClientEvent()" class="danger">
+                    ⚠️ 测试Public频道Client Event（应失败）
+                </button>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h2>🔒 Private Channel</h2>
+            <div>
+                <input type="text" id="privateChannel" value="private-user-123" placeholder="private-*">
+                <button onclick="subscribePrivate()">订阅</button>
+            </div>
+            <div style="margin-top: 10px;">
+                <strong>状态:</strong> <span id="privateStatus">未订阅</span>
+            </div>
+            <div style="margin-top: 10px;">
+                <input type="text" id="clientEvent" value="client-typing" placeholder="client-*">
+                <input type="text" id="clientEventData" value='{"user":"Alice"}' placeholder="JSON数据">
+                <button onclick="sendClientEvent()">发送Client Event</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>👥 Presence Channel</h2>
+        <div>
+            <input type="text" id="presenceChannel" value="presence-lobby" placeholder="presence-*">
+            <button onclick="subscribePresence()">订阅</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <strong>状态:</strong> <span id="presenceStatus">未订阅</span>
+        </div>
+        <div id="membersInfo" style="margin-top: 10px;"></div>
+    </div>
+    
+    <div class="container">
+        <h2>🧪 速率限制测试</h2>
+        <div>
+            <button onclick="testRateLimit()">快速发送11条Client Event（测试速率限制）</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <strong>结果:</strong> <span id="rateLimitResult">等待测试...</span>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 事件日志</h2>
+        <button onclick="clearLogs()">清空日志</button>
+        <div id="logs"></div>
+    </div>
+    
+    <script>
+        let pusher = null;
+        let publicChannelObj = null;
+        let privateChannelObj = null;
+        let presenceChannelObj = null;
+        
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'log-error' : (type === 'event' ? 'log-event' : 'log-data');
+            logs.innerHTML += `<div><span class="log-time">[${time}]</span> <span class="${className}">${message}</span></div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+        
+        function updateStatus(status, isConnected) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = status;
+            statusEl.className = 'status ' + (isConnected ? 'connected' : (status.includes('连接中') ? 'connecting' : 'disconnected'));
+        }
+        
+        function connect() {
+            const appKey = document.getElementById('appKey').value;
+            const wsHost = document.getElementById('wsHost').value;
+            const wsPort = document.getElementById('wsPort').value;
+            const token = document.getElementById('token').value;
+            
+            updateStatus('● 连接中...', false);
+            log('🔌 正在连接到 ' + wsHost + ':' + wsPort, 'event');
+            
+            // 配置认证端点
+            Pusher.Runtime.createXHR = function() {
+                const xhr = new XMLHttpRequest();
+                if (token) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                }
+                return xhr;
+            };
+            
+            pusher = new Pusher(appKey, {
+                wsHost: wsHost,
+                wsPort: wsPort,
+                forceTLS: false,
+                enabledTransports: ['ws'],
+                authEndpoint: `http://${wsHost}:${wsPort}/api/system/pusher/auth`,
+                auth: {
+                    headers: token ? {
+                        'Authorization': 'Bearer ' + token
+                    } : {}
+                }
+            });
+            
+            pusher.connection.bind('connected', function() {
+                updateStatus('● 已连接', true);
+                const socketId = pusher.connection.socket_id;
+                document.getElementById('socketId').textContent = socketId;
+                log('✅ 连接成功！Socket ID: ' + socketId, 'event');
+            });
+            
+            pusher.connection.bind('disconnected', function() {
+                updateStatus('● 已断开', false);
+                log('❌ 连接已断开', 'error');
+            });
+            
+            pusher.connection.bind('error', function(err) {
+                log('❌ 连接错误: ' + JSON.stringify(err), 'error');
+            });
+        }
+        
+        function disconnect() {
+            if (pusher) {
+                pusher.disconnect();
+                updateStatus('● 未连接', false);
+                document.getElementById('socketId').textContent = '-';
+                log('🔌 已断开连接', 'event');
+            }
+        }
+        
+        function subscribePublic() {
+            if (!pusher) {
+                alert('请先连接！');
+                return;
+            }
+            
+            const channel = document.getElementById('publicChannel').value;
+            log('📢 订阅Public频道: ' + channel, 'event');
+            
+            publicChannelObj = pusher.subscribe(channel);
+            
+            publicChannelObj.bind('pusher:subscription_succeeded', function() {
+                document.getElementById('publicStatus').textContent = '✅ 已订阅';
+                log('✅ Public频道订阅成功: ' + channel, 'event');
+            });
+            
+            publicChannelObj.bind('pusher:subscription_error', function(err) {
+                document.getElementById('publicStatus').textContent = '❌ 订阅失败';
+                log('❌ Public频道订阅失败: ' + JSON.stringify(err), 'error');
+            });
+            
+            // 监听所有事件
+            publicChannelObj.bind_global(function(event, data) {
+                if (!event.startsWith('pusher:')) {
+                    log('📨 [' + channel + '] 收到事件: ' + event + ' => ' + JSON.stringify(data), 'data');
+                }
+            });
+        }
+        
+        function testPublicClientEvent() {
+            if (!publicChannelObj) {
+                alert('请先订阅Public频道！');
+                return;
+            }
+            
+            log('⚠️ 尝试在Public频道发送Client Event（应返回错误4301）', 'event');
+            
+            publicChannelObj.trigger('client-test', {message: 'This should fail'});
+            
+            setTimeout(() => {
+                log('⚠️ Public频道不允许Client Event，检查是否收到错误码4301', 'event');
+            }, 1000);
+        }
+        
+        function subscribePrivate() {
+            if (!pusher) {
+                alert('请先连接！');
+                return;
+            }
+            
+            const channel = document.getElementById('privateChannel').value;
+            log('🔒 订阅Private频道: ' + channel + '（需要HTTP认证）', 'event');
+            
+            privateChannelObj = pusher.subscribe(channel);
+            
+            privateChannelObj.bind('pusher:subscription_succeeded', function() {
+                document.getElementById('privateStatus').textContent = '✅ 已订阅';
+                log('✅ Private频道订阅成功: ' + channel, 'event');
+            });
+            
+            privateChannelObj.bind('pusher:subscription_error', function(err) {
+                document.getElementById('privateStatus').textContent = '❌ 订阅失败（检查认证）';
+                log('❌ Private频道订阅失败: ' + JSON.stringify(err), 'error');
+            });
+            
+            // 监听Client Event
+            privateChannelObj.bind_global(function(event, data) {
+                if (event.startsWith('client-')) {
+                    log('📨 [' + channel + '] 收到Client Event: ' + event + ' => ' + JSON.stringify(data), 'data');
+                }
+            });
+        }
+        
+        function sendClientEvent() {
+            if (!privateChannelObj) {
+                alert('请先订阅Private频道！');
+                return;
+            }
+            
+            const event = document.getElementById('clientEvent').value;
+            const dataStr = document.getElementById('clientEventData').value;
+            
+            try {
+                const data = JSON.parse(dataStr);
+                log('📤 发送Client Event: ' + event + ' => ' + JSON.stringify(data), 'event');
+                privateChannelObj.trigger(event, data);
+            } catch (e) {
+                alert('数据格式错误，请输入有效的JSON');
+            }
+        }
+        
+        function subscribePresence() {
+            if (!pusher) {
+                alert('请先连接！');
+                return;
+            }
+            
+            const channel = document.getElementById('presenceChannel').value;
+            log('👥 订阅Presence频道: ' + channel + '（需要HTTP认证）', 'event');
+            
+            presenceChannelObj = pusher.subscribe(channel);
+            
+            presenceChannelObj.bind('pusher:subscription_succeeded', function(members) {
+                document.getElementById('presenceStatus').textContent = '✅ 已订阅';
+                log('✅ Presence频道订阅成功: ' + channel, 'event');
+                log('👥 当前成员数: ' + members.count, 'data');
+                log('👥 成员列表: ' + JSON.stringify(members.members), 'data');
+                
+                updateMembersInfo(members);
+            });
+            
+            presenceChannelObj.bind('pusher:subscription_error', function(err) {
+                document.getElementById('presenceStatus').textContent = '❌ 订阅失败（检查认证）';
+                log('❌ Presence频道订阅失败: ' + JSON.stringify(err), 'error');
+            });
+            
+            presenceChannelObj.bind('pusher:member_added', function(member) {
+                log('👤 新成员加入: ' + member.id + ' => ' + JSON.stringify(member.info), 'event');
+                updateMembersInfo(presenceChannelObj.members);
+            });
+            
+            presenceChannelObj.bind('pusher:member_removed', function(member) {
+                log('👤 成员离开: ' + member.id, 'event');
+                updateMembersInfo(presenceChannelObj.members);
+            });
+        }
+        
+        function updateMembersInfo(members) {
+            const membersInfo = document.getElementById('membersInfo');
+            membersInfo.innerHTML = '<strong>当前成员:</strong> ' + members.count + ' 人<br>';
+            
+            members.each(function(member) {
+                membersInfo.innerHTML += '• ' + member.id + ': ' + JSON.stringify(member.info) + '<br>';
+            });
+        }
+        
+        function testRateLimit() {
+            if (!privateChannelObj) {
+                alert('请先订阅Private频道！');
+                return;
+            }
+            
+            document.getElementById('rateLimitResult').textContent = '测试中...';
+            log('🧪 开始速率限制测试：快速发送11条Client Event', 'event');
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (let i = 0; i < 11; i++) {
+                setTimeout(() => {
+                    try {
+                        privateChannelObj.trigger('client-ratelimit-test', {seq: i + 1});
+                        successCount++;
+                        log('✅ 第' + (i + 1) + '条消息发送', 'data');
+                    } catch (e) {
+                        errorCount++;
+                        log('❌ 第' + (i + 1) + '条消息失败（速率限制）', 'error');
+                    }
+                    
+                    if (i === 10) {
+                        setTimeout(() => {
+                            const result = `成功: ${successCount}, 失败: ${errorCount}（预期：前10条成功，第11条失败）`;
+                            document.getElementById('rateLimitResult').textContent = result;
+                            log('🧪 速率限制测试完成: ' + result, 'event');
+                        }, 500);
+                    }
+                }, i * 50); // 每50ms发送1条
+            }
+        }
+        
+        // 页面加载时的提示
+        log('👋 欢迎使用Pusher Protocol v8.3.0测试客户端', 'event');
+        log('📖 使用说明:', 'event');
+        log('1. 配置连接信息并点击"连接"', 'data');
+        log('2. 测试Public/Private/Presence频道订阅', 'data');
+        log('3. 在Private频道发送Client Event', 'data');
+        log('4. 运行速率限制测试', 'data');
+        log('', 'data');
+    </script>
+</body>
+</html>

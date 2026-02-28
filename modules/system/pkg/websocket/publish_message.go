@@ -7,20 +7,22 @@
 package websocket
 
 import (
-	"devinggo/modules/system/pkg/websocket/glob"
 	"context"
+	"devinggo/modules/system/pkg/websocket/glob"
+
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 )
 
-func PublishIdMessage(ctx context.Context, clientId string, msg *ClientIdWResponse) (err error) {
-	glob.WithWsLog().Debug(ctx, "PublishIdMessage:", msg)
-	toClient := clientManager.GetClient(clientId)
+// PublishSocketIdMessage 发布消息到指定SocketID（跨服务器）
+func PublishSocketIdMessage(ctx context.Context, socketId string, msg *ClientIdWResponse) (err error) {
+	glob.WithWsLog().Debug(ctx, "PublishSocketIdMessage:", msg)
+	toClient := clientManager.GetClientBySocketID(socketId)
 	if !g.IsEmpty(toClient) {
-		SendToClientID(clientId, msg.WResponse)
+		SendToSocketID(socketId, msg.PusherResponse)
 		return
 	}
-	serverName := GetServerNameByClientId4Redis(ctx, clientId)
+	serverName := GetServerNameBySocketId4Redis(ctx, socketId)
 	j := gjson.NewWithTag(msg, "tag")
 	if msg, err := j.ToJsonString(); err == nil {
 		NewPubSub().PublishMessage(ctx, serverName, msg)
@@ -30,9 +32,10 @@ func PublishIdMessage(ctx context.Context, clientId string, msg *ClientIdWRespon
 	return
 }
 
-func PublishTopicMessage(ctx context.Context, topic string, msg *TopicWResponse) (err error) {
-	glob.WithWsLog().Debug(ctx, "PublishTopicMessage:", msg)
-	serverNames := GetAllServerNameByTopic(ctx, topic)
+// PublishChannelMessage 发布消息到频道（跨服务器）
+func PublishChannelMessage(ctx context.Context, channel string, msg *TopicWResponse) (err error) {
+	glob.WithWsLog().Debug(ctx, "PublishChannelMessage:", msg)
+	serverNames := GetAllServerNameByChannel(ctx, channel)
 	if g.IsEmpty(serverNames) {
 		return
 	}
@@ -47,6 +50,7 @@ func PublishTopicMessage(ctx context.Context, topic string, msg *TopicWResponse)
 	return
 }
 
+// PublishBroadcastMessage 发布广播消息（跨服务器）
 func PublishBroadcastMessage(ctx context.Context, msg *BroadcastWResponse) (err error) {
 	glob.WithWsLog().Debug(ctx, "PublishBroadcastMessage:", msg)
 	serverNames := GetAllServerNames(ctx)

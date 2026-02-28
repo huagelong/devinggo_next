@@ -9,6 +9,7 @@ package system
 import (
 	"devinggo/modules/system/controller/system"
 	"devinggo/modules/system/service"
+
 	"github.com/gogf/gf/v2/net/ghttp"
 )
 
@@ -40,6 +41,7 @@ func BindController(group *ghttp.RouterGroup) {
 			system.DataMaintainController,
 			system.SystemModulesController,
 			system.DashboardController,
+			system.PusherAuthController,
 		).Middleware(service.Middleware().AdminAuth)
 	})
 
