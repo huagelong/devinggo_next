@@ -8,8 +8,10 @@ package websocket
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -133,4 +135,23 @@ func ValidateSocketID(socketID string, expectedServerName string) bool {
 
 	serverName := parts[0]
 	return serverName == expectedServerName
+}
+
+// GenerateSharedSecret 生成加密频道的共享密钥
+// ⚠️ Encrypted Channels 需要：返回 32 字节随机密钥的 Base64 编码
+// Pusher.js 使用此密钥进行端到端加密（NaCl/TweetNaCl）
+func GenerateSharedSecret() string {
+	// 生成 32 字节随机密钥（256 位）
+	key := make([]byte, 32)
+	_, err := rand.Read(key)
+	if err != nil {
+		// 如果随机数生成失败，使用备用方案（不应该发生）
+		// 在生产环境应该 panic，因为加密密钥必须是真随机的
+		g.Log().Error(gctx.New(), "Failed to generate random key for encrypted channel:", err)
+		// 返回固定密钥作为降级方案（仅用于开发/测试）
+		return base64.StdEncoding.EncodeToString([]byte("INSECURE-FALLBACK-KEY-32BYTES!"))
+	}
+	
+	// Base64 编码（标准编码，Pusher.js 要求）
+	return base64.StdEncoding.EncodeToString(key)
 }

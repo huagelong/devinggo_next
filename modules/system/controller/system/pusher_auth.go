@@ -70,6 +70,27 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 	// - 记录认证日志（审计）
 	// - 限流防止滥用（Rate Limiting）
 
+	// ⚠️ 检查是否为 Encrypted Channel（private-encrypted-*）
+	if websocket.IsEncryptedChannel(req.ChannelName) {
+		// Encrypted Channel 认证：需要生成 shared_secret
+		// shared_secret 是一个 32 字节的随机密钥（Base64 编码）
+		// Pusher.js 会使用此密钥进行端到端加密
+		sharedSecret := websocket.GenerateSharedSecret()
+		
+		// 生成认证签名（不包含 channel_data）
+		auth := websocket.GenerateAuthSignature(req.SocketId, req.ChannelName, "")
+		
+		g.Log().Debugf(ctx, "Generated encrypted channel auth for user:%d, socket:%s, channel:%s", c.UserId, req.SocketId, req.ChannelName)
+		
+		// 返回 Pusher 标准格式（包含 shared_secret）
+		r.Response.WriteJson(g.Map{
+			"auth":          auth,
+			"shared_secret": sharedSecret,
+		})
+		r.ExitAll()
+		return
+	}
+
 	// 检查是否为Presence频道
 	if websocket.IsPresenceChannel(req.ChannelName) {
 		// Phase 3: Presence频道认证（包含channel_data）
