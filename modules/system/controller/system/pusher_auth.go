@@ -16,7 +16,6 @@ import (
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/util/gconv"
 )
 
 var (
@@ -98,11 +97,16 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 	if websocket.IsPresenceChannel(req.ChannelName) {
 		// Phase 3: Presence频道认证（包含channel_data）
 		// 生成channel_data（包含用户信息）
-		userInfo := map[string]interface{}{
-			"name": "User " + gconv.String(c.UserId), // TODO: 从数据库获取真实用户信息
-			// 可以添加更多用户信息，如头像、角色等
+		userData, userErr := buildPusherUserData(ctx, c.UserId)
+		if userErr != nil {
+			g.Log().Warning(ctx, "Failed to load user data for presence auth:", userErr)
+			writeJSONOrJSONP(r, g.Map{
+				"error": "Failed to load user profile",
+			}, 500)
+			return
 		}
-		channelData, err := websocket.EncodeChannelData(gconv.String(c.UserId), userInfo)
+
+		channelData, err := websocket.EncodeChannelData(userData["id"].(string), buildPresenceUserInfo(userData))
 		if err != nil {
 			g.Log().Warning(ctx, "EncodeChannelData error:", err)
 			writeJSONOrJSONP(r, g.Map{
@@ -178,10 +182,13 @@ func (c *pusherAuthController) BatchAuth(ctx context.Context, req *system.Pusher
 		}
 
 		if websocket.IsPresenceChannel(channelName) {
-			userInfo := map[string]interface{}{
-				"name": "User " + gconv.String(c.UserId),
+			userData, userErr := buildPusherUserData(ctx, c.UserId)
+			if userErr != nil {
+				g.Log().Warning(ctx, "Failed to load user data for batch presence auth:", userErr)
+				continue
 			}
-			channelData, encodeErr := websocket.EncodeChannelData(gconv.String(c.UserId), userInfo)
+
+			channelData, encodeErr := websocket.EncodeChannelData(userData["id"].(string), buildPresenceUserInfo(userData))
 			if encodeErr != nil {
 				g.Log().Warning(ctx, "EncodeChannelData error:", encodeErr)
 				continue

@@ -8,13 +8,14 @@ package system
 
 import (
 	"context"
-	"fmt"
 
 	"devinggo/modules/system/api/system"
 	"devinggo/modules/system/controller/base"
 	"devinggo/modules/system/pkg/websocket"
+	"devinggo/modules/system/service"
 
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
@@ -62,25 +63,14 @@ func (c *cPusherUserAuthController) UserAuth(ctx context.Context, req *system.Pu
 
 	g.Log().Debugf(ctx, "Pusher User Authentication: user_id=%d, socket_id=%s", c.UserId, req.SocketId)
 
-	// 构建用户数据
-	// 必须包含 id 字段（字符串类型）
-	// 可以添加任意其他用户信息
-	userData := map[string]interface{}{
-		"id":   gconv.String(c.UserId), // 必须是字符串
-		"name": fmt.Sprintf("User %d", c.UserId),
-		// 可以添加更多用户信息，例如：
-		// "email": user.Email,
-		// "avatar": user.Avatar,
-		// "role": user.Role,
+	userData, err := buildPusherUserData(ctx, c.UserId)
+	if err != nil {
+		g.Log().Error(ctx, "Failed to load user data for pusher user auth:", err)
+		writeJSONOrJSONP(r, g.Map{
+			"error": "Failed to load user profile",
+		}, 500)
+		return
 	}
-
-	// TODO: 从数据库获取真实用户信息
-	// user, err := service.User().GetById(ctx, c.UserId)
-	// if err == nil {
-	//     userData["name"] = user.Username
-	//     userData["email"] = user.Email
-	//     userData["avatar"] = user.Avatar
-	// }
 
 	// 生成用户认证签名
 	auth, err := websocket.GenerateUserAuthSignature(req.SocketId, userData)
@@ -103,4 +93,43 @@ func (c *cPusherUserAuthController) UserAuth(ctx context.Context, req *system.Pu
 	writeJSONOrJSONP(r, res, 200)
 
 	return
+}
+
+func buildPusherUserData(ctx context.Context, userId int64) (map[string]interface{}, error) {
+	user, err := service.SystemUser().GetInfoById(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	if g.IsEmpty(user) {
+		return nil, gerror.New("user not found")
+	}
+
+	name := user.Nickname
+	if name == "" {
+		name = user.Username
+	}
+
+	userData := map[string]interface{}{
+		"id":       gconv.String(user.Id),
+		"name":     name,
+		"username": user.Username,
+		"nickname": user.Nickname,
+		"email":    user.Email,
+		"avatar":   user.Avatar,
+		"user_type": user.UserType,
+		"status":   user.Status,
+	}
+
+	return userData, nil
+}
+
+func buildPresenceUserInfo(userData map[string]interface{}) map[string]interface{} {
+	userInfo := make(map[string]interface{}, len(userData))
+	for k, v := range userData {
+		if k == "id" {
+			continue
+		}
+		userInfo[k] = v
+	}
+	return userInfo
 }
