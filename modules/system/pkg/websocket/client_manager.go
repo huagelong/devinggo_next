@@ -160,6 +160,9 @@ func (manager *ClientManager) EventChannelBroadcast(ctx context.Context, respons
 
 	sentCount := 0
 	for _, conn := range clients {
+		if response.ExcludeSocketID != "" && conn.SocketID == response.ExcludeSocketID {
+			continue
+		}
 		if conn.HasChannel(response.Topic) {
 			glob.WithWsLog().Debugf(ctx, "Sending to client: socket_id=%s, channel=%s", conn.SocketID, response.Topic)
 			conn.SendMsg(response.PusherResponse)
@@ -224,8 +227,14 @@ func SendToSocketID(socketId string, response *PusherResponse) {
 
 // SendToChannel 发送某个频道
 func SendToChannel(channel string, response *PusherResponse) {
+	SendToChannelWithExclude(channel, response, "")
+}
+
+// SendToChannelWithExclude 发送某个频道（可排除指定socket_id）
+func SendToChannelWithExclude(channel string, response *PusherResponse, excludeSocketID string) {
 	channelRes := &TopicWResponse{
 		Topic:          channel,
+		ExcludeSocketID: excludeSocketID,
 		PusherResponse: response,
 	}
 	clientManager.ChannelBroadcast <- channelRes

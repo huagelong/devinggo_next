@@ -100,17 +100,17 @@ func (c *cPusherEvents) Events(ctx context.Context, req *system.PusherEventsReq)
 		g.Log().Debugf(ctx, "Sending to channel: %s, event: %s", channel, req.Name)
 
 		// 1) 先发送给本地服务器的客户端
-		websocket.SendToChannel(channel, pusherResponse)
+		websocket.SendToChannelWithExclude(channel, pusherResponse, req.SocketId)
 
 		// 2) 再发布到其他服务器（通过Redis PubSub）
 		topicMsg := &websocket.TopicWResponse{
 			Topic:          channel,
+			ExcludeSocketID: req.SocketId,
 			PusherResponse: pusherResponse,
 		}
 
 		// 排除特定socket_id（如果指定）
 		if req.SocketId != "" {
-			// TODO: 实现socket_id排除逻辑
 			g.Log().Debug(ctx, "Exclude socket_id:", req.SocketId)
 		}
 
@@ -164,11 +164,12 @@ func (c *cPusherEvents) BatchEvents(ctx context.Context, req *system.PusherBatch
 		}
 
 		// 1) 先发送给本地服务器的客户端
-		websocket.SendToChannel(event.Channel, pusherResponse)
+		websocket.SendToChannelWithExclude(event.Channel, pusherResponse, event.SocketId)
 
 		// 2) 再发布到其他服务器（通过Redis PubSub）
 		topicMsg := &websocket.TopicWResponse{
 			Topic:          event.Channel,
+			ExcludeSocketID: event.SocketId,
 			PusherResponse: pusherResponse,
 		}
 
