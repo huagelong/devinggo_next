@@ -57,7 +57,7 @@ type SigninRequestData struct {
 
 // SigninSuccessData 用户登录成功数据
 type SigninSuccessData struct {
-	UserData map[string]interface{} `json:"user_data"`
+	UserData string `json:"user_data"`
 }
 
 // PresenceData Presence频道订阅成功时的数据结构

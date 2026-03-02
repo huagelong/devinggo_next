@@ -65,7 +65,8 @@ func SigninController(ctx context.Context, client *Client, req *PusherRequest) {
 	client.UserInfo = userDataMap
 
 	// 返回用户级登录成功事件
-	if err = client.SendPusherEvent(EventSigninSuccess, "", SigninSuccessData{UserData: userDataMap}); err != nil {
+	// ⚠️ pusher-js 期望 user_data 为 JSON 字符串，而不是对象
+	if err = client.SendPusherEvent(EventSigninSuccess, "", SigninSuccessData{UserData: userDataJSON}); err != nil {
 		glob.WithWsLog().Warning(ctx, "SigninController send signin_success failed:", err)
 		return
 	}

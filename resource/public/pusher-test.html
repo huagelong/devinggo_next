@@ -611,6 +611,9 @@ Invoke-RestMethod -Uri "http://localhost:8070/apps/devinggo-app-id/events" `
                 pusher.user.bind('pusher:signin_success', function(data) {
                     document.getElementById('signinStatus').textContent = '✅ signin_success';
                     log('✅ 收到 pusher:signin_success => ' + JSON.stringify(data), 'event');
+                    const userDataType = data && data.user_data !== undefined ? typeof data.user_data : 'undefined';
+                    const isString = userDataType === 'string';
+                    log('🔎 signin_success.user_data 类型检测: type=' + userDataType + ', isString=' + isString, isString ? 'data' : 'error');
                 });
 
                 pusher.user.bind('pusher:signin_error', function(data) {
