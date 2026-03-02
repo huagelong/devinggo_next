@@ -13,6 +13,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -154,4 +155,58 @@ func GenerateSharedSecret() string {
 
 	// Base64 编码（标准编码，Pusher.js 要求）
 	return base64.StdEncoding.EncodeToString(key)
+}
+
+// GenerateUserAuthSignature 生成用户认证签名
+// 用于 Pusher User Authentication（用户身份认证）
+// 文档：https://pusher.com/docs/channels/server_api/authenticating-users/
+//
+// 参数：
+//   - socketID: 客户端的 socket_id
+//   - userData: 用户数据（必须包含 "id" 字段，且为字符串类型）
+//
+// 返回格式：app_key:signature
+//
+// 签名算法：
+//  1. 将 userData 序列化为 JSON
+//  2. 构建待签名字符串：socket_id::user::user_data_json
+//  3. 使用 HMAC-SHA256 计算签名
+//  4. 返回：app_key:hex(signature)
+func GenerateUserAuthSignature(socketID string, userData map[string]interface{}) (string, error) {
+	// 验证 userData 必须包含 id 字段
+	if userData == nil {
+		return "", fmt.Errorf("userData cannot be nil")
+	}
+
+	userID, ok := userData["id"]
+	if !ok {
+		return "", fmt.Errorf("userData must contain 'id' field")
+	}
+
+	// id 必须是字符串类型
+	if _, ok := userID.(string); !ok {
+		return "", fmt.Errorf("userData['id'] must be a string")
+	}
+
+	// 1. 序列化用户数据为 JSON
+	userDataJSON, err := json.Marshal(userData)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal user data: %w", err)
+	}
+
+	// 2. 构建待签名字符串
+	// 格式：socket_id::user::user_data_json
+	// 注意：使用双冒号 "::" 作为分隔符
+	stringToSign := fmt.Sprintf("%s::user::%s", socketID, string(userDataJSON))
+
+	// 3. 加载配置（如果未加载）
+	if pusherAppKey == "" || pusherAppSecret == "" {
+		GetPusherConfig()
+	}
+
+	// 4. 计算 HMAC-SHA256 签名
+	signature := generateHMAC(stringToSign, pusherAppSecret)
+
+	// 5. 返回格式：app_key:signature
+	return fmt.Sprintf("%s:%s", pusherAppKey, signature), nil
 }

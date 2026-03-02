@@ -47,6 +47,7 @@ func BindController(group *ghttp.RouterGroup) {
 			system.SystemModulesController,
 			system.DashboardController,
 			system.PusherAuthController,
+			system.PusherUserAuthController, // Pusher User Authentication
 		).Middleware(service.Middleware().AdminAuth)
 	})
 
