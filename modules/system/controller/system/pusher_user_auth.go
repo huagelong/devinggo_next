@@ -54,11 +54,9 @@ func (c *cPusherUserAuthController) UserAuth(ctx context.Context, req *system.Pu
 
 	// 验证用户是否已登录
 	if c.UserId == 0 {
-		r.Response.WriteStatus(401)
-		r.Response.WriteJson(g.Map{
+		writeJSONOrJSONP(r, g.Map{
 			"error": "Unauthorized - User not logged in",
-		})
-		r.ExitAll()
+		}, 401)
 		return
 	}
 
@@ -88,11 +86,9 @@ func (c *cPusherUserAuthController) UserAuth(ctx context.Context, req *system.Pu
 	auth, err := websocket.GenerateUserAuthSignature(req.SocketId, userData)
 	if err != nil {
 		g.Log().Error(ctx, "Failed to generate user auth signature:", err)
-		r.Response.WriteStatus(500)
-		r.Response.WriteJson(g.Map{
+		writeJSONOrJSONP(r, g.Map{
 			"error": "Failed to generate authentication signature",
-		})
-		r.ExitAll()
+		}, 500)
 		return
 	}
 
@@ -103,6 +99,8 @@ func (c *cPusherUserAuthController) UserAuth(ctx context.Context, req *system.Pu
 		Auth:     auth,
 		UserData: userData,
 	}
+
+	writeJSONOrJSONP(r, res, 200)
 
 	return
 }

@@ -8,12 +8,14 @@ package system
 
 import (
 	"context"
+	"strings"
 
 	"devinggo/modules/system/api/system"
 	"devinggo/modules/system/controller/base"
 	"devinggo/modules/system/pkg/websocket"
 
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
@@ -33,12 +35,9 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 
 	// 验证socket_id格式（防止伪造）
 	if req.SocketId == "" || req.ChannelName == "" {
-		// 返回Pusher标准错误格式
-		r.Response.Status = 403
-		r.Response.WriteJson(g.Map{
+		writeJSONOrJSONP(r, g.Map{
 			"error": "socket_id and channel_name are required",
-		})
-		r.ExitAll()
+		}, 403)
 		return
 	}
 
@@ -47,21 +46,17 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 	serverName := websocket.GetServerNameBySocketId4Redis(ctx, req.SocketId)
 	if serverName == "" {
 		g.Log().Warning(ctx, "Invalid socket_id:", req.SocketId)
-		r.Response.Status = 403
-		r.Response.WriteJson(g.Map{
+		writeJSONOrJSONP(r, g.Map{
 			"error": "Invalid socket_id or connection not found",
-		})
-		r.ExitAll()
+		}, 403)
 		return
 	}
 
 	// ⚠️ 安全检查：验证频道类型
 	if !websocket.RequiresAuth(req.ChannelName) {
-		r.Response.Status = 403
-		r.Response.WriteJson(g.Map{
+		writeJSONOrJSONP(r, g.Map{
 			"error": "This channel does not require authentication",
-		})
-		r.ExitAll()
+		}, 403)
 		return
 	}
 
@@ -92,11 +87,10 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 		g.Log().Debugf(ctx, "Generated encrypted channel auth for user:%d, socket:%s, channel:%s", c.UserId, req.SocketId, req.ChannelName)
 
 		// 返回 Pusher 标准格式（包含 shared_secret）
-		r.Response.WriteJson(g.Map{
+		writeJSONOrJSONP(r, g.Map{
 			"auth":          auth,
 			"shared_secret": sharedSecret,
-		})
-		r.ExitAll()
+		}, 200)
 		return
 	}
 
@@ -111,11 +105,9 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 		channelData, err := websocket.EncodeChannelData(gconv.String(c.UserId), userInfo)
 		if err != nil {
 			g.Log().Warning(ctx, "EncodeChannelData error:", err)
-			r.Response.Status = 500
-			r.Response.WriteJson(g.Map{
+			writeJSONOrJSONP(r, g.Map{
 				"error": "Failed to generate channel_data",
-			})
-			r.ExitAll()
+			}, 500)
 			return nil, err
 		}
 
@@ -125,11 +117,10 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 		g.Log().Debugf(ctx, "Generated presence auth for user:%d, socket:%s, channel:%s", c.UserId, req.SocketId, req.ChannelName)
 
 		// 直接返回Pusher标准格式（不包装在GoFrame响应中）
-		r.Response.WriteJson(g.Map{
+		writeJSONOrJSONP(r, g.Map{
 			"auth":         auth,
 			"channel_data": channelData,
-		})
-		r.ExitAll()
+		}, 200)
 	} else {
 		// Private频道认证（不包含channel_data）
 		auth := websocket.GenerateAuthSignature(req.SocketId, req.ChannelName, "")
@@ -137,11 +128,114 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 		g.Log().Debugf(ctx, "Generated private auth for user:%d, socket:%s, channel:%s", c.UserId, req.SocketId, req.ChannelName)
 
 		// 直接返回Pusher标准格式（不包装在GoFrame响应中）
-		r.Response.WriteJson(g.Map{
+		writeJSONOrJSONP(r, g.Map{
 			"auth": auth,
-		})
-		r.ExitAll()
+		}, 200)
 	}
 
 	return
+}
+
+// BatchAuth Pusher批量频道认证端点
+// 支持一次请求认证多个频道（private/presence/encrypted）
+func (c *pusherAuthController) BatchAuth(ctx context.Context, req *system.PusherBatchAuthReq) (rs *system.PusherBatchAuthRes, err error) {
+	r := g.RequestFromCtx(ctx)
+
+	channelNames := normalizeBatchChannels(r, req.ChannelNames, req.Channels)
+	if req.SocketId == "" || len(channelNames) == 0 {
+		writeJSONOrJSONP(r, g.Map{
+			"error": "socket_id and channel_names are required",
+		}, 403)
+		return
+	}
+
+	serverName := websocket.GetServerNameBySocketId4Redis(ctx, req.SocketId)
+	if serverName == "" {
+		writeJSONOrJSONP(r, g.Map{
+			"error": "Invalid socket_id or connection not found",
+		}, 403)
+		return
+	}
+
+	result := make(map[string]system.PusherBatchAuthItem, len(channelNames))
+	for _, channelName := range channelNames {
+		if !websocket.RequiresAuth(channelName) {
+			continue
+		}
+
+		item := system.PusherBatchAuthItem{}
+
+		if websocket.IsEncryptedChannel(channelName) {
+			sharedSecret := websocket.GenerateSharedSecret()
+			saveErr := websocket.SaveSharedSecret(ctx, channelName, sharedSecret)
+			if saveErr != nil {
+				g.Log().Warning(ctx, "Failed to save shared_secret:", saveErr)
+			}
+			item.Auth = websocket.GenerateAuthSignature(req.SocketId, channelName, "")
+			item.SharedSecret = sharedSecret
+			result[channelName] = item
+			continue
+		}
+
+		if websocket.IsPresenceChannel(channelName) {
+			userInfo := map[string]interface{}{
+				"name": "User " + gconv.String(c.UserId),
+			}
+			channelData, encodeErr := websocket.EncodeChannelData(gconv.String(c.UserId), userInfo)
+			if encodeErr != nil {
+				g.Log().Warning(ctx, "EncodeChannelData error:", encodeErr)
+				continue
+			}
+			item.Auth = websocket.GenerateAuthSignature(req.SocketId, channelName, channelData)
+			item.ChannelData = channelData
+			result[channelName] = item
+			continue
+		}
+
+		item.Auth = websocket.GenerateAuthSignature(req.SocketId, channelName, "")
+		result[channelName] = item
+	}
+
+	writeJSONOrJSONP(r, g.Map{
+		"channels": result,
+	}, 200)
+
+	return
+}
+
+func normalizeBatchChannels(r *ghttp.Request, channelNames []string, channels []string) []string {
+	merged := make([]string, 0, len(channelNames)+len(channels))
+	merged = append(merged, channelNames...)
+	merged = append(merged, channels...)
+
+	if len(merged) == 0 {
+		raw := r.Get("channel_names").String()
+		if raw == "" {
+			raw = r.Get("channels").String()
+		}
+		if raw != "" {
+			for _, v := range strings.Split(raw, ",") {
+				name := strings.TrimSpace(v)
+				if name != "" {
+					merged = append(merged, name)
+				}
+			}
+		}
+	}
+
+	seen := make(map[string]struct{}, len(merged))
+	unique := make([]string, 0, len(merged))
+	for _, ch := range merged {
+		ch = strings.TrimSpace(ch)
+		if ch == "" {
+			continue
+		}
+		if _, ok := seen[ch]; ok {
+			continue
+		}
+		seen[ch] = struct{}{}
+		unique = append(unique, ch)
+	}
+
+	return unique
 }
