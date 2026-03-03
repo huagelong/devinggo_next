@@ -61,7 +61,7 @@ npm install pusher-js@8.3.0
 ```javascript
 const Pusher = require('pusher-js');
 
-// 连接WebSocket服务器
+// 连接WebSocket服务器（pusher-js v8.3.0 推荐配置）
 const pusher = new Pusher('devinggo-app-key', {
   wsHost: 'localhost',
   wsPort: 8070,
@@ -69,11 +69,20 @@ const pusher = new Pusher('devinggo-app-key', {
   enabledTransports: ['ws'],
   cluster: 'mt1',  // 自托管服务器必需（虚拟cluster名称）
   disableStats: true,  // 禁用统计信息
-  authEndpoint: 'http://localhost:8070/system/pusher/auth',
-  auth: {
+
+  // Private/Presence 频道授权配置（v8.3.0 新格式）
+  channelAuthorization: {
+    endpoint: '/system/pusher/auth',
+    transport: 'ajax',
     headers: {
       'Authorization': 'Bearer YOUR_JWT_TOKEN'  // 可选：如需后端认证
     }
+  },
+
+  // 用户认证配置（可选，用于 pusher:signin）
+  userAuthentication: {
+    endpoint: '/system/pusher/user-auth',
+    transport: 'ajax'
   }
 });
 
@@ -308,7 +317,18 @@ const pusher = new Pusher('devinggo-app-key', {
   enabledTransports: ['ws', 'wss'],
   cluster: 'mt1',
   disableStats: true,
-  authEndpoint: 'https://your-domain.com/system/pusher/auth'
+
+  // Private/Presence 频道授权配置（v8.3.0 新格式）
+  channelAuthorization: {
+    endpoint: 'https://your-domain.com/system/pusher/auth',
+    transport: 'ajax'
+  },
+
+  // 用户认证配置（可选，用于 pusher:signin）
+  userAuthentication: {
+    endpoint: 'https://your-domain.com/system/pusher/user-auth',
+    transport: 'ajax'
+  }
 });
 ```
 
@@ -353,7 +373,7 @@ redis:
 
 - ✅ **仅支持**：Private和Presence频道
 - ❌ **不支持**：Public频道
-- 📏 **事件名长度**：最大50字节
+- 📏 **事件名长度**：最大200字节
 - 🔤 **事件名前缀**：必须是 `client-`
 - ⏱️ **速率限制**：默认10 events/秒
 

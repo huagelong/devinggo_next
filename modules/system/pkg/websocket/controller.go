@@ -64,14 +64,6 @@ func SigninController(ctx context.Context, client *Client, req *PusherRequest) {
 	client.UserID = userID
 	client.UserInfo = userDataMap
 
-	// 自动订阅用户频道（Pusher 标准：#private-user-{user_id}）
-	// 这样服务器可以通过 Send to User API 向特定用户发送消息
-	userChannel := fmt.Sprintf("#private-user-%s", userID)
-	if !client.HasChannel(userChannel) {
-		client.AddChannel(userChannel)
-		glob.WithWsLog().Debugf(ctx, "Auto-subscribed user to channel: %s", userChannel)
-	}
-
 	// 返回用户级登录成功事件
 	// ⚠️ pusher-js 期望 user_data 为 JSON 字符串，而不是对象
 	if err = client.SendPusherEvent(EventSigninSuccess, "", SigninSuccessData{UserData: userDataJSON}); err != nil {
@@ -346,10 +338,10 @@ func ClientEventController(ctx context.Context, client *Client, req *PusherReque
 		return
 	}
 
-	// ⚠️ v8.3.0要求：验证事件名长度（最大50字节）
-	if len(req.Event) > 50 {
+	// ⚠️ v8.3.0要求：验证事件名长度（最大200字节）
+	if len(req.Event) > 200 {
 		glob.WithWsLog().Warning(ctx, "Client event name too long:", req.Event)
-		client.SendError("Event name exceeds 50 bytes", CodeClientEventForbidden)
+		client.SendError("Event name exceeds 200 bytes", CodeClientEventForbidden)
 		return
 	}
 
