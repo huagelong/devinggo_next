@@ -84,6 +84,16 @@ func (c *cPusherEvents) Events(ctx context.Context, req *system.PusherEventsReq)
 		return nil, nil
 	}
 
+	// 2.7. 验证多频道触发时的加密频道限制（Pusher 规范要求）
+	if err := websocket.ValidateChannelsForMultiTrigger(req.Channels); err != nil {
+		r.Response.Status = 400
+		r.Response.WriteJson(g.Map{
+			"error": fmt.Sprintf("Invalid channel combination: %s", err.Error()),
+		})
+		r.ExitAll()
+		return nil, nil
+	}
+
 	// 3. 验证签名
 	bodyBytes := r.GetBody()
 	if !verifySignature(req.AuthKey, req.AuthTimestamp, req.AuthVersion, req.BodyMd5, req.AuthSignature, config.Secret, "POST", fmt.Sprintf("/apps/%s/events", req.AppId), bodyBytes) {

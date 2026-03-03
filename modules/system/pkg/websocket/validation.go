@@ -131,3 +131,28 @@ func ValidateEventData(data string) error {
 
 	return nil
 }
+
+// ValidateChannelsForMultiTrigger 验证多频道触发时的加密频道限制
+//
+// ⚠️ Pusher Server Library Reference Specification 要求：
+// "Triggering an event on multiple channels if any of those channels are encrypted
+// MUST be prevented in the library API or MUST result in an error"
+//
+// 验证规则：
+// - 当向多个频道触发事件时，如果其中任何一个是加密频道，则返回错误
+// - 单个加密频道可以正常触发事件
+//
+// 参考：https://pusher.com/docs/channels/library_auth_reference/server-library-reference-specification
+func ValidateChannelsForMultiTrigger(channels []string) error {
+	if len(channels) <= 1 {
+		return nil // 单个频道无需检查
+	}
+
+	for _, channel := range channels {
+		if IsEncryptedChannel(channel) {
+			return errors.New("cannot trigger events on multiple channels when any channel is encrypted")
+		}
+	}
+
+	return nil
+}

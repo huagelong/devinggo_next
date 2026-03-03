@@ -250,6 +250,86 @@ func TestValidateChannels(t *testing.T) {
 	}
 }
 
+// TestValidateChannelsForMultiTrigger 测试多频道触发时的加密频道限制
+func TestValidateChannelsForMultiTrigger(t *testing.T) {
+	tests := []struct {
+		name        string
+		channels    []string
+		expectError bool
+		errorMsg    string
+	}{
+		// 有效的场景
+		{
+			name:        "单个加密频道（允许）",
+			channels:    []string{"private-encrypted-secret"},
+			expectError: false,
+		},
+		{
+			name:        "单个普通频道（允许）",
+			channels:    []string{"my-channel"},
+			expectError: false,
+		},
+		{
+			name:        "多个普通频道（允许）",
+			channels:    []string{"ch1", "ch2", "ch3"},
+			expectError: false,
+		},
+		{
+			name:        "多个私有频道（允许）",
+			channels:    []string{"private-ch1", "private-ch2"},
+			expectError: false,
+		},
+		{
+			name:        "多个presence频道（允许）",
+			channels:    []string{"presence-room1", "presence-room2"},
+			expectError: false,
+		},
+
+		// 无效的场景
+		{
+			name:        "多个频道中包含加密频道（禁止）",
+			channels:    []string{"my-channel", "private-encrypted-secret"},
+			expectError: true,
+			errorMsg:    "cannot trigger events on multiple channels when any channel is encrypted",
+		},
+		{
+			name:        "加密频道+普通频道（禁止）",
+			channels:    []string{"private-encrypted-ch1", "public-ch2"},
+			expectError: true,
+			errorMsg:    "cannot trigger events on multiple channels when any channel is encrypted",
+		},
+		{
+			name:        "多个加密频道（禁止）",
+			channels:    []string{"private-encrypted-ch1", "private-encrypted-ch2"},
+			expectError: true,
+			errorMsg:    "cannot trigger events on multiple channels when any channel is encrypted",
+		},
+		{
+			name:        "加密频道+私有频道（禁止）",
+			channels:    []string{"private-encrypted-ch1", "private-ch2"},
+			expectError: true,
+			errorMsg:    "cannot trigger events on multiple channels when any channel is encrypted",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateChannelsForMultiTrigger(tt.channels)
+			if tt.expectError && err == nil {
+				t.Errorf("ValidateChannelsForMultiTrigger(%v) expected error but got nil", tt.channels)
+			}
+			if !tt.expectError && err != nil {
+				t.Errorf("ValidateChannelsForMultiTrigger(%v) unexpected error: %v", tt.channels, err)
+			}
+			if tt.expectError && err != nil && tt.errorMsg != "" {
+				if !strings.Contains(err.Error(), tt.errorMsg) {
+					t.Errorf("ValidateChannelsForMultiTrigger(%v) error = %v, want error containing %q", tt.channels, err, tt.errorMsg)
+				}
+			}
+		})
+	}
+}
+
 // BenchmarkValidateChannelName 频道名称验证性能测试
 func BenchmarkValidateChannelName(b *testing.B) {
 	channelName := "private-encrypted-my-channel-123"
