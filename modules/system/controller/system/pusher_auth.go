@@ -66,18 +66,30 @@ func (c *pusherAuthController) PusherAuth(ctx context.Context, req *system.Pushe
 
 	// ⚠️ 检查是否为 Encrypted Channel（private-encrypted-*）
 	if websocket.IsEncryptedChannel(req.ChannelName) {
-		// Encrypted Channel 认证：需要生成 shared_secret
-		// shared_secret 是一个 32 字节的随机密钥（Base64 编码）
-		// Pusher.js 会使用此密钥进行端到端加密
-		sharedSecret := websocket.GenerateSharedSecret()
+		var sharedSecret string
 
-		// 保存 shared_secret 到 Redis（用于服务器端加密推送）
-		// Key: pusher:encrypted_secret:{channel_name}
-		// TTL: 24小时（可配置）
-		saveErr := websocket.SaveSharedSecret(ctx, req.ChannelName, sharedSecret)
-		if saveErr != nil {
-			g.Log().Warning(ctx, "Failed to save shared_secret:", saveErr)
-			// 继续执行，不影响客户端认证
+		// 根据配置选择密钥生成方式
+		if websocket.HasEncryptionMasterKey() {
+			// 使用派生模式（Pusher 标准）
+			deriveErr := error(nil)
+			sharedSecret, deriveErr = websocket.DeriveSharedSecret(req.ChannelName)
+			if deriveErr != nil {
+				g.Log().Error(ctx, "Failed to derive shared_secret:", deriveErr)
+				writeJSONOrJSONP(r, g.Map{
+					"error": "Failed to derive channel key",
+				}, 500)
+				return
+			}
+			g.Log().Debugf(ctx, "Derived shared_secret for channel: %s", req.ChannelName)
+		} else {
+			// 使用随机生成模式（per-channel，向后兼容）
+			sharedSecret = websocket.GenerateSharedSecret()
+			saveErr := websocket.SaveSharedSecret(ctx, req.ChannelName, sharedSecret)
+			if saveErr != nil {
+				g.Log().Warning(ctx, "Failed to save shared_secret:", saveErr)
+				// 继续执行，不影响客户端认证
+			}
+			g.Log().Debugf(ctx, "Generated random shared_secret for channel: %s", req.ChannelName)
 		}
 
 		// 生成认证签名（不包含 channel_data）
@@ -170,11 +182,26 @@ func (c *pusherAuthController) BatchAuth(ctx context.Context, req *system.Pusher
 		item := system.PusherBatchAuthItem{}
 
 		if websocket.IsEncryptedChannel(channelName) {
-			sharedSecret := websocket.GenerateSharedSecret()
-			saveErr := websocket.SaveSharedSecret(ctx, channelName, sharedSecret)
-			if saveErr != nil {
-				g.Log().Warning(ctx, "Failed to save shared_secret:", saveErr)
+			var sharedSecret string
+
+			// 根据配置选择密钥生成方式
+			if websocket.HasEncryptionMasterKey() {
+				// 使用派生模式（Pusher 标准）
+				deriveErr := error(nil)
+				sharedSecret, deriveErr = websocket.DeriveSharedSecret(channelName)
+				if deriveErr != nil {
+					g.Log().Error(ctx, "Failed to derive shared_secret for batch auth:", deriveErr)
+					continue // 跳过此频道
+				}
+			} else {
+				// 使用随机生成模式（per-channel，向后兼容）
+				sharedSecret = websocket.GenerateSharedSecret()
+				saveErr := websocket.SaveSharedSecret(ctx, channelName, sharedSecret)
+				if saveErr != nil {
+					g.Log().Warning(ctx, "Failed to save shared_secret:", saveErr)
+				}
 			}
+
 			item.Auth = websocket.GenerateAuthSignature(req.SocketId, channelName, "")
 			item.SharedSecret = sharedSecret
 			result[channelName] = item

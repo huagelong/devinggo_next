@@ -24,8 +24,9 @@ import (
 
 // Pusher认证配置
 var (
-	pusherAppKey    string
-	pusherAppSecret string
+	pusherAppKey             string
+	pusherAppSecret          string
+	pusherEncryptionMasterKey []byte // 加密主密钥（Base64 解码后的 32 字节）
 )
 
 // InitPusherAuth 初始化Pusher认证配置
@@ -42,8 +43,14 @@ func GetPusherConfig() (appKey, appSecret string) {
 	appKey = g.Cfg().MustGet(ctx, "pusher.appKey", "default-app-key").String()
 	appSecret = g.Cfg().MustGet(ctx, "pusher.appSecret", "default-app-secret").String()
 
-	// 初始化
+	// 初始化认证
 	InitPusherAuth(appKey, appSecret)
+
+	// 初始化加密主密钥（如果配置了）
+	masterKey := g.Cfg().MustGet(ctx, "pusher.encryptionMasterKey", "").String()
+	if err := InitPusherEncryption(masterKey); err != nil {
+		g.Log().Error(ctx, "Failed to initialize encryption master key:", err)
+	}
 
 	return appKey, appSecret
 }
@@ -141,6 +148,7 @@ func ValidateSocketID(socketID string, expectedServerName string) bool {
 // GenerateSharedSecret 生成加密频道的共享密钥
 // ⚠️ Encrypted Channels 需要：返回 32 字节随机密钥的 Base64 编码
 // Pusher.js 使用此密钥进行端到端加密（NaCl/TweetNaCl）
+// 注意：此函数用于 per-channel 模式，如果配置了 encryptionMasterKey，应使用 DeriveSharedSecret
 func GenerateSharedSecret() string {
 	// 生成 32 字节随机密钥（256 位）
 	key := make([]byte, 32)
@@ -155,6 +163,56 @@ func GenerateSharedSecret() string {
 
 	// Base64 编码（标准编码，Pusher.js 要求）
 	return base64.StdEncoding.EncodeToString(key)
+}
+
+// InitPusherEncryption 初始化加密主密钥
+// 参数 masterKeyBase64: Base64 编码的 32 字节密钥
+// 如果传入空字符串，则不使用主密钥模式（保持 per-channel shared_secret）
+func InitPusherEncryption(masterKeyBase64 string) error {
+	if masterKeyBase64 == "" {
+		pusherEncryptionMasterKey = nil
+		return nil
+	}
+
+	key, err := base64.StdEncoding.DecodeString(masterKeyBase64)
+	if err != nil {
+		pusherEncryptionMasterKey = nil // 重置以确保安全
+		return fmt.Errorf("invalid encryptionMasterKey base64: %w", err)
+	}
+
+	if len(key) != 32 {
+		pusherEncryptionMasterKey = nil // 重置以确保安全
+		return fmt.Errorf("encryptionMasterKey must be 32 bytes, got %d", len(key))
+	}
+
+	pusherEncryptionMasterKey = key
+	g.Log().Debugf(gctx.New(), "Encryption master key initialized, using key derivation mode")
+	return nil
+}
+
+// HasEncryptionMasterKey 检查是否配置了加密主密钥
+func HasEncryptionMasterKey() bool {
+	return pusherEncryptionMasterKey != nil
+}
+
+// DeriveSharedSecret 从主密钥派生频道特定密钥
+// 使用 HMAC-SHA256 算法派生，确保同一频道总是得到相同的密钥
+//
+// 算法：
+//   channelKey = HMAC-SHA256(channelName, masterKey)
+//
+// 参考：Pusher Server Library Reference Specification
+func DeriveSharedSecret(channelName string) (string, error) {
+	if !HasEncryptionMasterKey() {
+		return "", fmt.Errorf("encryption master key not configured")
+	}
+
+	// 使用 HMAC-SHA256 派生频道密钥
+	h := hmac.New(sha256.New, pusherEncryptionMasterKey)
+	h.Write([]byte(channelName))
+	channelKey := h.Sum(nil)
+
+	return base64.StdEncoding.EncodeToString(channelKey), nil
 }
 
 // GenerateUserAuthSignature 生成用户认证签名

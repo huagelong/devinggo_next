@@ -27,7 +27,15 @@ const (
 
 // SaveSharedSecret 保存 shared_secret 到 Redis
 // 用于服务器端推送加密消息
+// 注意：如果配置了 encryptionMasterKey，派生模式下无需保存
 func SaveSharedSecret(ctx context.Context, channelName string, sharedSecret string) error {
+	// 如果配置了主密钥，派生模式下无需保存（密钥可重复派生）
+	if HasEncryptionMasterKey() {
+		g.Log().Debugf(ctx, "Encryption master key mode: skipping save for channel: %s", channelName)
+		return nil
+	}
+
+	// 否则保存到 Redis（per-channel 模式，向后兼容）
 	redisKey := sharedSecretKeyPrefix + channelName
 
 	_, err := g.Redis().Set(ctx, redisKey, sharedSecret)
@@ -45,8 +53,15 @@ func SaveSharedSecret(ctx context.Context, channelName string, sharedSecret stri
 	return nil
 }
 
-// GetSharedSecret 从 Redis 获取 shared_secret
+// GetSharedSecret 从 Redis 获取 shared_secret 或从主密钥派生
+// 优先使用派生模式（如果配置了 encryptionMasterKey）
 func GetSharedSecret(ctx context.Context, channelName string) (string, error) {
+	// 如果配置了主密钥，使用派生模式
+	if HasEncryptionMasterKey() {
+		return DeriveSharedSecret(channelName)
+	}
+
+	// 否则从 Redis 获取（per-channel 模式，向后兼容）
 	redisKey := sharedSecretKeyPrefix + channelName
 
 	result, err := g.Redis().Get(ctx, redisKey)
