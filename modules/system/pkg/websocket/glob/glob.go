@@ -22,6 +22,7 @@ const (
 	LogLevelWarning = "warning"
 	LogLevelError   = "error"
 	LogLevelNone    = "none"
+	LogLevelOff     = "off" // Pusher 标准的 OFF 级别
 )
 
 // WithWsLog 获取 WebSocket 日志器
@@ -49,7 +50,7 @@ func parseLogLevel(level string) int {
 		return glog.LEVEL_WARN | glog.LEVEL_ERRO | glog.LEVEL_CRIT
 	case "error":
 		return glog.LEVEL_ERRO | glog.LEVEL_CRIT
-	case "none":
+	case "none", "off":
 		return glog.LEVEL_NONE
 	default:
 		// 默认 info 级别
