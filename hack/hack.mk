@@ -75,10 +75,10 @@ pbentity: cli.install
 # Run golangci-lint to check code quality.
 .PHONY: lint
 lint:
-	@golangci-lint run --config .golangci.yml
+	@go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run --config .golangci.yml
 
 # Format code with goimports and gofmt.
 .PHONY: fmt
 fmt:
-	@goimports -w .
+	@go run golang.org/x/tools/cmd/goimports@latest -w .
 	@gofmt -s -w .
