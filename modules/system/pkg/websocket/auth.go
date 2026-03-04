@@ -24,8 +24,8 @@ import (
 
 // Pusher认证配置
 var (
-	pusherAppKey             string
-	pusherAppSecret          string
+	pusherAppKey              string
+	pusherAppSecret           string
 	pusherEncryptionMasterKey []byte // 加密主密钥（Base64 解码后的 32 字节）
 )
 

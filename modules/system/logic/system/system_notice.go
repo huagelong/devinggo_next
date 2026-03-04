@@ -1,4 +1,4 @@
-﻿// Package system
+// Package system
 // @Link  https://github.com/huagelong/devinggo
 // @Copyright  Copyright (c) 2024 devinggo
 // @Author  Kai <hpuwang@gmail.com>
@@ -28,7 +28,7 @@ import (
 )
 
 type sSystemNotice struct {
-	base.BaseService
+	base.GenericService[res.SystemNotice]
 }
 
 func init() {
@@ -36,11 +36,18 @@ func init() {
 }
 
 func NewSystemNotice() *sSystemNotice {
-	return &sSystemNotice{}
+	s := &sSystemNotice{}
+	s.GenericService = base.GenericService[res.SystemNotice]{
+		ModelFn: func(ctx context.Context) *gdb.Model {
+			return dao.SystemNotice.Ctx(ctx).Hook(hook.Default()).Cache(orm.SetCacheOption(ctx)).OnConflict("id")
+		},
+	}
+	return s
 }
 
+// Model 返回数据库 Model
 func (s *sSystemNotice) Model(ctx context.Context) *gdb.Model {
-	return dao.SystemNotice.Ctx(ctx).Hook(hook.Default()).Cache(orm.SetCacheOption(ctx)).OnConflict("id")
+	return s.GenericService.Model(ctx)
 }
 
 func (s *sSystemNotice) GetPageList(ctx context.Context, req *model.PageListReq) (res []*res.SystemNotice, total int, err error) {
@@ -138,14 +145,6 @@ func (s *sSystemNotice) Save(ctx context.Context, in *req.SystemNoticeSave, user
 	return
 }
 
-func (s *sSystemNotice) GetById(ctx context.Context, id int64) (res *res.SystemNotice, err error) {
-	err = s.Model(ctx).Where("id", id).Scan(&res)
-	if utils.IsError(err) {
-		return
-	}
-	return
-}
-
 func (s *sSystemNotice) Update(ctx context.Context, in *req.SystemNoticeUpdate) (err error) {
 	updateData := do.SystemNotice{
 		Title:   in.Title,
@@ -199,10 +198,12 @@ func (s *sSystemNotice) RealDelete(ctx context.Context, ids []int64) (err error)
 	return
 }
 
+// GetById 由 GenericService 提供，此处声明用于接口生成
+func (s *sSystemNotice) GetById(ctx context.Context, id int64) (res *res.SystemNotice, err error) {
+	return s.GenericService.GetById(ctx, id)
+}
+
+// Recovery 由 GenericService 提供，此处声明用于接口生成
 func (s *sSystemNotice) Recovery(ctx context.Context, ids []int64) (err error) {
-	_, err = s.Model(ctx).Unscoped().WhereIn("id", ids).Update(g.Map{"deleted_at": nil})
-	if utils.IsError(err) {
-		return err
-	}
-	return
+	return s.GenericService.Recovery(ctx, ids)
 }

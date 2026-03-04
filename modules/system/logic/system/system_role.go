@@ -1,4 +1,4 @@
-﻿// Package system
+// Package system
 // @Link  https://github.com/huagelong/devinggo
 // @Copyright  Copyright (c) 2024 devinggo
 // @Author  Kai <hpuwang@gmail.com>
@@ -32,7 +32,7 @@ import (
 )
 
 type sSystemRole struct {
-	base.BaseService
+	base.GenericService[res.SystemRole]
 }
 
 func init() {
@@ -40,11 +40,18 @@ func init() {
 }
 
 func NewSystemRole() *sSystemRole {
-	return &sSystemRole{}
+	s := &sSystemRole{}
+	s.GenericService = base.GenericService[res.SystemRole]{
+		ModelFn: func(ctx context.Context) *gdb.Model {
+			return dao.SystemRole.Ctx(ctx).Hook(hook.Default()).Cache(orm.SetCacheOption(ctx)).OnConflict("id")
+		},
+	}
+	return s
 }
 
+// Model 返回数据库 Model
 func (s *sSystemRole) Model(ctx context.Context) *gdb.Model {
-	return dao.SystemRole.Ctx(ctx).Hook(hook.Default()).Cache(orm.SetCacheOption(ctx)).OnConflict("id")
+	return s.GenericService.Model(ctx)
 }
 
 func (s *sSystemRole) GetByIds(ctx context.Context, ids []int64) (res []*entity.SystemRole, err error) {
@@ -226,14 +233,6 @@ func (s *sSystemRole) GetSuperAdminId(ctx context.Context) (id int64, err error)
 	return
 }
 
-func (s *sSystemRole) GetById(ctx context.Context, id int64) (res *res.SystemRole, err error) {
-	err = s.Model(ctx).Where("id", id).Scan(&res)
-	if utils.IsError(err) {
-		return
-	}
-	return
-}
-
 func (s *sSystemRole) Update(ctx context.Context, in *req.SystemRoleSave) (err error) {
 	updateData := do.SystemRole{
 		Name:      in.Name,
@@ -316,22 +315,6 @@ func (s *sSystemRole) Recovery(ctx context.Context, ids []int64) (err error) {
 	return
 }
 
-func (s *sSystemRole) ChangeStatus(ctx context.Context, id int64, status int) (err error) {
-	_, err = s.Model(ctx).Data(g.Map{"status": status}).Where("id", id).Update()
-	if utils.IsError(err) {
-		return err
-	}
-	return
-}
-
-func (s *sSystemRole) NumberOperation(ctx context.Context, id int64, numberName string, numberValue int) (err error) {
-	_, err = s.Model(ctx).Data(g.Map{numberName: numberValue}).Where("id", id).Update()
-	if utils.IsError(err) {
-		return err
-	}
-	return
-}
-
 func (s *sSystemRole) GetMenuByRoleIds(ctx context.Context, ids []int64) (out []*res.SystemRoleMenus, err error) {
 	for _, id := range ids {
 		systemRoleMenus := &res.SystemRoleMenus{}
@@ -383,4 +366,19 @@ func (s *sSystemRole) GetDeptByRole(ctx context.Context, ids []int64) (out []*re
 	}
 
 	return
+}
+
+// GetById 由 GenericService 提供，此处声明用于接口生成
+func (s *sSystemRole) GetById(ctx context.Context, id int64) (res *res.SystemRole, err error) {
+	return s.GenericService.GetById(ctx, id)
+}
+
+// ChangeStatus 由 GenericService 提供，此处声明用于接口生成
+func (s *sSystemRole) ChangeStatus(ctx context.Context, id int64, status int) (err error) {
+	return s.GenericService.ChangeStatus(ctx, id, status)
+}
+
+// NumberOperation 由 GenericService 提供，此处声明用于接口生成
+func (s *sSystemRole) NumberOperation(ctx context.Context, id int64, numberName string, numberValue int) (err error) {
+	return s.GenericService.NumberOperation(ctx, id, numberName, numberValue)
 }

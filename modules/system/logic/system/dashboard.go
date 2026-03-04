@@ -112,7 +112,7 @@ func (s *sDashboard) GetLoginChart(ctx context.Context, days int) (chartData map
 	// 生成日期范围
 	for i := 0; i < days; i++ {
 		date := startDate.AddDate(0, 0, i)
-		dateStr := date.Format("Y-m-d")  // 使用 gtime 的格式字符串
+		dateStr := date.Format("Y-m-d") // 使用 gtime 的格式字符串
 		xAxis = append(xAxis, dateStr)
 	}
 

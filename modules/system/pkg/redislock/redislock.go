@@ -7,8 +7,8 @@
 package redislock
 
 import (
-	"devinggo/modules/system/pkg/utils"
 	"context"
+	"devinggo/modules/system/pkg/utils"
 	"time"
 
 	_ "github.com/gogf/gf/contrib/nosql/redis/v2"

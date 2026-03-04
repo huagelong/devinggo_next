@@ -1,4 +1,4 @@
-﻿// Package system
+// Package system
 // @Link  https://github.com/huagelong/devinggo
 // @Copyright  Copyright (c) 2024 devinggo
 // @Author  Kai <hpuwang@gmail.com>
@@ -28,7 +28,7 @@ import (
 )
 
 type sSystemDictType struct {
-	base.BaseService
+	base.GenericService[res.SystemDictType]
 }
 
 func init() {
@@ -36,11 +36,18 @@ func init() {
 }
 
 func NewSystemDictType() *sSystemDictType {
-	return &sSystemDictType{}
+	s := &sSystemDictType{}
+	s.GenericService = base.GenericService[res.SystemDictType]{
+		ModelFn: func(ctx context.Context) *gdb.Model {
+			return dao.SystemDictType.Ctx(ctx).Hook(hook.Default()).Cache(orm.SetCacheOption(ctx)).OnConflict("id")
+		},
+	}
+	return s
 }
 
+// Model 返回数据库 Model
 func (s *sSystemDictType) Model(ctx context.Context) *gdb.Model {
-	return dao.SystemDictType.Ctx(ctx).Hook(hook.Default()).Cache(orm.SetCacheOption(ctx)).OnConflict("id")
+	return s.GenericService.Model(ctx)
 }
 
 func (s *sSystemDictType) GetPageList(ctx context.Context, req *model.PageListReq, in *req.SystemDictTypeSearch) (rs []*res.SystemDictType, total int, err error) {
@@ -92,14 +99,6 @@ func (s *sSystemDictType) Save(ctx context.Context, in *req.SystemDictTypeSave) 
 	return
 }
 
-func (s *sSystemDictType) GetById(ctx context.Context, id int64) (res *res.SystemDictType, err error) {
-	err = s.Model(ctx).Where("id", id).Scan(&res)
-	if utils.IsError(err) {
-		return
-	}
-	return
-}
-
 func (s *sSystemDictType) Update(ctx context.Context, in *req.SystemDictTypeUpdate) (err error) {
 	updateData := do.SystemPost{
 		Name:   in.Name,
@@ -143,22 +142,6 @@ func (s *sSystemDictType) RealDelete(ctx context.Context, ids []int64) (err erro
 	return
 }
 
-func (s *sSystemDictType) Recovery(ctx context.Context, ids []int64) (err error) {
-	_, err = s.Model(ctx).Unscoped().WhereIn("id", ids).Update(g.Map{"deleted_at": nil})
-	if utils.IsError(err) {
-		return err
-	}
-	return
-}
-
-func (s *sSystemDictType) ChangeStatus(ctx context.Context, id int64, status int) (err error) {
-	_, err = s.Model(ctx).Data(g.Map{"status": status}).Where("id", id).Update()
-	if utils.IsError(err) {
-		return err
-	}
-	return
-}
-
 func (s *sSystemDictType) handleSearch(ctx context.Context, in *req.SystemDictTypeSearch) (m *gdb.Model) {
 	m = s.Model(ctx)
 
@@ -172,4 +155,19 @@ func (s *sSystemDictType) handleSearch(ctx context.Context, in *req.SystemDictTy
 		m = m.Where("name like ? ", "%"+in.Name+"%")
 	}
 	return
+}
+
+// GetById 由 GenericService 提供，此处声明用于接口生成
+func (s *sSystemDictType) GetById(ctx context.Context, id int64) (res *res.SystemDictType, err error) {
+	return s.GenericService.GetById(ctx, id)
+}
+
+// ChangeStatus 由 GenericService 提供，此处声明用于接口生成
+func (s *sSystemDictType) ChangeStatus(ctx context.Context, id int64, status int) (err error) {
+	return s.GenericService.ChangeStatus(ctx, id, status)
+}
+
+// Recovery 由 GenericService 提供，此处声明用于接口生成
+func (s *sSystemDictType) Recovery(ctx context.Context, ids []int64) (err error) {
+	return s.GenericService.Recovery(ctx, ids)
 }

@@ -71,3 +71,14 @@ pb: cli.install
 .PHONY: pbentity
 pbentity: cli.install
 	@gf gen pbentity
+
+# Run golangci-lint to check code quality.
+.PHONY: lint
+lint:
+	@golangci-lint run --config .golangci.yml
+
+# Format code with goimports and gofmt.
+.PHONY: fmt
+fmt:
+	@goimports -w .
+	@gofmt -s -w .

@@ -168,16 +168,20 @@ type (
 		NumberOperation(ctx context.Context, id int64, numberName string, numberValue int) (err error)
 	}
 	ISystemDictType interface {
+		// Model 返回数据库 Model
 		Model(ctx context.Context) *gdb.Model
 		GetPageList(ctx context.Context, req *model.PageListReq, in *req.SystemDictTypeSearch) (rs []*res.SystemDictType, total int, err error)
 		GetList(ctx context.Context, listReq *model.ListReq, in *req.SystemDictTypeSearch) (out []*res.SystemDictType, err error)
 		Save(ctx context.Context, in *req.SystemDictTypeSave) (id int64, err error)
-		GetById(ctx context.Context, id int64) (res *res.SystemDictType, err error)
 		Update(ctx context.Context, in *req.SystemDictTypeUpdate) (err error)
 		Delete(ctx context.Context, ids []int64) (err error)
 		RealDelete(ctx context.Context, ids []int64) (err error)
-		Recovery(ctx context.Context, ids []int64) (err error)
+		// GetById 由 GenericService 提供，此处声明用于接口生成
+		GetById(ctx context.Context, id int64) (res *res.SystemDictType, err error)
+		// ChangeStatus 由 GenericService 提供，此处声明用于接口生成
 		ChangeStatus(ctx context.Context, id int64, status int) (err error)
+		// Recovery 由 GenericService 提供，此处声明用于接口生成
+		Recovery(ctx context.Context, ids []int64) (err error)
 	}
 	ISystemLoginLog interface {
 		Model(ctx context.Context) *gdb.Model
@@ -216,14 +220,17 @@ type (
 		ChangeStatus(ctx context.Context, id int64, status int) (err error)
 	}
 	ISystemNotice interface {
+		// Model 返回数据库 Model
 		Model(ctx context.Context) *gdb.Model
 		GetPageList(ctx context.Context, req *model.PageListReq) (res []*res.SystemNotice, total int, err error)
 		GetPageListForSearch(ctx context.Context, req *model.PageListReq, in *req.SystemNoticeSearch) (rs []*res.SystemNotice, total int, err error)
 		Save(ctx context.Context, in *req.SystemNoticeSave, userId int64) (id int64, err error)
-		GetById(ctx context.Context, id int64) (res *res.SystemNotice, err error)
 		Update(ctx context.Context, in *req.SystemNoticeUpdate) (err error)
 		Delete(ctx context.Context, ids []int64) (err error)
 		RealDelete(ctx context.Context, ids []int64) (err error)
+		// GetById 由 GenericService 提供，此处声明用于接口生成
+		GetById(ctx context.Context, id int64) (res *res.SystemNotice, err error)
+		// Recovery 由 GenericService 提供，此处声明用于接口生成
 		Recovery(ctx context.Context, ids []int64) (err error)
 	}
 	ISystemOperLog interface {
@@ -234,16 +241,23 @@ type (
 		DeleteOperLog(ctx context.Context, ids []int64) (err error)
 	}
 	ISystemPost interface {
+		// Model 返回数据库 Model
 		Model(ctx context.Context) *gdb.Model
 		GetList(ctx context.Context, in *req.SystemPostSearch) (out []*res.SystemPost, err error)
 		GetPageList(ctx context.Context, req *model.PageListReq, in *req.SystemPostSearch) (rs []*res.SystemPost, total int, err error)
 		Save(ctx context.Context, in *req.SystemPostSave) (id int64, err error)
-		GetById(ctx context.Context, id int64) (res *res.SystemPost, err error)
 		Update(ctx context.Context, in *req.SystemPostSave) (err error)
-		Delete(ctx context.Context, ids []int64) (err error)
-		RealDelete(ctx context.Context, ids []int64) (err error)
-		Recovery(ctx context.Context, ids []int64) (err error)
+		// GetById 由 GenericService 提供，此处声明用于接口生成
+		GetById(ctx context.Context, id int64) (res *res.SystemPost, err error)
+		// ChangeStatus 由 GenericService 提供，此处声明用于接口生成
 		ChangeStatus(ctx context.Context, id int64, status int) (err error)
+		// Recovery 由 GenericService 提供，此处声明用于接口生成
+		Recovery(ctx context.Context, ids []int64) (err error)
+		// Delete 由 GenericService 提供，此处声明用于接口生成
+		Delete(ctx context.Context, ids []int64) (err error)
+		// RealDelete 由 GenericService 提供，此处声明用于接口生成
+		RealDelete(ctx context.Context, ids []int64) (err error)
+		// NumberOperation 由 GenericService 提供，此处声明用于接口生成
 		NumberOperation(ctx context.Context, id int64, numberName string, numberValue int) (err error)
 	}
 	ISystemQueueMessage interface {
@@ -258,6 +272,7 @@ type (
 		UpdateReadStatus(ctx context.Context, ids []int64, userId int64, value int) (err error)
 	}
 	ISystemRole interface {
+		// Model 返回数据库 Model
 		Model(ctx context.Context) *gdb.Model
 		GetByIds(ctx context.Context, ids []int64) (res []*entity.SystemRole, err error)
 		Verify(r *ghttp.Request) bool
@@ -265,15 +280,18 @@ type (
 		GetPageList(ctx context.Context, req *model.PageListReq, in *req.SystemRoleSearch, filterAdminRole bool) (rs []*res.SystemRole, total int, err error)
 		Save(ctx context.Context, in *req.SystemRoleSave) (id int64, err error)
 		GetSuperAdminId(ctx context.Context) (id int64, err error)
-		GetById(ctx context.Context, id int64) (res *res.SystemRole, err error)
 		Update(ctx context.Context, in *req.SystemRoleSave) (err error)
 		Delete(ctx context.Context, ids []int64) (err error)
 		RealDelete(ctx context.Context, ids []int64) (err error)
 		Recovery(ctx context.Context, ids []int64) (err error)
-		ChangeStatus(ctx context.Context, id int64, status int) (err error)
-		NumberOperation(ctx context.Context, id int64, numberName string, numberValue int) (err error)
 		GetMenuByRoleIds(ctx context.Context, ids []int64) (out []*res.SystemRoleMenus, err error)
 		GetDeptByRole(ctx context.Context, ids []int64) (out []*res.SystemRoleDepts, err error)
+		// GetById 由 GenericService 提供，此处声明用于接口生成
+		GetById(ctx context.Context, id int64) (res *res.SystemRole, err error)
+		// ChangeStatus 由 GenericService 提供，此处声明用于接口生成
+		ChangeStatus(ctx context.Context, id int64, status int) (err error)
+		// NumberOperation 由 GenericService 提供，此处声明用于接口生成
+		NumberOperation(ctx context.Context, id int64, numberName string, numberValue int) (err error)
 	}
 	ISystemRoleDept interface {
 		Model(ctx context.Context) *gdb.Model

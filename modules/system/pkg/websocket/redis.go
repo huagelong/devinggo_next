@@ -302,10 +302,10 @@ func isChannelExist(ctx context.Context, channel string) bool {
 // 用于 pusher:signin 用户认证和 Send to User API
 
 const (
-	KeyUserId2SocketId    = "UserId2SocketId:"    // user_id → socket_id 映射（用于 Send to User API，单值）
-	KeyUserId2SocketIds   = "UserId2SocketIds:"   // user_id → socket_ids 集合（用于多设备支持）
-	KeySocketId2UserId    = "SocketId2UserId:"    // socket_id → user_id 反向映射
-	UserAuthTTL           = 3600                  // 用户认证映射有效期 1小时
+	KeyUserId2SocketId  = "UserId2SocketId:"  // user_id → socket_id 映射（用于 Send to User API，单值）
+	KeyUserId2SocketIds = "UserId2SocketIds:" // user_id → socket_ids 集合（用于多设备支持）
+	KeySocketId2UserId  = "SocketId2UserId:"  // socket_id → user_id 反向映射
+	UserAuthTTL         = 3600                // 用户认证映射有效期 1小时
 )
 
 // SaveUserIdSocketIdMapping 保存 user_id → socket_id 映射
