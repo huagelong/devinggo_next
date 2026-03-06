@@ -108,19 +108,22 @@
 
 ### 阶段五：工作流集成（第6天）
 
-- [ ] **15. 更新 Makefile 集成新命令**
-  - 在 `hack/hack.mk` 添加代码生成命令
-  - 添加 `gen-module`、`export-module`、`import-module`
-  - 添加 `gen-worker`
-  - 添加 `gen-crud`、`gen-batch`
-  - 添加 `help-gen` 帮助命令
+- [x] **15. 更新 Makefile 集成新命令**
+  - 在 `hack/hack.mk` 添加代码生成命令 ✅
+  - 添加 `gen-module`、`export-module`、`import-module` ✅
+  - 添加 `gen-worker` ✅
+  - 添加 `gen-crud` ✅
+  - 添加 `gen-help` 帮助命令 ✅
+  - 修正命令参数格式（使用-name/-table等标准参数）✅
 
-- [ ] **16. 清理旧代码并重命名模块加载器**
-  - 删除 `modules/system/cmd/module.go`
-  - 删除 `modules/system/cmd/worker_create.go`
-  - 重命名 `modules/_/` → `modules/bootstrap/`
-  - 更新 `main.go` 导入路径
-  - 更新所有模板中的路径引用
+- [x] **16. 清理旧代码并重命名模块加载器**
+  - 删除 `modules/system/cmd/module.go` ✅
+  - 删除 `modules/system/cmd/worker_create.go` ✅
+  - 重命名 `modules/_/` → `modules/bootstrap/` ✅
+  - 更新 `main.go` 导入路径 ✅
+  - 更新所有模板中的路径引用 ✅
+  - 更新内部cmd/cmd.go移除旧命令注册 ✅
+  - 更新相关文档中的路径引用 ✅
 
 ### 阶段六：文档与测试（第7天）
 

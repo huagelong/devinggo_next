@@ -115,7 +115,7 @@ gen-module:
 		echo "错误: 请指定模块名称，例如: make gen-module name=mymodule"; \
 		exit 1; \
 	fi
-	@go run ./hack/generator/main.go module:create $(name)
+	@go run ./hack/generator/main.go module:create -name $(name)
 	@echo "模块 $(name) 创建成功！"
 	@echo "请运行以下命令更新代码："
 	@echo "  make service"
@@ -132,7 +132,7 @@ clone-module:
 		echo "错误: 请指定源模块名称，例如: make clone-module name=newmodule source=system"; \
 		exit 1; \
 	fi
-	@go run ./hack/generator/main.go module:clone $(name) $(source)
+	@go run ./hack/generator/main.go module:clone -source $(source) -target $(name)
 	@echo "模块克隆成功！"
 	@echo "请运行以下命令更新代码："
 	@echo "  make service"
@@ -144,7 +144,7 @@ export-module:
 		echo "错误: 请指定模块名称，例如: make export-module name=system"; \
 		exit 1; \
 	fi
-	@go run ./hack/generator/main.go module:export $(name)
+	@go run ./hack/generator/main.go module:export -name $(name)
 
 # Import a module from zip file.
 .PHONY: import-module
@@ -153,7 +153,7 @@ import-module:
 		echo "错误: 请指定zip文件路径，例如: make import-module file=./system.zip"; \
 		exit 1; \
 	fi
-	@go run ./hack/generator/main.go module:import $(file)
+	@go run ./hack/generator/main.go module:import -file $(file)
 	@echo "模块导入成功！"
 	@echo "请运行以下命令更新代码："
 	@echo "  make service"
@@ -170,7 +170,7 @@ validate-module:
 		echo "错误: 请指定模块名称，例如: make validate-module name=system"; \
 		exit 1; \
 	fi
-	@go run ./hack/generator/main.go module:validate $(name)
+	@go run ./hack/generator/main.go module:validate -name $(name)
 
 # Create a new worker.
 .PHONY: gen-worker
@@ -183,7 +183,7 @@ gen-worker:
 		echo "错误: 请指定worker名称，例如: make gen-worker module=system worker=MyWorker"; \
 		exit 1; \
 	fi
-	@go run ./hack/generator/main.go worker:create $(module) $(worker)
+	@go run ./hack/generator/main.go worker:create -module $(module) -name $(worker)
 	@echo "Worker创建成功！"
 
 # Generate CRUD code for database table.
@@ -194,9 +194,9 @@ gen-crud:
 		exit 1; \
 	fi
 	@if [ -z "$(module)" ]; then \
-		go run ./hack/generator/main.go crud:create $(table); \
+		go run ./hack/generator/main.go crud:create -table $(table); \
 	else \
-		go run ./hack/generator/main.go crud:create $(table) $(module); \
+		go run ./hack/generator/main.go crud:create -table $(table) -module $(module); \
 	fi
 	@echo "CRUD代码生成成功！"
 	@echo "请运行以下命令更新代码："
