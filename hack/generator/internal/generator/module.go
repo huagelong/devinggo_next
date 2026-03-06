@@ -13,7 +13,24 @@ import (
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gvar"
 )
+
+// getString 从 map 中获取字符串值
+func getString(m map[string]interface{}, key string) string {
+	if v, ok := m[key].(string); ok {
+		return v
+	}
+	return ""
+}
+
+// getBool 从 map 中获取布尔值
+func getBool(m map[string]interface{}, key string) bool {
+	if v, ok := m[key].(bool); ok {
+		return v
+	}
+	return false
+}
 
 // ModuleExporter 模块导出器
 type ModuleExporter struct {
@@ -279,34 +296,49 @@ func (i *ModuleImporter) validateInstall(moduleName string, filesMap map[string]
 }
 
 // parseHooks 解析钩子配置
-func (i *ModuleImporter) parseHooks(hookData *gjson.Var) []utils.HookCommand {
-	if hookData == nil || hookData.IsNil() {
+func (i *ModuleImporter) parseHooks(hookData interface{}) []utils.HookCommand {
+	if hookData == nil {
 		return nil
 	}
 
-	hooksArray := hookData.Array()
+	// 尝试转换为 *gvar.Var 再获取值
+	var hooksArray []interface{}
+	if gv, ok := hookData.(*gvar.Var); ok {
+		if gv.IsNil() {
+			return nil
+		}
+		if arr, ok := gv.Val().([]interface{}); ok {
+			hooksArray = arr
+		}
+	} else if arr, ok := hookData.([]interface{}); ok {
+		hooksArray = arr
+	}
+
 	if len(hooksArray) == 0 {
 		return nil
 	}
 
 	hooks := make([]utils.HookCommand, 0, len(hooksArray))
 	for _, h := range hooksArray {
-		hookMap := h.Map()
+		hookMap, ok := h.(map[string]interface{})
+		if !ok {
+			continue
+		}
 
 		hook := utils.HookCommand{
-			Name:        hookMap.Get("name").String(),
-			Command:     hookMap.Get("command").String(),
-			WorkDir:     hookMap.Get("workDir").String(),
-			IgnoreError: hookMap.Get("ignoreError").Bool(),
+			Name:        getString(hookMap, "name"),
+			Command:     getString(hookMap, "command"),
+			WorkDir:     getString(hookMap, "workDir"),
+			IgnoreError: getBool(hookMap, "ignoreError"),
 		}
 
 		// 解析环境变量
-		envData := hookMap.Get("env")
-		if !envData.IsNil() {
-			envMap := envData.Map()
+		if envData, ok := hookMap["env"].(map[string]interface{}); ok {
 			hook.Env = make(map[string]string)
-			for k, v := range envMap {
-				hook.Env[k] = v.String()
+			for k, v := range envData {
+				if strVal, ok := v.(string); ok {
+					hook.Env[k] = strVal
+				}
 			}
 		}
 
@@ -319,32 +351,46 @@ func (i *ModuleImporter) parseHooks(hookData *gjson.Var) []utils.HookCommand {
 }
 
 // parseStaticDeploy 解析静态资源部署配置
-func (i *ModuleImporter) parseStaticDeploy(deployData *gjson.Var) *StaticDeployConfig {
-	if deployData == nil || deployData.IsNil() {
+func (i *ModuleImporter) parseStaticDeploy(deployData interface{}) *StaticDeployConfig {
+	if deployData == nil {
 		return nil
 	}
 
-	deployMap := deployData.Map()
+	// 尝试转换为 map[string]interface{}
+	var deployMap map[string]interface{}
+	if gv, ok := deployData.(*gvar.Var); ok {
+		if gv.IsNil() {
+			return nil
+		}
+		if m, ok := gv.Val().(map[string]interface{}); ok {
+			deployMap = m
+		}
+	} else if m, ok := deployData.(map[string]interface{}); ok {
+		deployMap = m
+	}
+
 	if len(deployMap) == 0 {
 		return nil
 	}
 
 	config := &StaticDeployConfig{
-		Enabled: deployMap.Get("enabled").Bool(),
+		Enabled: getBool(deployMap, "enabled"),
 		Rules:   []StaticDeployRule{},
 	}
 
-	rulesData := deployMap.Get("rules")
-	if !rulesData.IsNil() {
-		rulesArray := rulesData.Array()
-		for _, r := range rulesArray {
-			ruleMap := r.Map()
+	// 解析 rules
+	if rulesData, ok := deployMap["rules"].([]interface{}); ok {
+		for _, r := range rulesData {
+			ruleMap, ok := r.(map[string]interface{})
+			if !ok {
+				continue
+			}
 
 			rule := StaticDeployRule{
-				Source:    ruleMap.Get("source").String(),
-				Target:    ruleMap.Get("target").String(),
-				Method:    ruleMap.Get("method").String(),
-				Overwrite: ruleMap.Get("overwrite").Bool(),
+				Source:    getString(ruleMap, "source"),
+				Target:    getString(ruleMap, "target"),
+				Method:    getString(ruleMap, "method"),
+				Overwrite: getBool(ruleMap, "overwrite"),
 			}
 
 			if rule.Source != "" && rule.Target != "" {

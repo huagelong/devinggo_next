@@ -72,7 +72,7 @@ make list-modules                             # 列出所有模块
 make validate-module name=blog                # 验证模块
 
 # Worker任务生成
-ma1. 创建新模块
+# 1. 创建新模块
 make gen-module name=blog
 # 或完整命令
 go run ./hack/generator/main.go module:create -name blog
@@ -129,10 +129,10 @@ go run ./hack/generator/main.go worker:create -module system -name DataSync -typ
 # - modules/system/consts/worker.go (更新常量)
 
 # 4. 生成后需要运行
-ma1. 使用默认模块（system）生成CRUD
+# 1. 使用默认模块（system）生成CRUD
 make gen-crud table=system_user
 # 或完整命令
-go run ./hack/generator/main.go crud:create -table system_user
+go run ./hack/generator/main.go crud:generate -m=system -t=system_user -n=用户
 
 # 生成文件:
 # - modules/system/api/system/system_user.go        # API定义
@@ -143,10 +143,10 @@ go run ./hack/generator/main.go crud:create -table system_user
 
 # 2. 指定模块生成CRUD
 make gen-crud table=system_post module=system
-go run ./hack/generator/main.go crud:create -table system_post -module system
+go run ./hack/generator/main.go crud:generate -m=system -t=system_post -n=帖子
 
 # 3. 自定义业务名称
-go run ./hack/generator/main.go crud:create -table system_user -module system -business User
+go run ./hack/generator/main.go crud:generate -m=system -t=system_user -n=用户
 
 # 4. 生成后需要运行
 make service  # 更新service接口

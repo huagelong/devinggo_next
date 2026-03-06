@@ -183,7 +183,11 @@ gen-worker:
 		echo "错误: 请指定worker名称，例如: make gen-worker module=system worker=MyWorker"; \
 		exit 1; \
 	fi
-	@go run ./hack/generator/main.go worker:create -module $(module) -name $(worker)
+	@if [ -z "$(type)" ]; then \
+		go run ./hack/generator/main.go worker:create -module $(module) -name $(worker); \
+	else \
+		go run ./hack/generator/main.go worker:create -module $(module) -name $(worker) -type $(type); \
+	fi
 	@echo "Worker创建成功！"
 
 # Generate CRUD code for database table.
@@ -194,9 +198,17 @@ gen-crud:
 		exit 1; \
 	fi
 	@if [ -z "$(module)" ]; then \
-		go run ./hack/generator/main.go crud:generate -table $(table) -name $(table); \
+		if [ -z "$(name)" ]; then \
+			go run ./hack/generator/main.go crud:generate -t=$(table) -n=$(table); \
+		else \
+			go run ./hack/generator/main.go crud:generate -t=$(table) -n=$(name); \
+		fi; \
 	else \
-		go run ./hack/generator/main.go crud:generate -table $(table) -module $(module) -name $(table); \
+		if [ -z "$(name)" ]; then \
+			go run ./hack/generator/main.go crud:generate -m=$(module) -t=$(table) -n=$(table); \
+		else \
+			go run ./hack/generator/main.go crud:generate -m=$(module) -t=$(table) -n=$(name); \
+		fi; \
 	fi
 	@echo "CRUD代码生成成功！"
 	@echo "请运行以下命令更新代码："

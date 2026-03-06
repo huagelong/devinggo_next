@@ -67,7 +67,12 @@ var (
 		Brief: "从现有模块克隆新模块",
 		Description: `
 从现有模块快速克隆一个新模块
-用法: go run hack/generator/main.go module:clone -source 源模块 -target 目标模块
+
+用法（命令行模式）:
+  go run hack/generator/main.go module:clone -source 源模块 -target 目标模块
+
+用法（交互式模式）:
+  go run hack/generator/main.go module:clone
 `,
 		Arguments: []gcmd.Argument{
 			{
@@ -89,11 +94,31 @@ var (
 			sourceModule := parser.GetOpt("source").String()
 			targetModule := parser.GetOpt("target").String()
 
-			if sourceModule == "" {
-				return fmt.Errorf("源模块名称必须输入，使用 -source 参数指定")
-			}
-			if targetModule == "" {
-				return fmt.Errorf("目标模块名称必须输入，使用 -target 参数指定")
+			// 交互式模式：未提供参数时
+			if sourceModule == "" || targetModule == "" {
+				fmt.Println("\n🔄 DevingGo 模块克隆向导")
+				fmt.Println("=" + strings.Repeat("=", 40))
+
+				// 获取现有模块列表供选择
+				modules, _ := scanner.ListModules()
+				if len(modules) == 0 {
+					return fmt.Errorf("没有可用的源模块，请先创建模块")
+				}
+
+				// 列出可用模块
+				moduleOptions := make([]string, len(modules))
+				for i, m := range modules {
+					moduleOptions[i] = fmt.Sprintf("%s (v%s)", m.Name, m.Version)
+				}
+
+				if sourceModule == "" {
+					idx := utils.PromptSelect("请选择源模块", moduleOptions, 0)
+					sourceModule = modules[idx].Name
+				}
+
+				if targetModule == "" {
+					targetModule = utils.PromptRequiredString("请输入目标模块名称")
+				}
 			}
 
 			// 禁止克隆系统模块

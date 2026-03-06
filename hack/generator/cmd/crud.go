@@ -9,11 +9,13 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcmd"
 
 	"devinggo/hack/generator/internal/generator"
+	"devinggo/hack/generator/internal/utils"
 )
 
 var (
@@ -60,17 +62,22 @@ func runCrudGenerate(ctx context.Context, parser *gcmd.Parser) (err error) {
 	tableName := parser.GetOpt("table", "").String()
 	chineseName := parser.GetOpt("name", "").String()
 
-	// 参数验证
-	if moduleName == "" {
-		return fmt.Errorf("模块名不能为空，请使用 -m 或 --module 指定")
-	}
+	// 交互式模式：参数为空时
+	if moduleName == "" || tableName == "" || chineseName == "" {
+		fmt.Println("\n📊 DevingGo CRUD 代码生成向导")
+		fmt.Println("=" + strings.Repeat("=", 40))
 
-	if tableName == "" {
-		return fmt.Errorf("表名不能为空，请使用 -t 或 --table 指定")
-	}
+		if moduleName == "" {
+			moduleName = utils.PromptString("请输入模块名称", "system")
+		}
 
-	if chineseName == "" {
-		return fmt.Errorf("中文名不能为空，请使用 -n 或 --name 指定")
+		if tableName == "" {
+			tableName = utils.PromptRequiredString("请输入数据库表名（例如：system_user）")
+		}
+
+		if chineseName == "" {
+			chineseName = utils.PromptRequiredString("请输入资源中文名称（例如：用户）")
+		}
 	}
 
 	// 打印生成信息
