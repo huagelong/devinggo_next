@@ -380,9 +380,9 @@ func (c *ModuleCloner) replaceModuleName(dir, oldName, newName string) error {
 // cloneBootstrapFiles 克隆引导文件
 func (c *ModuleCloner) cloneBootstrapFiles(sourceModule, targetModule string) error {
 	bootstrapFiles := []string{
-		filepath.Join("modules", "_", "worker", sourceModule+".go"),
-		filepath.Join("modules", "_", "modules", sourceModule+".go"),
-		filepath.Join("modules", "_", "logic", sourceModule+".go"),
+		filepath.Join("modules", "bootstrap", "worker", sourceModule+".go"),
+		filepath.Join("modules", "bootstrap", "modules", sourceModule+".go"),
+		filepath.Join("modules", "bootstrap", "logic", sourceModule+".go"),
 	}
 
 	oldNameCap := gstr.UcFirst(sourceModule)
