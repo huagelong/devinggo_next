@@ -2,7 +2,7 @@
 
 - *.log
 - */node_modules
-- web/admin/dist
+- admin-ui/dist
 - resource/public/uploads
 - bin
 - logs

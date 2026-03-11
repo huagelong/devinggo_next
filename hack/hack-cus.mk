@@ -1,5 +1,5 @@
 PLATFORM_RESOURCE_PATH = "./resource/public/admin"
-UI_PATH = "./web/admin"
+UI_PATH = "./admin-ui"
 
 VERSION = $(shell git describe --tags --always --match='v*')
 SED = sed
