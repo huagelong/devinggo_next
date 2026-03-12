@@ -64,6 +64,7 @@ export const BasicLayout: React.FC = () => {
               routes: [
                 { path: '/system/user', name: t('menu.user') },
                 { path: '/system/role', name: t('menu.role') },
+                { path: '/system/dept', name: '部门管理' },
                 { path: '/system/menu', name: t('menu.menu') },
               ],
             },

@@ -1,15 +1,15 @@
 import { createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
 import BasicLayout from './components/layout/BasicLayout';
+import LoginPage from './pages/login';
 
 // Root Route
 const rootRoute = createRootRoute();
 
 // --- 授权相关 ---
-// 因为不强制后端关联，目前暂时手写临时页面占位
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
-  component: () => <div className="flex h-screen items-center justify-center">Login Page Placeholder</div>,
+  component: LoginPage,
 });
 
 // --- 被 BasicLayout 包裹的受保护路由 ---
@@ -18,6 +18,8 @@ const layoutRoute = createRoute({
   id: 'layout',
   component: BasicLayout,
 });
+
+import DashboardPage from './pages/dashboard';
 
 const indexRoute = createRoute({
   getParentRoute: () => layoutRoute,
@@ -28,25 +30,37 @@ const indexRoute = createRoute({
 const dashboardRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: '/dashboard',
-  component: () => <div>Dashboard Analysis</div>,
+  component: DashboardPage,
 });
+
+import UserManagementPage from './pages/system/user';
 
 const systemUserRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: '/system/user',
-  component: () => <div>System Users</div>,
+  component: UserManagementPage,
 });
+
+import MenuManagementPage from './pages/system/menu';
+import DeptManagementPage from './pages/system/dept';
+import RoleManagementPage from './pages/system/role';
 
 const systemRoleRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: '/system/role',
-  component: () => <div>System Roles</div>,
+  component: RoleManagementPage,
+});
+
+const systemDeptRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: '/system/dept',
+  component: DeptManagementPage,
 });
 
 const systemMenuRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: '/system/menu',
-  component: () => <div>System Menus</div>,
+  component: MenuManagementPage,
 });
 
 // Assemble the route tree
@@ -57,6 +71,7 @@ const routeTree = rootRoute.addChildren([
     dashboardRoute,
     systemUserRoute,
     systemRoleRoute,
+    systemDeptRoute,
     systemMenuRoute,
   ]),
 ]);
