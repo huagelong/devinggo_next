@@ -6,6 +6,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '../../stores/authStore';
 import { login, getInfo } from '../../services/auth';
 import { useTranslation } from 'react-i18next';
+import { aesEncrypt } from '../../utils/crypto';
 
 const LoginPage: React.FC = () => {
   const { t } = useTranslation();
@@ -18,10 +19,14 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (values: any) => {
     try {
       setLoading(true);
+
+      // 密码进行 AES 加密
+      const encryptedPassword = aesEncrypt(values.password);
+
       // 调用登录接口
       const res = await login({
         username: values.username,
-        password: values.password,
+        password: encryptedPassword,
       });
       
       // 假设后端返回的数据包含 token
