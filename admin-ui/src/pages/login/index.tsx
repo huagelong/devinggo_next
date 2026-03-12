@@ -43,39 +43,47 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div style={{ backgroundColor: 'white', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <div style={{ width: '400px' }}>
+    <div className="flex h-screen w-full bg-[#f0f2f5] items-center justify-center relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-blue-400 opacity-10 filter blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 rounded-full bg-blue-600 opacity-10 filter blur-3xl"></div>
+
+      <div className="w-[450px] bg-white p-8 rounded-xl shadow-xl z-10 relative">
         <LoginForm
-          title="DevingGo-Light Admin"
-          subTitle="高性能商业化管理后台"
+          logo="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg"
+          title="Admin Pro UI"
+          subTitle="企业级后台管理系统标准前端"
           onFinish={handleSubmit}
           submitter={{
             searchConfig: {
-              submitText: t('system.login'),
+              submitText: t('system.login', '登 录'),
             },
             submitButtonProps: {
               loading: loading,
               size: 'large',
-              style: { width: '100%' },
+              style: { width: '100%', borderRadius: 6 },
             },
           }}
+          containerStyle={{ paddingBottom: 0 }}
         >
+          <div className="mb-8 mt-4 text-center"></div>
+
           <ProFormText
             name="username"
             fieldProps={{
               size: 'large',
-              prefix: <UserOutlined className={'prefixIcon'} />,
+              prefix: <UserOutlined className="text-gray-400" />,
             }}
-            placeholder={'用户名'}
+            placeholder={'用户名 : admin'}
             rules={[{ required: true, message: '请输入用户名!' }]}
           />
           <ProFormText.Password
             name="password"
             fieldProps={{
               size: 'large',
-              prefix: <LockOutlined className={'prefixIcon'} />,
+              prefix: <LockOutlined className="text-gray-400" />,
             }}
-            placeholder={'密码'}
+            placeholder={'密码 : 默认密码'}
             rules={[{ required: true, message: '请输入密码!' }]}
           />
           <div style={{ marginBlockEnd: 24 }}>

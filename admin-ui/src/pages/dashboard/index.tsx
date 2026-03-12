@@ -1,33 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, Statistic } from 'antd';
-import { UserOutlined, FileTextOutlined, EyeOutlined } from '@ant-design/icons';
-import { Line } from '@ant-design/plots';
-import request from '../../utils/request';
+import { Row, Col, Card } from 'antd';
+import { ProCard, StatisticCard } from '@ant-design/pro-components';
+import { Line, Column } from '@ant-design/plots';
+
+const { Statistic } = StatisticCard;
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<any>({});
   const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
-    // 模拟数据接口调用
-    // request.get('/dashboard/statistics').then(setStats);
-    // request.get('/dashboard/loginChart').then(setChartData);
-    
     // 占位模拟数据
     setStats({
-      users: 120,
-      activeUsers: 15,
-      views: 1024,
+      users: 1256,
+      activeUsers: 843,
+      views: 45024,
+      revenue: 124500,
     });
 
     setChartData([
-      { date: '2026-03-01', logins: 30 },
-      { date: '2026-03-02', logins: 45 },
-      { date: '2026-03-03', logins: 28 },
-      { date: '2026-03-04', logins: 50 },
-      { date: '2026-03-05', logins: 65 },
-      { date: '2026-03-06', logins: 55 },
-      { date: '2026-03-07', logins: 80 },
+      { date: '2026-03-01', logins: 130 },
+      { date: '2026-03-02', logins: 145 },
+      { date: '2026-03-03', logins: 128 },
+      { date: '2026-03-04', logins: 150 },
+      { date: '2026-03-05', logins: 165 },
+      { date: '2026-03-06', logins: 155 },
+      { date: '2026-03-07', logins: 180 },
     ]);
   }, []);
 
@@ -35,35 +33,76 @@ const Dashboard: React.FC = () => {
     data: chartData,
     xField: 'date',
     yField: 'logins',
-    point: { size: 5, shape: 'diamond' },
-    tooltip: { showMarkers: true },
-    state: { active: { style: { shadowBlur: 4, stroke: '#000', fill: 'red' } } },
-    interactions: [{ type: 'marker-active' }],
+    smooth: true,
+    area: {
+      style: {
+        fill: 'l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff',
+      },
+    },
   };
 
   return (
-    <div>
-      <Row gutter={[16, 16]}>
-        <Col span={8}>
-          <Card>
-            <Statistic title="总用户数" value={stats.users} prefix={<UserOutlined />} />
-          </Card>
+    <div className="space-y-6">
+      <ProCard ghost gutter={[16, 16]}>
+        <ProCard colSpan={6} layout="center" bordered>
+          <StatisticCard
+            statistic={{
+              title: '总用户数',
+              value: stats.users,
+              description: <Statistic title="较上周" value="8.04%" trend="up" />,
+            }}
+          />
+        </ProCard>
+        <ProCard colSpan={6} layout="center" bordered>
+          <StatisticCard
+            statistic={{
+              title: '活跃用户',
+              value: stats.activeUsers,
+              description: <Statistic title="较上周" value="3.14%" trend="down" />,
+            }}
+          />
+        </ProCard>
+        <ProCard colSpan={6} layout="center" bordered>
+          <StatisticCard
+            statistic={{
+              title: '总访问量',
+              value: stats.views,
+              description: <Statistic title="较昨日" value="12.4%" trend="up" />,
+            }}
+          />
+        </ProCard>
+        <ProCard colSpan={6} layout="center" bordered>
+          <StatisticCard
+            statistic={{
+              title: '总营收',
+              value: stats.revenue,
+              prefix: '¥',
+              description: <Statistic title="较上月" value="5.8%" trend="up" />,
+            }}
+          />
+        </ProCard>
+      </ProCard>
+
+      <Row gutter={16}>
+        <Col span={16}>
+          <ProCard title="近期访问趋势" bordered headerBordered>
+            <div className="h-[350px]">
+              <Line {...config} />
+            </div>
+          </ProCard>
         </Col>
         <Col span={8}>
-          <Card>
-            <Statistic title="活跃用户" value={stats.activeUsers} prefix={<EyeOutlined />} />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic title="总访问量" value={stats.views} prefix={<FileTextOutlined />} />
-          </Card>
+          <ProCard title="快捷操作" bordered headerBordered>
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              {['系统设置', '权限管理', '用户管理', '角色管理', '部门分配', '操作日志'].map(item => (
+                <div key={item} className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                  <span className="text-sm">{item}</span>
+                </div>
+              ))}
+            </div>
+          </ProCard>
         </Col>
       </Row>
-
-      <Card title="近期登录趋势" style={{ marginTop: 24 }}>
-        <Line {...config} />
-      </Card>
     </div>
   );
 };

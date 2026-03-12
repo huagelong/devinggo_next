@@ -49,11 +49,12 @@ const MenuManagement: React.FC = () => {
   ];
 
   return (
-    <PageContainer>
+    <PageContainer ghost header={{ title: '' }}>
       <ProTable
-        headerTitle="菜单管理"
+        headerTitle="菜单资源设置"
         actionRef={actionRef}
         rowKey="id"
+        cardBordered
         // request={async (params) => {
         //   const res = await getMenuList(params);
         //   return { data: res.items, success: true, total: res.total };
@@ -68,10 +69,16 @@ const MenuManagement: React.FC = () => {
         ]}
         pagination={false}
         columns={columns}
-        search={{ labelWidth: 'auto' }}
+        search={{
+          labelWidth: 'auto',
+          className: 'shadow-sm rounded-lg mb-4',
+        }}
+        options={{
+          setting: { listsHeight: 400 },
+        }}
         toolBarRender={() => [
           <Button key="button" icon={<PlusOutlined />} type="primary" onClick={() => message.info('打开新增抽屉')}>
-            新建菜单
+            新建顶级菜单
           </Button>,
         ]}
       />

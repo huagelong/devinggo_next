@@ -42,11 +42,12 @@ const DeptManagement: React.FC = () => {
   ];
 
   return (
-    <PageContainer>
+    <PageContainer ghost header={{ title: '' }}>
       <ProTable
-        headerTitle="部门管理"
+        headerTitle="组织架构管理"
         actionRef={actionRef}
         rowKey="id"
+        cardBordered
         // 模拟树状数据
         dataSource={[
            { id: 1, name: 'DevingGo总部', code: 'HQ', leader: 'Admin', status: 1, children: [
@@ -56,10 +57,16 @@ const DeptManagement: React.FC = () => {
         ]}
         pagination={false}
         columns={columns}
-        search={{ labelWidth: 'auto' }}
+        search={{
+          labelWidth: 'auto',
+          className: 'shadow-sm rounded-lg mb-4',
+        }}
+        options={{
+          setting: { listsHeight: 400 },
+        }}
         toolBarRender={() => [
           <Button key="button" icon={<PlusOutlined />} type="primary" onClick={() => message.info('新建根部门')}>
-            新建部门
+            新建部门节点
           </Button>,
         ]}
       />

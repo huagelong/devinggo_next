@@ -42,22 +42,29 @@ const RoleManagement: React.FC = () => {
   ];
 
   return (
-    <PageContainer>
+    <PageContainer ghost header={{ title: '' }}>
       <ProTable
-        headerTitle="角色管理"
+        headerTitle="访问角色管理"
         actionRef={actionRef}
         rowKey="id"
+        cardBordered
         // request={...}
         dataSource={[
            { id: 1, name: '超级管理员', code: 'super_admin', remark: '系统超级管理员，不可删除', status: 1, createdAt: Date.now() },
            { id: 2, name: '普通用户', code: 'common_user', remark: '普通的系统用户', status: 1, createdAt: Date.now() },
         ]}
-        pagination={{ pageSize: 10 }}
+        pagination={{ pageSize: 10, showSizeChanger: true }}
         columns={columns}
-        search={{ labelWidth: 'auto' }}
+        search={{
+          labelWidth: 'auto',
+          className: 'shadow-sm rounded-lg mb-4',
+        }}
+        options={{
+          setting: { listsHeight: 400 },
+        }}
         toolBarRender={() => [
           <Button key="button" icon={<PlusOutlined />} type="primary" onClick={() => message.info('新建角色')}>
-            新建角色
+            新增角色绑定
           </Button>,
         ]}
       />
