@@ -76,31 +76,31 @@ export const BasicLayout: React.FC = () => {
     <div className="flex w-full h-screen overflow-hidden bg-[#f0f2f5]" style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden' }}>
       {/* 1. 左侧第一级极简主导航 */}
       <div 
-         className="bg-[#001529] flex flex-col items-center py-3 z-50 shrink-0 shadow-sm relative"
-         style={{ width: '80px', backgroundColor: '#001529', flexShrink: 0, height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 100 }}
+         className="bg-[#001529] flex flex-col items-center py-2 z-50 shrink-0 shadow-sm relative"
+         style={{ width: '64px', backgroundColor: '#001529', flexShrink: 0, height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 100 }}
       >
-        <div className="w-11 h-11 bg-transparent text-white rounded-xl flex items-center justify-center font-black text-2xl mb-6 mt-2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold' }}>
+        <div className="w-9 h-9 bg-transparent text-white rounded-lg flex items-center justify-center font-black text-xl mb-4 mt-1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold' }}>
           <span style={{ color: '#1677ff' }}>D</span><span style={{ color: '#fff' }}>G</span>
         </div>
-        <div className="flex-1 w-full flex flex-col items-center gap-3 overflow-y-auto" style={{ flex: 1, width: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', scrollbarWidth: 'none' }}>
+        <div className="flex-1 w-full flex flex-col items-center gap-2 overflow-y-auto" style={{ flex: 1, width: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', scrollbarWidth: 'none' }}>
           {fullMenuData.map(menu => {
             const isActive = menu.path === rootPath || (menu.path === '/' && rootPath === '/dashboard');
             return (
               <div 
                 key={menu.path}
                 onClick={() => navigate({ to: menu.routes?.[0]?.path ? menu.routes[0].path : menu.path })}
-                className={`w-[60px] h-[60px] rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
+                className={`w-[48px] h-[32px] rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
                   isActive ? 'bg-[#1677ff] text-white font-medium shadow-md' : 'text-gray-400 hover:text-white hover:bg-[#ffffff14]'
                 }`}
                 style={{
-                    width: '60px', height: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-                    borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s',
+                    width: '48px', height: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+                    borderRadius: '6px', cursor: 'pointer', transition: 'all 0.3s',
                     backgroundColor: isActive ? '#1677ff' : 'transparent',
                     color: isActive ? '#fff' : '#9ca3af',
                 }}
               >
-                <div className="text-[20px] mb-1" style={{ fontSize: '20px', marginBottom: '4px' }}>{menu.icon}</div>
-                <span className="text-[12px] transform scale-90" style={{ fontSize: '12px', transform: 'scale(0.9)', whiteSpace: 'nowrap' }}>{menu.name}</span>
+                <div className="text-[18px] mb-1" style={{ fontSize: '18px', marginBottom: '2px' }}>{menu.icon}</div>
+                <span className="text-[11px] transform scale-90" style={{ fontSize: '11px', transform: 'scale(0.85)', whiteSpace: 'nowrap' }}>{menu.name}</span>
               </div>
             );
           })}
@@ -120,7 +120,7 @@ export const BasicLayout: React.FC = () => {
           collapsed={collapsed}
           onCollapse={setCollapsed}
           menuHeaderRender={() => (
-             <div className="h-[48px] flex items-center px-4 text-[15px] font-bold text-gray-800 tracking-wide border-b border-gray-100 bg-white shadow-sm w-full truncate">
+             <div className="h-[32px] flex items-center px-4 text-[12px] font-bold text-gray-800 tracking-wide border-b border-gray-100 bg-white shadow-sm w-full truncate">
                 {activeLevel1MenuContext?.name || '菜单'}
              </div>
           )}
@@ -144,26 +144,26 @@ export const BasicLayout: React.FC = () => {
            {/* --- A. 完全自定义 Header --- */}
            <div 
              className="bg-white flex items-center justify-between px-4 shrink-0 z-10 w-full shadow-sm"
-             style={{ height: '48px', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', flexShrink: 0, zIndex: 10, width: '100%', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.03)' }}
+             style={{ height: '40px', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', flexShrink: 0, zIndex: 10, width: '100%', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.03)' }}
            >
               <div className="flex items-center gap-4" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div onClick={() => setCollapsed(!collapsed)} className="cursor-pointer" style={{ cursor: 'pointer' }}>
-                    {collapsed ? <MenuUnfoldOutlined className="text-gray-500 text-lg hover:text-[#1677ff]" style={{ fontSize: '18px' }} /> : <MenuFoldOutlined className="text-gray-500 text-lg hover:text-[#1677ff]" style={{ fontSize: '18px' }} />}
+                    {collapsed ? <MenuUnfoldOutlined className="text-gray-500 text-lg hover:text-[#1677ff]" style={{ fontSize: '16px' }} /> : <MenuFoldOutlined className="text-gray-500 text-lg hover:text-[#1677ff]" style={{ fontSize: '16px' }} />}
                 </div>
-                <div className="text-gray-600 font-medium text-sm select-none" style={{ color: '#4b5563', fontSize: '14px', fontWeight: 500 }}>
+                <div className="text-gray-600 font-medium text-sm select-none" style={{ color: '#4b5563', fontSize: '13px', fontWeight: 500 }}>
                     {activeLevel1MenuContext?.name || '首页'} / {(currentSubMenu.routes?.find(r=>r.path===location.pathname) || currentSubMenu.routes?.[0])?.name || '工作台'}
                 </div>
               </div>
-              <div className="flex items-center gap-5 text-gray-500 text-[17px]" style={{ display: 'flex', alignItems: 'center', gap: '20px', color: '#6b7280', fontSize: '17px' }}>
+              <div className="flex items-center gap-5 text-gray-500 text-[17px]" style={{ display: 'flex', alignItems: 'center', gap: '16px', color: '#6b7280', fontSize: '15px' }}>
                 <SearchOutlined className="cursor-pointer hover:text-[#1677ff] transition-colors" style={{ cursor: 'pointer' }} />
                 <LockOutlined className="cursor-pointer hover:text-[#1677ff] transition-colors" style={{ cursor: 'pointer' }} />
                 <FullscreenOutlined className="cursor-pointer hover:text-[#1677ff] transition-colors" style={{ cursor: 'pointer' }} />
-                <Badge dot offset={[-2, 6]}><BellOutlined className="cursor-pointer hover:text-[#1677ff] transition-colors text-[17px]" style={{ cursor: 'pointer', fontSize: '17px' }} /></Badge>
-                <div className="h-4 w-[1px] bg-gray-300 mx-2" style={{ height: '16px', width: '1px', backgroundColor: '#d1d5db', margin: '0 8px' }}></div>
+                <Badge dot offset={[-2, 6]}><BellOutlined className="cursor-pointer hover:text-[#1677ff] transition-colors text-[17px]" style={{ cursor: 'pointer', fontSize: '15px' }} /></Badge>
+                <div className="h-4 w-[1px] bg-gray-300 mx-2" style={{ height: '14px', width: '1px', backgroundColor: '#d1d5db', margin: '0 4px' }}></div>
                 <Dropdown menu={{ items: userMenuItems }} trigger={['click']}>
                   <div className="flex items-center cursor-pointer ml-1" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginLeft: '4px' }}>
-                    <Avatar size="small" src={userInfo?.avatar || 'https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg'} />
-                    <span className="ml-2 text-sm text-gray-600 font-medium" style={{ marginLeft: '8px', fontSize: '14px', color: '#4b5563', fontWeight: 500 }}>{userInfo?.username || 'Admin'}</span>
+                    <Avatar size={24} src={userInfo?.avatar || 'https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg'} />
+                    <span className="ml-2 text-sm text-gray-600 font-medium" style={{ marginLeft: '6px', fontSize: '13px', color: '#4b5563', fontWeight: 500 }}>{userInfo?.username || 'Admin'}</span>
                   </div>
                 </Dropdown>
                 <SettingOutlined className="cursor-pointer hover:text-[#1677ff] transition-colors" style={{ cursor: 'pointer' }} />
@@ -173,9 +173,9 @@ export const BasicLayout: React.FC = () => {
             {/* --- B. 多标签页 (Tag Views) --- */}
             <div 
               className="bg-white border-b border-gray-200 flex items-center px-4 gap-2 overflow-x-auto shrink-0 z-0 w-full"
-              style={{ height: '40px', backgroundColor: '#fff', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', padding: '0 16px', gap: '8px', overflowX: 'auto', flexShrink: 0, width: '100%' }}
+              style={{ height: '32px', backgroundColor: '#fff', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '6px', overflowX: 'auto', flexShrink: 0, width: '100%' }}
             >
-               <div className="bg-[#e6f4ff] text-[#1677ff] border border-[#91caff] px-4 py-1.5 rounded flex items-center text-[13px] cursor-pointer whitespace-nowrap shadow-sm" style={{ backgroundColor: '#e6f4ff', color: '#1677ff', border: '1px solid #91caff', padding: '4px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+               <div className="bg-[#e6f4ff] text-[#1677ff] border border-[#91caff] px-4 py-1.5 rounded flex items-center text-[12px] cursor-pointer whitespace-nowrap shadow-sm" style={{ backgroundColor: '#e6f4ff', color: '#1677ff', border: '1px solid #91caff', padding: '2px 10px', borderRadius: '4px', display: 'flex', alignItems: 'center', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                  仪表盘
                </div>
             </div>
