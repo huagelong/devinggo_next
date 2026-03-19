@@ -16,8 +16,6 @@ import { useAccessStore } from '@vben/stores';
 import { message } from '#/adapter/tdesign';
 import { useAuthStore } from '#/store';
 
-import { refreshTokenApi } from './core';
-
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 
 function createRequestClient(baseURL: string, options?: RequestClientOptions) {
@@ -45,14 +43,11 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   }
 
   /**
-   * 刷新token逻辑
+   * 刷新token逻辑（enableRefreshToken 默认关闭，此函数暂不使用）
    */
   async function doRefreshToken() {
-    const accessStore = useAccessStore();
-    const resp = await refreshTokenApi();
-    const newToken = resp.data;
-    accessStore.setAccessToken(newToken);
-    return newToken;
+    // enableRefreshToken 默认为 false，此处不会被调用
+    throw new Error('Refresh token is not supported');
   }
 
   function formatToken(token: null | string) {
