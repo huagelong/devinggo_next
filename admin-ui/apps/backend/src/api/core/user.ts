@@ -40,8 +40,8 @@ export async function getUserInfoApi(): Promise<UserInfo> {
   const info = await getSystemInfoApi();
   return {
     avatar: info.user.avatar || '',
-    desc: '',
-    homePath: info.user.dashboard || '/analytics',
+    desc: info.user.signed || '',
+    homePath: info.user.dashboard || '/user',
     realName: info.user.nickname || info.user.username,
     roles: info.roles,
     token: '',
