@@ -13,6 +13,7 @@ export const overridesPreferences = defineOverridesPreferences({
     accessMode: 'mixed',
     // 登录后默认跳转首页（与后端第一个可访问菜单路径保持一致）
     defaultHomePath: '/analytics',
+    enablePreferences: import.meta.env.VITE_SHOW_PREFERENCES_BUTTON !== 'false',
     enableStickyPreferencesNavigationBar: false,
     layout: "mixed-nav",
     watermark: true
