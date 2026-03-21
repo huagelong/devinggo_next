@@ -157,7 +157,7 @@ watch(
       await updateWatermark({
         content:
           content ||
-          `${userStore.userInfo?.username} - ${userStore.userInfo?.realName}`,
+          `${userStore.userInfo?.username} - ${userStore.userInfo?.realName}\n${new Date().toLocaleDateString('zh-CN')}`,
       });
     } else {
       destroyWatermark();

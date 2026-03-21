@@ -28,7 +28,9 @@ export const overridesPreferences = defineOverridesPreferences({
   },
   copyright: {
     companyName: "devinggo",
-    companySiteLink: "https://devinggo.devinghub.com"
+    companySiteLink: "https://devinggo.devinghub.com",
+    icp: "A1111aaaa",
+    icpLink: "https://devinggo.devinghub.com"
   },
   footer: {
     enable: true
