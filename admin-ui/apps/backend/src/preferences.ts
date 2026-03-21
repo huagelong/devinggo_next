@@ -14,7 +14,7 @@ export const overridesPreferences = defineOverridesPreferences({
     // 登录后默认跳转首页（与后端第一个可访问菜单路径保持一致）
     defaultHomePath: '/analytics',
     enableStickyPreferencesNavigationBar: false,
-    layout: "sidebar-nav",
+    layout: "mixed-nav",
     watermark: true
   },
     sidebar: {
@@ -40,7 +40,7 @@ export const overridesPreferences = defineOverridesPreferences({
   },
   theme: {
     mode: "light",
-    semiDarkHeader: false,
+    semiDarkHeader: true,
     semiDarkSidebar: true,
     semiDarkSidebarSub: true
   },
