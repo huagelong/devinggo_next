@@ -31,6 +31,15 @@ const routes: RouteRecordRaw[] = [
           title: $t('page.dashboard.workspace'),
         },
       },
+      {
+        name: 'DashboardProfile',
+        path: '/dashboard/profile',
+        component: () => import('#/views/dashboard/profile/index.vue'),
+        meta: {
+          icon: 'lucide:user',
+          title: '个人信息',
+        },
+      },
     ],
   },
 ];
