@@ -14,7 +14,7 @@ onMounted(async () => {
   try {
     // 默认获取过去10天的登录数据
     const data = await getDashboardLoginChartApi(10);
-    
+
     renderEcharts({
       tooltip: {
         trigger: 'axis',

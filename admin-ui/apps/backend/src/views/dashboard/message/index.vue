@@ -2,9 +2,25 @@
 import { onMounted, reactive, ref } from 'vue';
 
 import { useWindowSize } from '@vueuse/core';
-import { Button, DateRangePicker, Dialog, DialogPlugin, Input, Link, MessagePlugin, RadioButton, RadioGroup, Table } from 'tdesign-vue-next';
+import {
+  Button,
+  DateRangePicker,
+  Dialog,
+  DialogPlugin,
+  Input,
+  Link,
+  MessagePlugin,
+  RadioButton,
+  RadioGroup,
+  Table,
+} from 'tdesign-vue-next';
 
-import { deleteQueueMessageApi, getDataDictListApi, getQueueMessageReceiveListApi, updateQueueMessageReadStatusApi } from '#/api/core/message';
+import {
+  deleteQueueMessageApi,
+  getDataDictListApi,
+  getQueueMessageReceiveListApi,
+  updateQueueMessageReadStatusApi,
+} from '#/api/core/message';
 
 const { height } = useWindowSize();
 
@@ -39,7 +55,9 @@ const columns = [
 const loadDict = async () => {
   try {
     const res: any = await getDataDictListApi({ code: 'queue_msg_type' });
-    dictOptions.value = Array.isArray(res) ? res : (res?.items || res?.data || []);
+    dictOptions.value = Array.isArray(res)
+      ? res
+      : res?.items || res?.data || [];
   } catch (error) {
     console.error(error);
   }
@@ -60,7 +78,11 @@ const fetchData = async () => {
       read_status: searchForm.read_status,
       content_type: currentType.value,
     };
-    if (searchForm.created_at && searchForm.created_at.length === 2 && searchForm.created_at[0]) {
+    if (
+      searchForm.created_at &&
+      searchForm.created_at.length === 2 &&
+      searchForm.created_at[0]
+    ) {
       params.created_at = searchForm.created_at;
     }
     const res: any = await getQueueMessageReceiveListApi(params);
@@ -155,45 +177,76 @@ onMounted(() => {
 <template>
   <div class="flex h-full w-full p-4 gap-4 bg-gray-50">
     <!-- Left Menu -->
-    <div class="w-48 bg-white h-full shrink-0 flex flex-col pt-4 drop-shadow-sm rounded">
-      <div 
-        class="menu-item" 
-        :class="{ 'active': currentType === 'all' }"
+    <div
+      class="w-48 bg-white h-full shrink-0 flex flex-col pt-4 drop-shadow-sm rounded"
+    >
+      <div
+        class="menu-item"
+        :class="{ active: currentType === 'all' }"
         @click="handleChangeType('all')"
       >
         <span class="icon i-lucide:mail"></span>
         全部
       </div>
-      <div 
-        v-for="item in dictOptions" 
+      <div
+        v-for="item in dictOptions"
         :key="item.key"
         class="menu-item"
-        :class="{ 'active': currentType === item.key }"
+        :class="{ active: currentType === item.key }"
         @click="handleChangeType(item.key)"
       >
-        <span class="icon" :class="item.key === 'notice' ? 'i-lucide:bell' : 'i-lucide:file-text'"></span>
+        <span
+          class="icon"
+          :class="
+            item.key === 'notice' ? 'i-lucide:bell' : 'i-lucide:file-text'
+          "
+        ></span>
         {{ item.title || item.key }}
       </div>
     </div>
 
     <!-- Right Content -->
-    <div class="flex-1 bg-white h-full flex flex-col min-w-0 p-4 rounded drop-shadow-sm relative">
+    <div
+      class="flex-1 bg-white h-full flex flex-col min-w-0 p-4 rounded drop-shadow-sm relative"
+    >
       <!-- Search Form -->
       <div class="flex gap-4 items-center mb-4 flex-wrap text-sm">
         <div class="flex items-center gap-2">
           <span class="text-gray-600 whitespace-nowrap shrink-0">消息标题</span>
-          <Input v-model="searchForm.title" placeholder="请输入消息标题" class="w-48" clearable />
+          <Input
+            v-model="searchForm.title"
+            placeholder="请输入消息标题"
+            class="w-48"
+            clearable
+          />
         </div>
         <div class="flex items-center gap-2">
           <span class="text-gray-600 whitespace-nowrap shrink-0">发送时间</span>
-          <DateRangePicker v-model="searchForm.created_at" allow-input clearable class="w-64" />
+          <DateRangePicker
+            v-model="searchForm.created_at"
+            allow-input
+            clearable
+            class="w-64"
+          />
         </div>
         <Button theme="primary" @click="onSearch">
-          <template #icon><SearchIcon fill-color="transparent" stroke-color="currentColor" :stroke-width="2" /></template>
+          <template #icon>
+            <SearchIcon
+              fill-color="transparent"
+              stroke-color="currentColor"
+              :stroke-width="2"
+            />
+          </template>
           搜索
         </Button>
         <Button theme="default" @click="onReset">
-          <template #icon><RefreshIcon fill-color="transparent" stroke-color="currentColor" :stroke-width="2" /></template>
+          <template #icon>
+            <RefreshIcon
+              fill-color="transparent"
+              stroke-color="currentColor"
+              :stroke-width="2"
+            />
+          </template>
           重置
         </Button>
       </div>
@@ -202,24 +255,40 @@ onMounted(() => {
       <div class="flex justify-between items-center mb-4">
         <div class="flex gap-3 items-center">
           <Button theme="danger" @click="handleBatchDelete">
-            <template #icon><DeleteIcon fill-color="transparent" stroke-color="currentColor" :stroke-width="2" /></template>
+            <template #icon>
+              <DeleteIcon
+                fill-color="transparent"
+                stroke-color="currentColor"
+                :stroke-width="2"
+              />
+            </template>
             删除
           </Button>
-          <RadioGroup v-model="searchForm.read_status" variant="outline" @change="handleChangeStatus as any">
+          <RadioGroup
+            v-model="searchForm.read_status"
+            variant="outline"
+            @change="handleChangeStatus as any"
+          >
             <RadioButton value="all">全部</RadioButton>
             <RadioButton value="1">未读</RadioButton>
             <RadioButton value="2">已读</RadioButton>
           </RadioGroup>
         </div>
         <div class="flex gap-2">
-           <Button theme="default" variant="outline" shape="square" @click="onSearch">
-             <template #icon>
-<RefreshIcon
-fill-color="transparent" stroke-color="currentColor" 
+          <Button
+            theme="default"
+            variant="outline"
+            shape="square"
+            @click="onSearch"
+          >
+            <template #icon>
+              <RefreshIcon
+                fill-color="transparent"
+                stroke-color="currentColor"
                 :stroke-width="2"
-/>
-</template>
-           </Button>
+              />
+            </template>
+          </Button>
         </div>
       </div>
 
@@ -270,7 +339,10 @@ fill-color="transparent" stroke-color="currentColor"
           <span>{{ getTypeName(detailData.content_type) }}</span>
           <span>创建时间: {{ detailData.created_at }}</span>
         </div>
-        <div class="bg-gray-50 p-4 rounded min-h-[200px]" v-html="detailData.content"></div>
+        <div
+          class="bg-gray-50 p-4 rounded min-h-[200px]"
+          v-html="detailData.content"
+        ></div>
       </div>
     </Dialog>
   </div>
@@ -278,22 +350,24 @@ fill-color="transparent" stroke-color="currentColor"
 
 <style scoped>
 .menu-item {
-  padding: 12px 24px;
-  cursor: pointer;
   display: flex;
-  align-items: center;
   gap: 8px;
-  color: #4b5563;
-  transition: all 0.3s;
+  align-items: center;
+  padding: 12px 24px;
   margin: 4px 8px;
+  color: #4b5563;
+  cursor: pointer;
   border-radius: 4px;
+  transition: all 0.3s;
 }
+
 .menu-item:hover {
   background-color: #f3f4f6;
 }
+
 .menu-item.active {
-  background-color: #f3f4f6;
-  color: #165dff;
   font-weight: 500;
+  color: #165dff;
+  background-color: #f3f4f6;
 }
 </style>

@@ -4,12 +4,12 @@ import { requestClient } from '#/api/request';
 
 export interface SystemUserInfoResult {
   user: {
-    id: number;
-    username: string;
-    nickname: string;
+    [key: string]: any;
     avatar: string;
     dashboard?: string;
-    [key: string]: any;
+    id: number;
+    nickname: string;
+    username: string;
   };
   roles: string[];
   codes: string[];
@@ -25,7 +25,8 @@ let _getInfoPromise: null | Promise<SystemUserInfoResult> = null;
  */
 export function getSystemInfoApi(): Promise<SystemUserInfoResult> {
   if (!_getInfoPromise) {
-    _getInfoPromise = requestClient.get<SystemUserInfoResult>('/system/getInfo');
+    _getInfoPromise =
+      requestClient.get<SystemUserInfoResult>('/system/getInfo');
     _getInfoPromise.finally(() => {
       _getInfoPromise = null;
     });

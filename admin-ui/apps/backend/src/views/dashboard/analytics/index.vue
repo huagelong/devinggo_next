@@ -4,10 +4,7 @@ import type { TabOption } from '@vben/types';
 
 import { markRaw, onMounted, ref } from 'vue';
 
-import {
-  AnalysisChartsTabs,
-  AnalysisOverview,
-} from '@vben/common-ui';
+import { AnalysisChartsTabs, AnalysisOverview } from '@vben/common-ui';
 import {
   SvgBellIcon,
   SvgCakeIcon,

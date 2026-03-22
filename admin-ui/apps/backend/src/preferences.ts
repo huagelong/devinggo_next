@@ -15,38 +15,38 @@ export const overridesPreferences = defineOverridesPreferences({
     defaultHomePath: '/analytics',
     enablePreferences: import.meta.env.VITE_SHOW_PREFERENCES_BUTTON !== 'false',
     enableStickyPreferencesNavigationBar: false,
-    layout: "sidebar-nav",
-    watermark: true
+    layout: 'sidebar-nav',
+    watermark: true,
   },
-    sidebar: {
-    collapsed: false
+  sidebar: {
+    collapsed: false,
   },
   tabbar: {
-    middleClickToClose: true
+    middleClickToClose: true,
   },
   breadcrumb: {
-    showHome: true
+    showHome: true,
   },
   copyright: {
-    companyName: "devinggo",
-    companySiteLink: "https://devinggo.devinghub.com",
-    icp: "A1111aaaa",
-    icpLink: "https://devinggo.devinghub.com"
+    companyName: 'devinggo',
+    companySiteLink: 'https://devinggo.devinghub.com',
+    icp: 'A1111aaaa',
+    icpLink: 'https://devinggo.devinghub.com',
   },
   footer: {
-    enable: true
+    enable: true,
   },
   logo: {
-    source: "/logo.png"
+    source: '/logo.png',
   },
   theme: {
-    mode: "light",
+    mode: 'light',
     semiDarkHeader: false,
     semiDarkSidebar: true,
-    semiDarkSidebarSub: false
+    semiDarkSidebarSub: false,
   },
   transition: {
-    enable: false
+    enable: false,
   },
   widget: {
     timezone: false,

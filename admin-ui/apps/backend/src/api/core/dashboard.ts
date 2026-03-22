@@ -4,10 +4,10 @@ import { requestClient } from '#/api/request';
  * 仪表板统计数据结构
  */
 export interface DashboardStatistics {
-  userStats: { total: number; new: number };
-  attachmentStats: { total: number; new: number };
-  loginStats: { total: number; new: number };
-  operationStats: { total: number; new: number };
+  userStats: { new: number; total: number };
+  attachmentStats: { new: number; total: number };
+  loginStats: { new: number; total: number };
+  operationStats: { new: number; total: number };
 }
 
 /**
@@ -29,7 +29,10 @@ export interface DashboardLoginChart {
  * 获取仪表板登录图表数据
  */
 export async function getDashboardLoginChartApi(days: number = 10) {
-  return requestClient.get<DashboardLoginChart>('/system/dashboard/loginChart', {
-    params: { days },
-  });
+  return requestClient.get<DashboardLoginChart>(
+    '/system/dashboard/loginChart',
+    {
+      params: { days },
+    },
+  );
 }

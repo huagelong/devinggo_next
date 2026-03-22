@@ -11,12 +11,12 @@ interface BackendRouter {
   component: string;
   redirect: string;
   meta: {
-    title: string;
-    icon: string;
-    /** M=菜单 B=按钮 L=链接 I=iframe */
-    type: 'B' | 'I' | 'L' | 'M';
     hidden: boolean;
     hiddenBreadcrumb: boolean;
+    icon: string;
+    title: string;
+    /** M=菜单 B=按钮 L=链接 I=iframe */
+    type: 'B' | 'I' | 'L' | 'M';
   };
   children: BackendRouter[];
 }
@@ -50,8 +50,8 @@ function transformBackendRouters(
       // 页面组件路径，如 "system/user/index"
       // Vben 要求 component 匹配 import.meta.glob('../views/**/*.vue')
       // 因此 key 需要以 views/ 开头
-      component = router.component.startsWith('views/') 
-        ? router.component 
+      component = router.component.startsWith('views/')
+        ? router.component
         : `views/${router.component}`;
     } else {
       // 无 component 的目录/分组节点，作为布局容器

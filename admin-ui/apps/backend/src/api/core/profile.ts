@@ -22,15 +22,11 @@ export async function modifyPasswordApi(data: any) {
  * 上传头像 (图片)
  */
 export async function uploadImageApi(data: FormData) {
-  return requestClient.post(
-    '/system/uploadImage',
-    data,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+  return requestClient.post('/system/uploadImage', data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
     },
-  );
+  });
 }
 
 /**

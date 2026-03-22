@@ -1,10 +1,12 @@
-﻿import { requestClient } from '#/api/request';
+import { requestClient } from '#/api/request';
 
 export function getQueueMessageReceiveListApi(params: any) {
   return requestClient.get('/system/queueMessage/receiveList', { params });
 }
 
-export function updateQueueMessageReadStatusApi(data: { ids: number[] | string[] }) {
+export function updateQueueMessageReadStatusApi(data: {
+  ids: number[] | string[];
+}) {
   return requestClient.put('/system/queueMessage/updateReadStatus', data);
 }
 

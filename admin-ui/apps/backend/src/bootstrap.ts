@@ -9,6 +9,7 @@ import '@vben/styles';
 // 引入组件库的少量全局样式变量
 
 import { useTitle } from '@vueuse/core';
+import * as TDesignIcons from 'tdesign-icons-vue-next';
 
 import { $t, setupI18n } from '#/locales';
 
@@ -18,7 +19,6 @@ import App from './app.vue';
 import { router } from './router';
 
 import 'tdesign-vue-next/es/style/index.css';
-import * as TDesignIcons from 'tdesign-icons-vue-next';
 
 async function bootstrap(namespace: string) {
   // 初始化组件适配器

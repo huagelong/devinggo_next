@@ -83,7 +83,9 @@ export const useAuthStore = defineStore('auth', () => {
       // 加密密码后再提交
       const encryptedParams = { ...params };
       if (encryptedParams.password) {
-        encryptedParams.password = await encryptPassword(encryptedParams.password);
+        encryptedParams.password = await encryptPassword(
+          encryptedParams.password,
+        );
       }
       const { token } = await loginApi(encryptedParams);
 
