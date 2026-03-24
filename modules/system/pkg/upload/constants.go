@@ -27,6 +27,7 @@ const (
 	ConfigKeyUploadMode       = "upload_mode"
 	ConfigKeyUploadAllowFile  = "upload_allow_file"
 	ConfigKeyUploadAllowImage = "upload_allow_image"
+	ConfigKeyUploadDomain     = "upload_domain"
 	ConfigKeyEndpoint         = "endpoint"
 	ConfigKeyAccessKey        = "access_key"
 	ConfigKeySecretKey        = "secret_key"

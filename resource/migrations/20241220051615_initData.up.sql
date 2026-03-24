@@ -21,7 +21,8 @@ values (2, 'access_key', '8aF6jkyh6bEnd4fkPHDc', 'Access Key Id', 'input', '', 9
        (2, 'upload_mode', '1', '上传模式', 'select',
         '[{\"label\":\"本地存储\",\"value\":\"1\"},{\"label\":\"阿里云OSS\",\"value\":\"2\"},{\"label\":\"七牛云\",\"value\":\"3\"},{\"label\":\"腾讯云COS\",\"value\":\"4\"},{\"label\":\"华为云\",\"value\":\"5\"},{\"label\":\"awss3\",\"value\":\"6\"},{\"label\":\"minio\",\"value\":\"7\"}]',
         99, ''),
-       (2, 'use_ssl', FALSE, '是否使用ssl', 'switch', '', 0, '本地存储不需要处理');
+       (2, 'use_ssl', FALSE, '是否使用ssl', 'switch', '', 0, '本地存储不需要处理'),
+       (2, 'upload_domain', 'http://127.0.0.1:8070', '上传图片网址前缀', 'input', '', 100, '');
 
 /*Data for the table "setting_config_group" */
 

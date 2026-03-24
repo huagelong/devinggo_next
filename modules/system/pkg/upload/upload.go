@@ -13,6 +13,7 @@ import (
 	"devinggo/modules/system/model/res"
 	"devinggo/modules/system/pkg/utils"
 	"devinggo/modules/system/pkg/utils/config"
+	"devinggo/modules/system/service"
 	"fmt"
 	"io"
 	"path"
@@ -156,7 +157,14 @@ func GetUploadFilePath(ctx context.Context, resourceType, dateDirName string) st
 // GetUploadUrlPath 获取文件访问URL路径
 func GetUploadUrlPath(ctx context.Context, resourceType, dateDirName, fileName string) string {
 	uploadPath := config.GetConfigString(ctx, "upload.dir", DefaultUpload)
-	return "/" + gstr.TrimRight(uploadPath, "/") + "/" + resourceType + "/" + dateDirName + "/" + fileName
+	filePath := "/" + gstr.TrimRight(uploadPath, "/") + "/" + resourceType + "/" + dateDirName + "/" + fileName
+
+	uploadDomain, err := service.SettingConfig().GetConfigByKey(ctx, ConfigKeyUploadDomain, ConfigGroupUpload)
+	if err != nil || g.IsEmpty(uploadDomain) {
+		return filePath
+	}
+
+	return gstr.TrimRight(uploadDomain, "/") + filePath
 }
 
 // GetUploadPath 获取上传基础路径
