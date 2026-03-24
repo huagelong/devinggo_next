@@ -39,6 +39,7 @@ import {
 } from 'tdesign-vue-next';
 
 import { getDeptTree } from '#/api/system/dept';
+import { getDictList } from '#/api/system/dict';
 import { getPostList } from '#/api/system/post';
 import { getRoleList } from '#/api/system/role';
 import {
@@ -104,17 +105,27 @@ const pagination = reactive({
 const roleOptions = ref<any[]>([]);
 const postOptions = ref<any[]>([]);
 const deptTreeData = ref<any[]>([]);
+const statusOptions = ref<any[]>([]);
+const userTypeOptions = ref<any[]>([]);
+
+function dictToOptions(list: any[]) {
+  return (list || []).map((item) => ({ label: item.title, value: item.key }));
+}
 
 async function fetchOptions() {
   try {
-    const [roleRes, postRes, deptRes] = await Promise.all([
+    const [roleRes, postRes, deptRes, statusRes, userTypeRes] = await Promise.all([
       getRoleList().catch(() => null),
       getPostList().catch(() => null),
       getDeptTree().catch(() => null),
+      getDictList('data_status').catch(() => null),
+      getDictList('user_type').catch(() => null),
     ]);
     roleOptions.value = roleRes?.items || roleRes || [];
     postOptions.value = postRes?.items || postRes || [];
     deptTreeData.value = deptRes || [];
+    statusOptions.value = dictToOptions(statusRes);
+    userTypeOptions.value = dictToOptions(userTypeRes);
   } catch (error) {
     console.error(error);
   }
@@ -342,13 +353,6 @@ const columns: any[] = [
   { colKey: 'created_at', title: '注册时间', width: 160, align: 'center' },
   { colKey: 'action', title: '操作', width: 220, fixed: 'right', align: 'center' },
 ];
-
-const statusOptions = [
-  { label: '正常', value: 1 },
-  { label: '停用', value: 2 },
-];
-
-const userTypeOptions = [{ label: '系统用户', value: '100' }];
 
 const _displayColumns = ref<string[]>(
   columns
