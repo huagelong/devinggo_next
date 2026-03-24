@@ -61,6 +61,19 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
 
       config.headers.Authorization = formatToken(accessStore.accessToken);
       config.headers['Accept-Language'] = preferences.app.locale;
+
+      // Prevent FormData from being transformed into JSON by Axios when a
+      // default JSON content-type header is present on the client.
+      if (config.data instanceof FormData && config.headers) {
+        const headers = config.headers as any;
+        if (typeof headers.delete === 'function') {
+          headers.delete('Content-Type');
+          headers.delete('content-type');
+        } else {
+          delete headers['Content-Type'];
+          delete headers['content-type'];
+        }
+      }
       return config;
     },
   });

@@ -1,7 +1,7 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
 
-// 导入用户信息相关的 Store
+// 瀵煎叆鐢ㄦ埛淇℃伅鐩稿叧鐨?Store
 import { useUserStore } from '@vben/stores';
 
 import {
@@ -23,18 +23,18 @@ import {
   getOperationLogListApi,
   modifyPasswordApi,
   updateUserInfoApi,
-  uploadImageApi,
+  uploadImageFileApi,
 } from '#/api/core/profile';
 import { getSystemInfoApi } from '#/api/core/user';
 
 const userStore = useUserStore();
 
-// 左侧 Tabs
+// 宸︿晶 Tabs
 const leftTab = ref('info');
-// 右侧 Tabs
+// 鍙充晶 Tabs
 const rightTab = ref('loginLog');
 
-// 个人资料表单
+// 涓汉璧勬枡琛ㄥ崟
 const userInfoForm = reactive({
   username: '',
   nickname: '',
@@ -44,18 +44,18 @@ const userInfoForm = reactive({
   avatar: '',
 });
 
-// 安全设置表单
+// 瀹夊叏璁剧疆琛ㄥ崟
 const securityForm = reactive({
   oldPassword: '',
   newPassword: '',
   newPasswordConfirmation: '',
 });
 
-// 日志数据
+// 鏃ュ織鏁版嵁
 const loginLogs = ref<any[]>([]);
 const operationLogs = ref<any[]>([]);
 
-// 获取个人信息
+// 鑾峰彇涓汉淇℃伅
 async function fetchUserInfo() {
   try {
     const res: any = await getSystemInfoApi();
@@ -68,11 +68,11 @@ async function fetchUserInfo() {
       userInfoForm.avatar = res.user.avatar || '';
     }
   } catch (error) {
-    console.error('获取个人信息失败', error);
+    console.error('鑾峰彇涓汉淇℃伅澶辫触', error);
   }
 }
 
-// 提交个人资料更新
+// 鎻愪氦涓汉璧勬枡鏇存柊
 async function handleUpdateInfo() {
   try {
     await updateUserInfoApi({
@@ -81,15 +81,14 @@ async function handleUpdateInfo() {
       email: userInfoForm.email,
       signed: userInfoForm.signed,
     });
-    MessagePlugin.success('个人资料更新成功');
-    // 更新完成后重新获取数据
-    fetchUserInfo();
+    MessagePlugin.success('涓汉璧勬枡鏇存柊鎴愬姛');
+    // 鏇存柊瀹屾垚鍚庨噸鏂拌幏鍙栨暟鎹?    fetchUserInfo();
   } catch {
-    MessagePlugin.error('个人资料更新失败');
+    MessagePlugin.error('涓汉璧勬枡鏇存柊澶辫触');
   }
 }
 
-// 提交修改密码
+// 鎻愪氦淇敼瀵嗙爜
 async function handleUpdatePassword() {
   if (securityForm.newPassword !== securityForm.newPasswordConfirmation) {
     MessagePlugin.error('两次输入的新密码不一致');
@@ -97,18 +96,17 @@ async function handleUpdatePassword() {
   }
   try {
     await modifyPasswordApi(securityForm);
-    MessagePlugin.success('密码修改成功');
-    // 清空密码表单
+    MessagePlugin.success('瀵嗙爜淇敼鎴愬姛');
+    // 娓呯┖瀵嗙爜琛ㄥ崟
     securityForm.oldPassword = '';
     securityForm.newPassword = '';
     securityForm.newPasswordConfirmation = '';
   } catch (error) {
-    // 错误在请求拦截器通常有提示
-    console.error('密码修改失败', error);
+    // 閿欒鍦ㄨ姹傛嫤鎴櫒閫氬父鏈夋彁绀?    console.error('瀵嗙爜淇敼澶辫触', error);
   }
 }
 
-// 图片上传处理
+// 鍥剧墖涓婁紶澶勭悊
 function triggerUpload() {
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
@@ -117,10 +115,8 @@ function triggerUpload() {
     const file = e.target.files[0];
     if (!file) return;
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-      const res: any = await uploadImageApi(formData);
-      // 根据后端返回格式取图片URL
+      const res: any = await uploadImageFileApi(file);
+      // 鏍规嵁鍚庣杩斿洖鏍煎紡鍙栧浘鐗嘦RL
       if (res && res.url) {
         userInfoForm.avatar = res.url;
         await updateUserInfoApi({
@@ -130,17 +126,17 @@ function triggerUpload() {
           ...userStore.userInfo,
           avatar: res.url,
         } as any);
-        MessagePlugin.success('头像上传成功');
+        MessagePlugin.success('澶村儚涓婁紶鎴愬姛');
       }
     } catch (error) {
-      console.error('上传失败', error);
-      MessagePlugin.error('头像上传失败');
+      console.error('涓婁紶澶辫触', error);
+      MessagePlugin.error('澶村儚涓婁紶澶辫触');
     }
   });
   fileInput.click();
 }
 
-// 获取日志
+// 鑾峰彇鏃ュ織
 async function fetchLogs() {
   try {
     const loginRes: any = await getLoginLogListApi({ page: 1, pageSize: 10 });
@@ -153,7 +149,7 @@ async function fetchLogs() {
       operationLogs.value = opRes.items;
     }
   } catch (error) {
-    console.error('获取日志失败', error);
+    console.error('鑾峰彇鏃ュ織澶辫触', error);
   }
 }
 
@@ -165,13 +161,13 @@ onMounted(() => {
 
 <template>
   <div class="h-full p-4 overflow-auto bg-[var(--vben-color-background)]">
-    <!-- 顶部 Banner -->
+    <!-- 椤堕儴 Banner -->
     <div
       class="relative flex flex-col items-center justify-center w-full h-48 overflow-hidden rounded-t-lg bg-blue-50 dark:bg-blue-900/20"
     >
-      <!-- 虚拟背景装饰 -->
+      <!-- 铏氭嫙鑳屾櫙瑁呴グ -->
       <div class="absolute inset-0 pointer-events-none opacity-50">
-        <!-- 类似设计图中的几何元素 -->
+        <!-- 绫讳技璁捐鍥句腑鐨勫嚑浣曞厓绱?-->
         <div
           class="absolute top-10 left-20 w-12 h-12 bg-teal-300 rounded-full blur-md"
         ></div>
@@ -183,7 +179,7 @@ onMounted(() => {
         ></div>
       </div>
 
-      <!-- 头像和上传 -->
+      <!-- 澶村儚鍜屼笂浼?-->
       <div class="relative z-10 z-20 mt-4 group">
         <div
           @click="triggerUpload"
@@ -213,12 +209,12 @@ onMounted(() => {
             class="absolute inset-0 flex flex-col items-center justify-center text-white bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <span class="text-2xl">+</span>
-            <span class="text-xs">本地上传</span>
+            <span class="text-xs">鏈湴涓婁紶</span>
           </div>
         </div>
       </div>
 
-      <!-- 角色标签 -->
+      <!-- 瑙掕壊鏍囩 -->
       <div class="z-10 mt-3 mb-2">
         <Tag
           v-for="role in userStore.userInfo?.roles"
@@ -232,14 +228,14 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 下方两列内容 -->
+    <!-- 涓嬫柟涓ゅ垪鍐呭 -->
     <div class="flex flex-col gap-4 mt-4 md:flex-row">
-      <!-- 左栏：个人资料/安全设置 -->
+      <!-- 宸︽爮锛氫釜浜鸿祫鏂?瀹夊叏璁剧疆 -->
       <div
         class="flex-1 p-4 bg-white rounded shadow-sm dark:bg-[var(--vben-color-background-elevated)] min-h-[500px]"
       >
         <Tabs v-model="leftTab" class="h-full">
-          <TabPanel value="info" label="个人资料">
+          <TabPanel value="info" label="涓汉璧勬枡">
             <div class="pt-6 mt-4">
               <Form
                 :data="userInfoForm"
@@ -247,31 +243,31 @@ onMounted(() => {
                 label-width="100px"
                 @submit="handleUpdateInfo"
               >
-                <FormItem label="账户名" name="username">
+                <FormItem label="璐︽埛鍚? name="username">
                   <Input v-model="userInfoForm.username" disabled />
                 </FormItem>
-                <FormItem label="昵称" name="nickname">
+                <FormItem label="鏄电О" name="nickname">
                   <Input
                     v-model="userInfoForm.nickname"
-                    placeholder="请输入昵称"
+                    placeholder="璇疯緭鍏ユ樀绉?
                   />
                 </FormItem>
-                <FormItem label="手机" name="phone">
+                <FormItem label="鎵嬫満" name="phone">
                   <Input
                     v-model="userInfoForm.phone"
-                    placeholder="请输入手机号"
+                    placeholder="璇疯緭鍏ユ墜鏈哄彿"
                   />
                 </FormItem>
-                <FormItem label="邮箱" name="email">
+                <FormItem label="閭" name="email">
                   <Input
                     v-model="userInfoForm.email"
-                    placeholder="请输入邮箱"
+                    placeholder="璇疯緭鍏ラ偖绠?
                   />
                 </FormItem>
-                <FormItem label="个人签名" name="signed">
+                <FormItem label="涓汉绛惧悕" name="signed">
                   <Textarea
                     v-model="userInfoForm.signed"
-                    placeholder="请输入个人签名"
+                    placeholder="璇疯緭鍏ヤ釜浜虹鍚?
                     :maxlength="255"
                     :autosize="{ minRows: 3, maxRows: 5 }"
                   />
@@ -282,14 +278,14 @@ onMounted(() => {
                     type="submit"
                     class="bg-gray-800 text-white hover:bg-gray-700"
                   >
-                    保存
+                    淇濆瓨
                   </Button>
                 </FormItem>
               </Form>
             </div>
           </TabPanel>
 
-          <TabPanel value="security" label="安全设置">
+          <TabPanel value="security" label="瀹夊叏璁剧疆">
             <div class="pt-6 mt-4">
               <Form
                 :data="securityForm"
@@ -297,29 +293,29 @@ onMounted(() => {
                 label-width="100px"
                 @submit="handleUpdatePassword"
               >
-                <FormItem label="旧密码" name="oldPassword" required-mark>
+                <FormItem label="鏃у瘑鐮? name="oldPassword" required-mark>
                   <Input
                     type="password"
                     v-model="securityForm.oldPassword"
-                    placeholder="请输入旧密码"
+                    placeholder="璇疯緭鍏ユ棫瀵嗙爜"
                   />
                 </FormItem>
-                <FormItem label="新密码" name="newPassword" required-mark>
+                <FormItem label="鏂板瘑鐮? name="newPassword" required-mark>
                   <Input
                     type="password"
                     v-model="securityForm.newPassword"
-                    placeholder="请输入新密码"
+                    placeholder="璇疯緭鍏ユ柊瀵嗙爜"
                   />
                 </FormItem>
                 <FormItem
-                  label="确认密码"
+                  label="纭瀵嗙爜"
                   name="newPasswordConfirmation"
                   required-mark
                 >
                   <Input
                     type="password"
                     v-model="securityForm.newPasswordConfirmation"
-                    placeholder="请再次输入新密码"
+                    placeholder="璇峰啀娆¤緭鍏ユ柊瀵嗙爜"
                   />
                 </FormItem>
                 <FormItem>
@@ -328,7 +324,7 @@ onMounted(() => {
                     type="submit"
                     class="bg-gray-800 text-white hover:bg-gray-700"
                   >
-                    保存
+                    淇濆瓨
                   </Button>
                 </FormItem>
               </Form>
@@ -337,12 +333,12 @@ onMounted(() => {
         </Tabs>
       </div>
 
-      <!-- 右栏：日志 -->
+      <!-- 鍙虫爮锛氭棩蹇?-->
       <div
         class="flex-1 p-4 bg-white rounded shadow-sm dark:bg-[var(--vben-color-background-elevated)] min-h-[500px]"
       >
         <Tabs v-model="rightTab" class="h-full">
-          <TabPanel value="loginLog" label="登录日志">
+          <TabPanel value="loginLog" label="鐧诲綍鏃ュ織">
             <div class="pt-6 mt-4 overflow-y-auto max-h-[400px]">
               <Timeline>
                 <TimelineItem
@@ -353,26 +349,26 @@ onMounted(() => {
                   <div
                     class="text-sm font-medium text-gray-800 dark:text-gray-200"
                   >
-                    您于 {{ log.login_time || log.created_at }} 登录系统，{{
-                      log.status === 1 ? '登录成功' : '登录失败'
+                    鎮ㄤ簬 {{ log.login_time || log.created_at }} 鐧诲綍绯荤粺锛寋{
+                      log.status === 1 ? '鐧诲綍鎴愬姛' : '鐧诲綍澶辫触'
                     }}
                   </div>
                   <div class="mt-1 text-xs text-gray-500">
-                    地理位置: {{ log.ip_location || '未知' }}，操作系统:
-                    {{ log.os || '未知' }}
+                    鍦扮悊浣嶇疆: {{ log.ip_location || '鏈煡' }}锛屾搷浣滅郴缁?
+                    {{ log.os || '鏈煡' }}
                   </div>
                 </TimelineItem>
                 <div
                   v-if="loginLogs.length === 0"
                   class="text-center text-gray-400 py-10"
                 >
-                  暂无日志
+                  鏆傛棤鏃ュ織
                 </div>
               </Timeline>
             </div>
           </TabPanel>
 
-          <TabPanel value="opLog" label="操作日志">
+          <TabPanel value="opLog" label="鎿嶄綔鏃ュ織">
             <div class="pt-6 mt-4 overflow-y-auto max-h-[400px]">
               <Timeline>
                 <TimelineItem
@@ -383,19 +379,18 @@ onMounted(() => {
                   <div
                     class="text-sm font-medium text-gray-800 dark:text-gray-200"
                   >
-                    您于 {{ log.created_at }} 执行了
-                    {{ log.service_name || '操作' }}
+                    鎮ㄤ簬 {{ log.created_at }} 鎵ц浜?                    {{ log.service_name || '鎿嶄綔' }}
                   </div>
                   <div class="mt-1 text-xs text-gray-500">
-                    地理位置: {{ log.ip_location || '未知' }}，方式:
-                    {{ log.method }}，路由: {{ log.router }}
+                    鍦扮悊浣嶇疆: {{ log.ip_location || '鏈煡' }}锛屾柟寮?
+                    {{ log.method }}锛岃矾鐢? {{ log.router }}
                   </div>
                 </TimelineItem>
                 <div
                   v-if="operationLogs.length === 0"
                   class="text-center text-gray-400 py-10"
                 >
-                  暂无日志
+                  鏆傛棤鏃ュ織
                 </div>
               </Timeline>
             </div>
@@ -407,5 +402,5 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* 避免覆盖全局表单样式 */
+/* 閬垮厤瑕嗙洊鍏ㄥ眬琛ㄥ崟鏍峰紡 */
 </style>

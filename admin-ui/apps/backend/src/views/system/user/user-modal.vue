@@ -6,7 +6,7 @@ import { useVbenModal } from '@vben/common-ui';
 import { MessagePlugin } from 'tdesign-vue-next';
 
 import { useVbenForm } from '#/adapter/form';
-import { uploadImageApi } from '#/api/core/profile';
+import { uploadImageFileApi } from '#/api/core/profile';
 import { getDeptTree } from '#/api/system/dept';
 import { getPostList } from '#/api/system/post';
 import { getRoleList } from '#/api/system/role';
@@ -17,10 +17,13 @@ const emit = defineEmits(['success']);
 // 头像上传自定义组件
 const AvatarUpload = defineComponent({
   props: {
+    modelValue: { type: String, default: '' },
     value: { type: String, default: '' },
   },
-  emits: ['update:value', 'change'],
+  emits: ['update:modelValue', 'update:value', 'change'],
   setup(props, { emit: emitInner }) {
+    const getAvatarValue = () => props.modelValue || props.value;
+
     function handleClick() {
       const input = document.createElement('input');
       input.type = 'file';
@@ -28,11 +31,10 @@ const AvatarUpload = defineComponent({
       input.onchange = async (e: any) => {
         const file = e.target.files[0];
         if (!file) return;
-        const formData = new FormData();
-        formData.append('image', file);
         try {
-          const res: any = await uploadImageApi(formData);
+          const res: any = await uploadImageFileApi(file);
           if (res?.url) {
+            emitInner('update:modelValue', res.url);
             emitInner('update:value', res.url);
             emitInner('change', res.url);
           }
@@ -52,9 +54,9 @@ const AvatarUpload = defineComponent({
               'relative flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50 hover:border-blue-400',
           },
           [
-            props.value
+            getAvatarValue()
               ? h('img', {
-                  src: props.value,
+                  src: getAvatarValue(),
                   class: 'h-full w-full rounded-full object-cover',
                   alt: '头像',
                 })

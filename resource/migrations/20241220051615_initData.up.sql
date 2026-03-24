@@ -1,13 +1,13 @@
 ﻿insert into "setting_config"("group_id", "key", "value", "name", "input_type", "config_select_data", "sort", "remark")
-values (1, 'access_key', '8aF6jkyh6bEnd4fkPHDc', 'Access Key Id', 'input', '', 95, '本地存储不需要填写'),
-       (1, 'bucket', 'cicadacs', '存储桶名字（Bucket）', 'input', '', 92, '本地存储不需要填写'),
-       (1, 'del_local', FALSE, '是否删除本地存储', 'switch', '', 97,
+values (2, 'access_key', '8aF6jkyh6bEnd4fkPHDc', 'Access Key Id', 'input', '', 95, '本地存储不需要填写'),
+       (2, 'bucket', 'cicadacs', '存储桶名字（Bucket）', 'input', '', 92, '本地存储不需要填写'),
+       (2, 'del_local', FALSE, '是否删除本地存储', 'switch', '', 97,
         '上传到云服务器后，是否需要删除本地存储的文件；本地存储不需要处理'),
-       (1, 'endpoint', '127.0.0.1', '服务器地址（Endpoint）', 'input', '', 96, ''),
-       (1, 'hostname_immutable', TRUE, 'Hostname Immutable', 'switch', '', 0,
+       (2, 'endpoint', '127.0.0.1', '服务器地址（Endpoint）', 'input', '', 96, ''),
+       (2, 'hostname_immutable', TRUE, 'Hostname Immutable', 'switch', '', 0,
         '如果是使用 minio，根据实际情况设置；本地存储不需要处理'),
-       (1, 'region', '', '区域 （region）', 'input', '', 93, '本地存储不需要填写'),
-       (1, 'secret_key', '2WuFtXLTxskRFiOxfvuLv6sDBO0QjMcGAkruGEMc', 'Secret Access key', 'input', '', 94,
+       (2, 'region', '', '区域 （region）', 'input', '', 93, '本地存储不需要填写'),
+       (2, 'secret_key', '2WuFtXLTxskRFiOxfvuLv6sDBO0QjMcGAkruGEMc', 'Secret Access key', 'input', '', 94,
         '本地存储不需要填写'),
        (1, 'site_copyright', 'Copyright © 2024-2025 Devinggo. All rights reserved.', '版权信息', 'textarea', NULL, 96,
         NULL),
@@ -15,13 +15,13 @@ values (1, 'access_key', '8aF6jkyh6bEnd4fkPHDc', 'Access Key Id', 'input', '', 9
        (1, 'site_keywords', '后台管理系统', '网站关键字', 'input', NULL, 98, NULL),
        (1, 'site_name', 'MineAdmin', '网站名称', 'input', NULL, 99, NULL),
        (1, 'site_record_number', 'xxx', '网站备案号', 'input', NULL, 95, NULL),
-       (1, 'upload_allow_file', 'txt,doc,docx,xls,xlsx,ppt,pptx,rar,zip,7z,gz,pdf,wps,md', '文件类型', 'input', '', 98,
+       (2, 'upload_allow_file', 'txt,doc,docx,xls,xlsx,ppt,pptx,rar,zip,7z,gz,pdf,wps,md', '文件类型', 'input', '', 98,
         ''),
-       (1, 'upload_allow_image', 'jpg,jpeg,png,gif,svg,bmp', '图片类型', 'input', '', 97, ''),
-       (1, 'upload_mode', '1', '上传模式', 'select',
+       (2, 'upload_allow_image', 'jpg,jpeg,png,gif,svg,bmp', '图片类型', 'input', '', 97, ''),
+       (2, 'upload_mode', '1', '上传模式', 'select',
         '[{\"label\":\"本地存储\",\"value\":\"1\"},{\"label\":\"阿里云OSS\",\"value\":\"2\"},{\"label\":\"七牛云\",\"value\":\"3\"},{\"label\":\"腾讯云COS\",\"value\":\"4\"},{\"label\":\"华为云\",\"value\":\"5\"},{\"label\":\"awss3\",\"value\":\"6\"},{\"label\":\"minio\",\"value\":\"7\"}]',
         99, ''),
-       (1, 'use_ssl', FALSE, '是否使用ssl', 'switch', '', 0, '本地存储不需要处理');
+       (2, 'use_ssl', FALSE, '是否使用ssl', 'switch', '', 0, '本地存储不需要处理');
 
 /*Data for the table "setting_config_group" */
 

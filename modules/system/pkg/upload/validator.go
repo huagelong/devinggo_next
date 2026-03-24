@@ -11,6 +11,7 @@ import (
 	"devinggo/modules/system/myerror"
 	"devinggo/modules/system/service"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/text/gstr"
 )
@@ -63,7 +64,7 @@ func (v *Validator) ValidateImageExtension(ext string) error {
 	if err != nil {
 		return err
 	}
-
+	g.Log().Debugf(v.ctx, "Allowed image extensions: %v", allowedImages)
 	if !gstr.InArray(allowedImages, ext) {
 		return myerror.ValidationFailed(v.ctx, "不允许上传此类型图片")
 	}
