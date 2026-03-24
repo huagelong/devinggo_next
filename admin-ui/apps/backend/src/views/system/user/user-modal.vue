@@ -1,15 +1,81 @@
 ﻿<script lang="ts" setup>
+import { defineComponent, h, nextTick } from 'vue';
+
 import { useVbenModal } from '@vben/common-ui';
 
 import { MessagePlugin } from 'tdesign-vue-next';
 
 import { useVbenForm } from '#/adapter/form';
+import { uploadImageApi } from '#/api/core/profile';
 import { getDeptTree } from '#/api/system/dept';
 import { getPostList } from '#/api/system/post';
 import { getRoleList } from '#/api/system/role';
 import { saveUser, updateUser } from '#/api/system/user';
 
 const emit = defineEmits(['success']);
+
+// 头像上传自定义组件
+const AvatarUpload = defineComponent({
+  props: {
+    value: { type: String, default: '' },
+  },
+  emits: ['update:value', 'change'],
+  setup(props, { emit: emitInner }) {
+    function handleClick() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async (e: any) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+          const res: any = await uploadImageApi(formData);
+          if (res?.url) {
+            emitInner('update:value', res.url);
+            emitInner('change', res.url);
+          }
+        } catch {
+          MessagePlugin.error('头像上传失败');
+        }
+      };
+      input.click();
+    }
+    return () =>
+      h('div', { class: 'flex items-center gap-3' }, [
+        h(
+          'div',
+          {
+            onClick: handleClick,
+            class:
+              'relative flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50 hover:border-blue-400',
+          },
+          [
+            props.value
+              ? h('img', {
+                  src: props.value,
+                  class: 'h-full w-full rounded-full object-cover',
+                  alt: '头像',
+                })
+              : h(
+                  'span',
+                  { class: 'text-3xl leading-none text-gray-400' },
+                  '+',
+                ),
+          ],
+        ),
+        h('div', { class: 'flex flex-col gap-1' }, [
+          h('span', { class: 'text-sm text-gray-500' }, '点击上传头像'),
+          h(
+            'span',
+            { class: 'text-xs text-gray-400' },
+            '支持 JPG、PNG 等图片格式',
+          ),
+        ]),
+      ]);
+  },
+});
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -30,7 +96,7 @@ const [Form, formApi] = useVbenForm({
     {
       fieldName: 'avatar',
       label: '头像',
-      component: 'Input',
+      component: AvatarUpload,
       formItemClass: 'col-span-2',
     },
     {
@@ -43,12 +109,10 @@ const [Form, formApi] = useVbenForm({
     {
       fieldName: 'dept_ids',
       label: '所属部门',
-      component: 'ApiTreeSelect',
+      component: 'TreeSelect',
       componentProps: {
-        api: getDeptTree,
-        labelField: 'name',
-        valueField: 'id',
-        childrenField: 'children',
+        data: [],
+        keys: { label: 'label', value: 'value', children: 'children' },
         multiple: true,
         placeholder: '请选择所属部门',
       },
@@ -74,14 +138,10 @@ const [Form, formApi] = useVbenForm({
     {
       fieldName: 'role_ids',
       label: '角色',
-      component: 'ApiSelect',
+      component: 'Select',
       componentProps: {
-        api: async () => {
-          const res = await getRoleList();
-          return res?.items || res || [];
-        },
-        labelField: 'name',
-        valueField: 'id',
+        options: [],
+        keys: { label: 'name', value: 'id' },
         multiple: true,
         placeholder: '请选择角色',
       },
@@ -96,18 +156,13 @@ const [Form, formApi] = useVbenForm({
     {
       fieldName: 'post_ids',
       label: '岗位',
-      component: 'ApiSelect',
+      component: 'Select',
       componentProps: {
-        api: async () => {
-          const res = await getPostList();
-          return res?.items || res || [];
-        },
-        labelField: 'name',
-        valueField: 'id',
+        options: [],
+        keys: { label: 'name', value: 'id' },
         multiple: true,
         placeholder: '请选择岗位',
       },
-      rules: 'required',
     },
     {
       fieldName: 'email',
@@ -170,14 +225,43 @@ const [Modal, modalApi] = useVbenModal({
   class: 'w-[800px]',
 });
 
-function open(data?: any) {
+async function open(data?: any) {
   modalApi.setState({ title: data?.id ? '编辑管理员' : '新增管理员' });
   modalApi.open();
-  formApi.resetForm().then(() => {
-    if (data) {
-      formApi.setValues(data);
-    }
-  });
+
+  // 并行拉取所有选项数据，确保在 setValues 前选项已就绪
+  const [roleRes, postRes, deptRes] = await Promise.all([
+    getRoleList().catch(() => null),
+    getPostList().catch(() => null),
+    getDeptTree().catch(() => null),
+  ]);
+
+  // requestClient 已通过 dataField:'data' 自动解包，res 直接是数组
+  const roleOptions = Array.isArray(roleRes) ? roleRes : [];
+  const postOptions = Array.isArray(postRes) ? postRes : [];
+  const deptData = Array.isArray(deptRes) ? deptRes : [];
+
+  formApi.updateSchema([
+    {
+      fieldName: 'role_ids',
+      componentProps: { options: roleOptions },
+    },
+    {
+      fieldName: 'post_ids',
+      componentProps: { options: postOptions },
+    },
+    {
+      fieldName: 'dept_ids',
+      componentProps: { data: deptData },
+    },
+  ]);
+
+  await formApi.resetForm();
+  if (data) {
+    formApi.setValues(data);
+  }
+  await nextTick();
+  await formApi.resetValidate();
 }
 
 defineExpose({
