@@ -86,9 +86,11 @@ class PreferenceManager {
       cachedPreferences,
       this.initialPreferences,
     );
+    // 重新应用 overrides，确保部署时配置（如 app.name）始终优先于缓存值
+    const finalPreference = merge({}, overrides ?? {}, mergedPreference);
 
     // 更新偏好设置
-    this.updatePreferences(mergedPreference);
+    this.updatePreferences(finalPreference);
 
     // 设置监听器
     this.setupWatcher();
