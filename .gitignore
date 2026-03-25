@@ -37,6 +37,7 @@ internal/packed/build_pack_data.go
 **/dist-ssr
 *.local
 **/.env
+docs/old_admin
 
 manifest/config/config.yaml
 hack/config.yaml
