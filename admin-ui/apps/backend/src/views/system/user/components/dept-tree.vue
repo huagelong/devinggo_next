@@ -1,4 +1,7 @@
 ﻿<script lang="ts" setup>
+import type { DeptApi } from '#/api/system/dept';
+import type { IdType } from '#/types/common';
+
 import { onMounted, ref } from 'vue';
 
 import {
@@ -12,7 +15,7 @@ import { getDeptTree } from '#/api/system/dept';
 
 const emit = defineEmits(['select']);
 
-const treeData = ref<any[]>([]);
+const treeData = ref<DeptApi.TreeNode[]>([]);
 const searchText = ref('');
 
 const treeKeys = {
@@ -22,7 +25,7 @@ const treeKeys = {
 };
 
 // 展开的节点
-const expanded = ref<Array<number | string>>([-1]);
+const expanded = ref<IdType[]>([-1]);
 const isFolding = ref(false);
 
 async function fetchDeptTree() {
@@ -40,9 +43,10 @@ async function fetchDeptTree() {
   }
 }
 
-function handleNodeClick(context: any) {
-  const { node } = context;
-  emit('select', node.value === -1 ? '' : node.value);
+function handleNodeClick(context: unknown) {
+  const nodeValue =
+    (context as { node?: { value?: IdType } })?.node?.value ?? '';
+  emit('select', nodeValue === -1 ? '' : nodeValue);
 }
 
 function toggleExpand() {
@@ -50,8 +54,8 @@ function toggleExpand() {
     expanded.value = [-1]; // Root node id is usually needed, fallback to root
   } else {
     // Collect all ids
-    const ids: Array<number | string> = [];
-    const traverse = (nodes: any[]) => {
+    const ids: IdType[] = [];
+    const traverse = (nodes: DeptApi.TreeNode[]) => {
       nodes.forEach((node) => {
         ids.push(node.id);
         if (node.children) {
@@ -68,6 +72,11 @@ function toggleExpand() {
 onMounted(() => {
   fetchDeptTree();
 });
+
+function filterTreeNode(node: unknown) {
+  const label = (node as { label?: string })?.label ?? '';
+  return !searchText.value || label.includes(searchText.value);
+}
 </script>
 
 <template>
@@ -91,7 +100,7 @@ onMounted(() => {
       <Tree
         v-model:expanded="expanded"
         :data="treeData"
-        :filter="(node: any) => !searchText || node.label.includes(searchText)"
+        :filter="filterTreeNode"
         :keys="treeKeys"
         hover
         activable

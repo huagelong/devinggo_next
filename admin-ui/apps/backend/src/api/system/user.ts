@@ -1,62 +1,152 @@
 import { requestClient } from '#/api/request';
+import type { BatchIdsPayload, IdType, StatusValue } from '#/types/common';
+import type { PageQuery, PageResponse } from '#/types/paging';
 
-export function getUserList(params: any) {
-  return requestClient.get('/system/user/index', { params });
+export namespace UserApi {
+  export interface ListItem {
+    avatar?: string;
+    dashboard?: string;
+    dept_name?: string;
+    email?: string;
+    id: number;
+    nickname?: string;
+    phone?: string;
+    post_name?: string;
+    role_name?: string;
+    status?: number;
+    user_type?: string;
+    username: string;
+  }
+
+  export interface ListQuery extends Partial<PageQuery> {
+    created_at?: string[];
+    dept_id?: IdType;
+    dept_ids?: IdType[];
+    email?: string;
+    phone?: string;
+    post_id?: number;
+    role_id?: number;
+    status?: StatusValue;
+    user_type?: string;
+    username?: string;
+  }
+
+  export interface RelatedEntity {
+    id: number;
+    name?: string;
+  }
+
+  export interface Detail extends SubmitPayload {
+    deptList?: RelatedEntity[];
+    dept_ids?: number[];
+    postList?: RelatedEntity[];
+    post_ids?: number[];
+    roleList?: RelatedEntity[];
+    role_ids?: number[];
+  }
+
+  export interface SubmitPayload {
+    avatar?: string;
+    dashboard?: string;
+    dept_ids?: number[];
+    email?: string;
+    id?: number;
+    nickname?: string;
+    password?: string;
+    phone?: string;
+    post_ids?: number[];
+    remark?: string;
+    role_ids?: number[];
+    status?: number;
+    user_type?: string;
+    username: string;
+  }
+
+  export interface ChangeStatusPayload {
+    id: number;
+    status: number;
+  }
+
+  export interface ResetPasswordPayload {
+    id: number;
+  }
+
+  export interface SetHomePagePayload {
+    dashboard: string;
+    id: number;
+  }
+
+  export interface DownloadResponse {
+    data: Blob;
+    headers?:
+      | Record<string, string | undefined>
+      | {
+          get?: (name: string) => null | string;
+          [key: string]: unknown;
+        };
+  }
+
+  export type BatchPayload = BatchIdsPayload<number>;
+  export type ListResponse = PageResponse<ListItem>;
 }
 
-export function getRecycleUserList(params: any) {
-  return requestClient.get('/system/user/recycle', { params });
+export function getUserList(params: UserApi.ListQuery) {
+  return requestClient.get<UserApi.ListResponse>('/system/user/index', { params });
+}
+
+export function getRecycleUserList(params: UserApi.ListQuery) {
+  return requestClient.get<UserApi.ListResponse>('/system/user/recycle', { params });
 }
 
 export function getUserDetail(id: number) {
-  return requestClient.get(`/system/user/read/${id}`);
+  return requestClient.get<UserApi.Detail>(`/system/user/read/${id}`);
 }
 
-export function saveUser(data: any) {
-  return requestClient.post('/system/user/save', data);
+export function saveUser(data: UserApi.SubmitPayload) {
+  return requestClient.post<void>('/system/user/save', data);
 }
 
-export function updateUser(id: number, data: any) {
-  return requestClient.put(`/system/user/update/${id}`, data);
+export function updateUser(id: number, data: UserApi.SubmitPayload) {
+  return requestClient.put<void>(`/system/user/update/${id}`, data);
 }
 
 export function deleteUser(ids: number[]) {
-  return requestClient.delete('/system/user/delete', { data: { ids } });
+  return requestClient.delete<void>('/system/user/delete', { data: { ids } });
 }
 
 export function realDeleteUser(ids: number[]) {
-  return requestClient.delete('/system/user/realDelete', { data: { ids } });
+  return requestClient.delete<void>('/system/user/realDelete', { data: { ids } });
 }
 
 export function recoveryUser(ids: number[]) {
-  return requestClient.put('/system/user/recovery', { ids });
+  return requestClient.put<void>('/system/user/recovery', { ids });
 }
 
-export function changeUserStatus(data: { id: number; status: number }) {
-  return requestClient.put('/system/user/changeStatus', data);
+export function changeUserStatus(data: UserApi.ChangeStatusPayload) {
+  return requestClient.put<void>('/system/user/changeStatus', data);
 }
 
-export function resetPassword(data: { id: number }) {
-  return requestClient.put('/system/user/initUserPassword', data);
+export function resetPassword(data: UserApi.ResetPasswordPayload) {
+  return requestClient.put<void>('/system/user/initUserPassword', data);
 }
 
-export function clearUserCache(data: { id: number }) {
-  return requestClient.post('/system/user/clearCache', data);
+export function clearUserCache(data: UserApi.ResetPasswordPayload) {
+  return requestClient.post<void>('/system/user/clearCache', data);
 }
 
 // Set home page
-export function setHomePage(data: { dashboard: string; id: number }) {
-  return requestClient.post('/system/user/setHomePage', data);
+export function setHomePage(data: UserApi.SetHomePagePayload) {
+  return requestClient.post<void>('/system/user/setHomePage', data);
 }
 
 export function importUserFile(file: File) {
   const formData = new FormData();
   formData.append('file', file);
-  return requestClient.post('/system/user/import', formData);
+  return requestClient.post<void>('/system/user/import', formData);
 }
 
-export function exportUserList(data: Record<string, any>) {
-  return requestClient.download('/system/user/export', {
+export function exportUserList(data: Omit<UserApi.ListQuery, keyof PageQuery>) {
+  return requestClient.download<UserApi.DownloadResponse>('/system/user/export', {
     data,
     method: 'POST',
     responseReturn: 'raw',
@@ -64,8 +154,11 @@ export function exportUserList(data: Record<string, any>) {
 }
 
 export function downloadUserImportTemplate() {
-  return requestClient.download('/system/user/downloadTemplate', {
+  return requestClient.download<UserApi.DownloadResponse>(
+    '/system/user/downloadTemplate',
+    {
     method: 'GET',
     responseReturn: 'raw',
-  });
+    },
+  );
 }

@@ -1,3 +1,5 @@
+import type { OptionItem } from '#/types/common';
+
 export interface PostSearchFormModel {
   code: string;
   created_at: string[];
@@ -6,8 +8,8 @@ export interface PostSearchFormModel {
 }
 
 export interface PostListItem {
-  [key: string]: any;
   code: string;
+  created_at?: string;
   id: number;
   name: string;
   remark?: string;
@@ -22,4 +24,16 @@ export interface PostFormModel {
   remark: string;
   sort: number;
   status: number;
+}
+
+export type PostColumnOptionItem = OptionItem<string>;
+
+export interface PostTableColumn {
+  align?: 'left' | 'center' | 'right';
+  colKey: string;
+  fixed?: 'left' | 'right';
+  minWidth?: number;
+  title?: string;
+  type?: 'multiple' | 'single';
+  width?: number;
 }

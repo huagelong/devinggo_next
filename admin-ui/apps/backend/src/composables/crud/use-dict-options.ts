@@ -1,31 +1,40 @@
+import type { IdType, OptionItem } from '#/types/common';
+
 import { getDictList } from '#/api/system/dict';
 
-export interface DictItem {
-  [key: string]: any;
-  key: number | string;
+export interface DictItem<TKey extends IdType = IdType> {
+  [key: string]: unknown;
+  key: TKey;
   title: string;
 }
 
-export interface DictOption {
-  label: string;
-  value: number | string;
-}
+export type DictOption<TValue extends IdType = IdType> = OptionItem<TValue>;
 
-interface DictOptionConfig {
-  labelKey?: string;
-  valueKey?: string;
+interface DictOptionConfig<TItem extends DictItem = DictItem> {
+  labelKey?: Extract<keyof TItem, string>;
+  valueKey?: Extract<keyof TItem, string>;
 }
 
 const dictCache = new Map<string, DictItem[]>();
 const dictPromiseCache = new Map<string, Promise<DictItem[]>>();
 
-function toOptions(list: DictItem[], config?: DictOptionConfig): DictOption[] {
+function normalizeOptionValue(value: unknown): IdType {
+  if (typeof value === 'number' || typeof value === 'string') {
+    return value;
+  }
+  return String(value ?? '');
+}
+
+function toOptions<TItem extends DictItem>(
+  list: TItem[],
+  config?: DictOptionConfig<TItem>,
+): DictOption[] {
   const labelKey = config?.labelKey ?? 'title';
   const valueKey = config?.valueKey ?? 'key';
 
   return (list || []).map((item) => ({
-    label: item?.[labelKey],
-    value: item?.[valueKey],
+    label: String(item?.[labelKey] ?? ''),
+    value: normalizeOptionValue(item?.[valueKey]),
   }));
 }
 

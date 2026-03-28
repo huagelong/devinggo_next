@@ -1,9 +1,14 @@
-import type { ColumnOptionItem, UserSearchFormModel } from './model';
+import type {
+  ColumnOptionItem,
+  UserActionDropdownItem,
+  UserSearchFormModel,
+  UserTableColumn,
+} from './model';
 
 export function createUserSearchForm(): UserSearchFormModel {
   return {
     created_at: [],
-    dept_id: undefined,
+    dept_ids: [],
     email: '',
     phone: '',
     post_id: undefined,
@@ -14,7 +19,7 @@ export function createUserSearchForm(): UserSearchFormModel {
   };
 }
 
-export function createUserTableColumns() {
+export function createUserTableColumns(): UserTableColumn[] {
   return [
     {
       align: 'center',
@@ -43,7 +48,9 @@ export function createUserTableColumns() {
   ];
 }
 
-export function createUserColumnOptions(columns: any[]): ColumnOptionItem[] {
+export function createUserColumnOptions(
+  columns: UserTableColumn[],
+): ColumnOptionItem[] {
   return columns
     .filter((column) => column.colKey !== 'row-select' && column.title)
     .map((column) => ({
@@ -52,7 +59,7 @@ export function createUserColumnOptions(columns: any[]): ColumnOptionItem[] {
     }));
 }
 
-export const userActionDropdownOptions = [
+export const userActionDropdownOptions: UserActionDropdownItem[] = [
   { content: '重置密码', value: 'reset_password' },
   { content: '更新缓存', value: 'clear_cache' },
   { content: '设置首页', value: 'set_homepage' },

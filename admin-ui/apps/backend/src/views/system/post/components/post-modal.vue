@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { PostApi } from '#/api/system/post';
+
 import { nextTick } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
@@ -86,7 +88,7 @@ const [Modal, modalApi] = useVbenModal({
       const { valid } = await formApi.validate();
       if (!valid) return;
 
-      const values = await formApi.getValues();
+      const values = await formApi.getValues<PostApi.SubmitPayload>();
       modalApi.setState({ confirmLoading: true });
 
       if (values.id) {
@@ -107,7 +109,7 @@ const [Modal, modalApi] = useVbenModal({
   class: 'w-[560px]',
 });
 
-async function open(data?: any) {
+async function open(data?: Partial<PostApi.SubmitPayload>) {
   modalApi.setState({
     title: data?.id ? '编辑岗位' : '新增岗位',
   });

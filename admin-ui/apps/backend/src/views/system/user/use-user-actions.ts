@@ -1,8 +1,7 @@
 import type { Ref } from 'vue';
+import type { IdType } from '#/types/common';
 
 import { ref } from 'vue';
-
-import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
 
 import {
   changeUserStatus,
@@ -16,13 +15,19 @@ import {
   resetPassword,
   setHomePage,
 } from '#/api/system/user';
+import { dialog, message } from '#/adapter/tdesign';
+import { downloadResponseBlob } from '#/utils/download';
+
+import type { UserActionDropdownItem, UserListItem } from './model';
+
+type UserActionRow = Pick<UserListItem, 'id'> & Partial<UserListItem>;
 
 interface UseUserActionsOptions {
-  buildRequestParams: (includePagination?: boolean) => Record<string, any>;
+  buildRequestParams: (includePagination?: boolean) => Record<string, unknown>;
   clearSelectedRowKeys: () => void;
   fetchTableData: () => void;
   isRecycleBin: Ref<boolean>;
-  selectedRowKeys: Ref<Array<number | string>>;
+  selectedRowKeys: Ref<IdType[]>;
 }
 
 export function useUserActions(options: UseUserActionsOptions) {
@@ -36,41 +41,17 @@ export function useUserActions(options: UseUserActionsOptions) {
   const selectedHomePage = ref('');
   const selectedHomePageUserId = ref<null | number>(null);
 
-  function isSuperAdmin(row: any) {
+  function isSuperAdmin(row: UserActionRow) {
     return Number(row?.id) === 1;
   }
 
-  function toIds(keys: Array<number | string>) {
+  function toIds(keys: IdType[]) {
     return keys.map((key) => Number(key));
   }
 
-  function getFileNameFromDisposition(disposition?: string) {
-    if (!disposition) return '';
-
-    const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
-    if (utf8Match?.[1]) {
-      return decodeURIComponent(utf8Match[1]);
-    }
-
-    const asciiMatch = disposition.match(/filename="?([^"]+)"?/i);
-    return asciiMatch?.[1] ?? '';
-  }
-
-  function saveBlobFile(blob: Blob, fileName: string) {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.style.display = 'none';
-    document.body.append(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  async function handleDelete(row: any) {
+  async function handleDelete(row: UserActionRow) {
     if (isSuperAdmin(row)) {
-      MessagePlugin.warning('超级管理员不可删除');
+      message.warning('超级管理员不可删除');
       return;
     }
 
@@ -78,98 +59,105 @@ export function useUserActions(options: UseUserActionsOptions) {
       await (options.isRecycleBin.value
         ? realDeleteUser([row.id])
         : deleteUser([row.id]));
-      MessagePlugin.success('删除成功');
+      message.success('删除成功');
       options.fetchTableData();
     } catch (error) {
       console.error(error);
+      message.error('删除失败，请稍后重试');
     }
   }
 
   async function handleBatchDelete() {
     if (options.selectedRowKeys.value.length === 0) {
-      MessagePlugin.warning('请选择需要操作的数据');
+      message.warning('请选择需要操作的数据');
       return;
     }
 
     const ids = toIds(options.selectedRowKeys.value);
     if (ids.some((id) => id === 1)) {
-      MessagePlugin.warning('超级管理员不可删除');
+      message.warning('超级管理员不可删除');
       return;
     }
 
     try {
       await (options.isRecycleBin.value ? realDeleteUser(ids) : deleteUser(ids));
-      MessagePlugin.success('操作成功');
+      message.success('操作成功');
       options.clearSelectedRowKeys();
       options.fetchTableData();
     } catch (error) {
       console.error(error);
+      message.error('批量删除失败，请稍后重试');
     }
   }
 
-  async function handleRecovery(row: any) {
+  async function handleRecovery(row: UserActionRow) {
     try {
       await recoveryUser([row.id]);
-      MessagePlugin.success('恢复成功');
+      message.success('恢复成功');
       options.fetchTableData();
     } catch (error) {
       console.error(error);
+      message.error('恢复失败，请稍后重试');
     }
   }
 
   async function handleBatchRecovery() {
     if (options.selectedRowKeys.value.length === 0) {
-      MessagePlugin.warning('请选择需要操作的数据');
+      message.warning('请选择需要操作的数据');
       return;
     }
 
     const ids = toIds(options.selectedRowKeys.value);
     if (ids.some((id) => id === 1)) {
-      MessagePlugin.warning('超级管理员不可恢复');
+      message.warning('超级管理员不可恢复');
       return;
     }
 
     try {
       await recoveryUser(ids);
-      MessagePlugin.success('恢复成功');
+      message.success('恢复成功');
       options.clearSelectedRowKeys();
       options.fetchTableData();
     } catch (error) {
       console.error(error);
+      message.error('批量恢复失败，请稍后重试');
     }
   }
 
-  async function handleStatusChange(row: any, checked: boolean) {
+  async function handleStatusChange(row: UserActionRow, checked: boolean) {
     if (isSuperAdmin(row)) {
-      MessagePlugin.warning('超级管理员不可禁用');
+      message.warning('超级管理员不可禁用');
       return;
     }
 
     const status = checked ? 1 : 2;
     try {
       await changeUserStatus({ id: row.id, status });
-      MessagePlugin.success('更新状态成功');
+      message.success('更新状态成功');
       options.fetchTableData();
     } catch (error) {
       console.error(error);
+      message.error('更新状态失败，请稍后重试');
     }
   }
 
-  async function handleResetPassword(row: any) {
+  async function handleResetPassword(row: UserActionRow) {
     try {
       await resetPassword({ id: row.id });
-      MessagePlugin.success('密码重置成功');
+      message.success('密码重置成功');
     } catch (error) {
       console.error(error);
+      message.error('密码重置失败，请稍后重试');
     }
   }
 
-  async function handleClearCache(row: any) {
+  async function handleClearCache(row: UserActionRow) {
     try {
       await clearUserCache({ id: row.id });
-      MessagePlugin.success('清除缓存成功');
+      message.success('清除缓存成功');
     } catch (error) {
       console.error(error);
+      message.error('更新缓存失败，请稍后重试');
     }
   }
 
@@ -185,10 +173,11 @@ export function useUserActions(options: UseUserActionsOptions) {
     importLoading.value = true;
     try {
       await importUserFile(file);
-      MessagePlugin.success('导入成功');
+      message.success('导入成功');
       options.fetchTableData();
     } catch (error) {
       console.error(error);
+      message.error('导入失败，请检查文件后重试');
     } finally {
       importLoading.value = false;
       input.value = '';
@@ -198,15 +187,12 @@ export function useUserActions(options: UseUserActionsOptions) {
   async function handleExport() {
     exportLoading.value = true;
     try {
-      const response: any = await exportUserList(options.buildRequestParams(false));
-      const disposition =
-        response?.headers?.get?.('content-disposition') ||
-        response?.headers?.['content-disposition'];
-      const fileName = getFileNameFromDisposition(disposition) || '用户列表.xlsx';
-      saveBlobFile(response?.data, fileName);
-      MessagePlugin.success('导出成功');
+      const response = await exportUserList(options.buildRequestParams(false));
+      downloadResponseBlob(response, '用户列表.xlsx');
+      message.success('导出成功');
     } catch (error) {
       console.error(error);
+      message.error('导出失败，请稍后重试');
     } finally {
       exportLoading.value = false;
     }
@@ -215,25 +201,23 @@ export function useUserActions(options: UseUserActionsOptions) {
   async function handleDownloadTemplate() {
     templateLoading.value = true;
     try {
-      const response: any = await downloadUserImportTemplate();
-      const disposition =
-        response?.headers?.get?.('content-disposition') ||
-        response?.headers?.['content-disposition'];
-      const fileName = getFileNameFromDisposition(disposition) || '用户导入模板.xlsx';
-      saveBlobFile(response?.data, fileName);
-      MessagePlugin.success('模板下载成功');
+      const response = await downloadUserImportTemplate();
+      downloadResponseBlob(response, '用户导入模板.xlsx');
+      message.success('模板下载成功');
     } catch (error) {
       console.error(error);
+      message.error('模板下载失败，请稍后重试');
     } finally {
       templateLoading.value = false;
     }
   }
 
-  function openSetHomePageDialog(row: any) {
+  function openSetHomePageDialog(row: UserActionRow) {
     if (isSuperAdmin(row)) {
-      MessagePlugin.warning('超级管理员不可设置首页');
+      message.warning('超级管理员不可设置首页');
       return;
     }
+
     selectedHomePageUserId.value = Number(row.id);
     selectedHomePage.value = row.dashboard || '';
     setHomePageVisible.value = true;
@@ -241,12 +225,12 @@ export function useUserActions(options: UseUserActionsOptions) {
 
   async function handleSetHomePage() {
     if (!selectedHomePageUserId.value) {
-      MessagePlugin.warning('用户信息无效');
+      message.warning('用户信息无效');
       return;
     }
 
     if (!selectedHomePage.value) {
-      MessagePlugin.warning('请选择用户首页');
+      message.warning('请选择用户首页');
       return;
     }
 
@@ -256,38 +240,42 @@ export function useUserActions(options: UseUserActionsOptions) {
         dashboard: selectedHomePage.value,
         id: selectedHomePageUserId.value,
       });
-      MessagePlugin.success('设置首页成功');
+      message.success('设置首页成功');
       setHomePageVisible.value = false;
       options.fetchTableData();
     } catch (error) {
       console.error(error);
+      message.error('设置首页失败，请稍后重试');
     } finally {
       setHomePageLoading.value = false;
     }
   }
 
-  function handleActionDropdownClick(data: any, row: any) {
+  function handleActionDropdownClick(
+    data: Pick<UserActionDropdownItem, 'value'>,
+    row: UserActionRow,
+  ) {
     if (data.value === 'reset_password') {
-      const dialog = DialogPlugin.confirm({
+      const dialogInstance = dialog.confirm({
         body: '确认重置该用户密码吗？',
         header: '提示',
-        onClose: () => dialog.hide(),
+        onClose: () => dialogInstance.hide(),
         onConfirm: () => {
-          handleResetPassword(row);
-          dialog.hide();
+          void handleResetPassword(row);
+          dialogInstance.hide();
         },
       });
       return;
     }
 
     if (data.value === 'clear_cache') {
-      const dialog = DialogPlugin.confirm({
+      const dialogInstance = dialog.confirm({
         body: '确认更新该用户缓存吗？',
         header: '提示',
-        onClose: () => dialog.hide(),
+        onClose: () => dialogInstance.hide(),
         onConfirm: () => {
-          handleClearCache(row);
-          dialog.hide();
+          void handleClearCache(row);
+          dialogInstance.hide();
         },
       });
       return;

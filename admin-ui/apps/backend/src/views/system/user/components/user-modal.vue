@@ -1,4 +1,9 @@
-﻿<script lang="ts" setup>
+<script lang="ts" setup>
+import type { DeptApi } from '#/api/system/dept';
+import type { PostApi } from '#/api/system/post';
+import type { RoleApi } from '#/api/system/role';
+import type { UserApi } from '#/api/system/user';
+
 import { defineComponent, h, nextTick } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
@@ -14,7 +19,23 @@ import { getUserDetail, saveUser, updateUser } from '#/api/system/user';
 
 const emit = defineEmits(['success']);
 
-// 头像上传自定义组件
+interface AvatarUploadResponse {
+  url?: string;
+}
+
+type UserModalOpenData = Partial<UserApi.Detail>;
+
+function extractEntityIds(list?: UserApi.RelatedEntity[]) {
+  return list?.map((item) => item.id) ?? [];
+}
+
+function normalizeListData<T>(data: T[] | { items?: T[] } | null | undefined): T[] {
+  if (Array.isArray(data)) {
+    return data;
+  }
+  return Array.isArray(data?.items) ? data.items : [];
+}
+
 const AvatarUpload = defineComponent({
   props: {
     modelValue: { type: String, default: '' },
@@ -28,11 +49,12 @@ const AvatarUpload = defineComponent({
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';
-      input.onchange = async (e: any) => {
-        const file = e.target.files[0];
+      input.onchange = async (event: Event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
         if (!file) return;
+
         try {
-          const res: any = await uploadImageFileApi(file);
+          const res = (await uploadImageFileApi(file)) as AvatarUploadResponse;
           if (res?.url) {
             emitInner('update:modelValue', res.url);
             emitInner('update:value', res.url);
@@ -44,6 +66,7 @@ const AvatarUpload = defineComponent({
       };
       input.click();
     }
+
     return () =>
       h('div', { class: 'flex items-center gap-3' }, [
         h(
@@ -215,9 +238,12 @@ const [Modal, modalApi] = useVbenModal({
     try {
       const { valid } = await formApi.validate();
       if (!valid) return;
-      const values = await formApi.getValues();
+
+      const values = await formApi.getValues<UserApi.SubmitPayload>();
       modalApi.setState({ confirmLoading: true });
+
       values.id ? await updateUser(values.id, values) : await saveUser(values);
+
       MessagePlugin.success(values.id ? '更新成功' : '新增成功');
       emit('success');
       modalApi.close();
@@ -230,21 +256,19 @@ const [Modal, modalApi] = useVbenModal({
   class: 'w-[800px]',
 });
 
-async function open(data?: any) {
+async function open(data?: UserModalOpenData) {
   modalApi.setState({ title: data?.id ? '编辑管理员' : '新增管理员' });
   modalApi.open();
 
-  // 并行拉取所有选项数据，确保在 setValues 前选项已就绪
   const [roleRes, postRes, deptRes] = await Promise.all([
     getRoleList().catch(() => null),
     getPostList().catch(() => null),
     getDeptTree().catch(() => null),
   ]);
 
-  // requestClient 已通过 dataField:'data' 自动解包，res 直接是数组
-  const roleOptions = Array.isArray(roleRes) ? roleRes : [];
-  const postOptions = Array.isArray(postRes) ? postRes : [];
-  const deptData = Array.isArray(deptRes) ? deptRes : [];
+  const roleOptions = normalizeListData<RoleApi.ListItem>(roleRes);
+  const postOptions = normalizeListData<PostApi.ListItem>(postRes);
+  const deptData = Array.isArray(deptRes) ? (deptRes as DeptApi.TreeNode[]) : [];
 
   formApi.updateSchema([
     {
@@ -262,25 +286,26 @@ async function open(data?: any) {
   ]);
 
   await formApi.resetForm();
+
   if (data?.id) {
     const detail = await getUserDetail(data.id).catch(() => null);
     const detailValues = detail
       ? {
           ...detail,
           dept_ids:
-            detail?.dept_ids ??
-            detail?.deptList?.map((item: any) => item.id) ??
-            data?.dept_ids ??
+            detail.dept_ids ??
+            extractEntityIds(detail.deptList) ??
+            data.dept_ids ??
             [],
           role_ids:
-            detail?.role_ids ??
-            detail?.roleList?.map((item: any) => item.id) ??
-            data?.role_ids ??
+            detail.role_ids ??
+            extractEntityIds(detail.roleList) ??
+            data.role_ids ??
             [],
           post_ids:
-            detail?.post_ids ??
-            detail?.postList?.map((item: any) => item.id) ??
-            data?.post_ids ??
+            detail.post_ids ??
+            extractEntityIds(detail.postList) ??
+            data.post_ids ??
             [],
         }
       : data;
@@ -288,6 +313,7 @@ async function open(data?: any) {
   } else if (data) {
     formApi.setValues(data);
   }
+
   await nextTick();
   await formApi.resetValidate();
 }

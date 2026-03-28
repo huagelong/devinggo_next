@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
+import { message } from '#/adapter/tdesign';
 
 import {
   AddIcon,
@@ -16,7 +17,6 @@ import {
   FormItem,
   Input,
   InputNumber,
-  MessagePlugin,
   Popconfirm,
   Select,
   Space,
@@ -32,18 +32,24 @@ import {
   recoveryPost,
   updatePostSort,
 } from '#/api/system/post';
+import type { DictOption } from '#/composables/crud/use-dict-options';
 import { useDictOptions } from '#/composables/crud/use-dict-options';
 
 import PostModal from './components/post-modal.vue';
+import type { PostListItem, PostTableColumn } from './model';
 import { createPostColumnOptions, createPostTableColumns } from './schemas';
 import { usePostCrud } from './use-post-crud';
 
 defineOptions({ name: 'SystemPost' });
 
-const postModalRef = ref();
-const statusOptions = ref<any[]>([]);
+type PostModalInstance = {
+  open: (data?: Partial<PostListItem>) => void;
+};
 
-const columns: any[] = createPostTableColumns();
+const postModalRef = ref<PostModalInstance>();
+const statusOptions = ref<DictOption[]>([]);
+
+const columns: PostTableColumn[] = createPostTableColumns();
 const columnOptions = createPostColumnOptions(columns);
 const allColumnKeys = columnOptions.map((item) => item.value);
 const visibleColumns = ref<string[]>([...allColumnKeys]);
@@ -92,76 +98,81 @@ function handleAdd() {
   postModalRef.value?.open();
 }
 
-function handleEdit(row: any) {
+function handleEdit(row: PostListItem) {
   postModalRef.value?.open(row);
 }
 
-async function handleDelete(row: any) {
+async function handleDelete(row: PostListItem) {
   try {
     await (isRecycleBin.value ? realDeletePost([row.id]) : deletePost([row.id]));
-    MessagePlugin.success('操作成功');
-    fetchTableData();
+    message.success('操作成功');
+    await fetchTableData();
   } catch (error) {
     console.error(error);
+    message.error('删除失败，请稍后重试');
   }
 }
 
 async function handleBatchDelete() {
   if (selectedRowKeys.value.length === 0) {
-    MessagePlugin.warning('请选择需要操作的数据');
+    message.warning('请选择需要操作的数据');
     return;
   }
 
   const ids = toIds(selectedRowKeys.value);
   try {
     await (isRecycleBin.value ? realDeletePost(ids) : deletePost(ids));
-    MessagePlugin.success('操作成功');
+    message.success('操作成功');
     clearSelectedRowKeys();
-    fetchTableData();
+    await fetchTableData();
   } catch (error) {
     console.error(error);
+    message.error('批量删除失败，请稍后重试');
   }
 }
 
-async function handleRecovery(row: any) {
+async function handleRecovery(row: PostListItem) {
   try {
     await recoveryPost([row.id]);
-    MessagePlugin.success('恢复成功');
-    fetchTableData();
+    message.success('恢复成功');
+    await fetchTableData();
   } catch (error) {
     console.error(error);
+    message.error('恢复失败，请稍后重试');
   }
 }
 
 async function handleBatchRecovery() {
   if (selectedRowKeys.value.length === 0) {
-    MessagePlugin.warning('请选择需要操作的数据');
+    message.warning('请选择需要操作的数据');
     return;
   }
 
   const ids = toIds(selectedRowKeys.value);
   try {
     await recoveryPost(ids);
-    MessagePlugin.success('恢复成功');
+    message.success('恢复成功');
     clearSelectedRowKeys();
-    fetchTableData();
+    await fetchTableData();
   } catch (error) {
     console.error(error);
+    message.error('批量恢复失败，请稍后重试');
   }
 }
 
-async function handleStatusChange(row: any, checked: boolean) {
+async function handleStatusChange(row: PostListItem, checked: boolean) {
   const status = checked ? 1 : 2;
   try {
     await changePostStatus({ id: row.id, status });
-    MessagePlugin.success('状态更新成功');
-    fetchTableData();
+    message.success('状态更新成功');
+    await fetchTableData();
   } catch (error) {
     console.error(error);
+    message.error('状态更新失败，请稍后重试');
   }
 }
 
-async function handleSortChange(value: number | string, row: any) {
+async function handleSortChange(value: number | string, row: PostListItem) {
   const numberValue = Number(value);
   if (Number.isNaN(numberValue)) return;
 
@@ -171,20 +182,29 @@ async function handleSortChange(value: number | string, row: any) {
       numberName: 'sort',
       numberValue,
     });
-    MessagePlugin.success('排序更新成功');
-    fetchTableData();
+    message.success('排序更新成功');
+    await fetchTableData();
   } catch (error) {
     console.error(error);
+    message.error('排序更新失败，请稍后重试');
   }
 }
 
 function handleSuccess() {
-  fetchTableData();
+  void fetchTableData();
+}
+
+function handleTableSelectChange(keys: Array<number | string>) {
+  handleSelectChange(keys);
+}
+
+function handleStatusSwitchChange(row: PostListItem, value: unknown) {
+  void handleStatusChange(row, Boolean(value));
 }
 
 onMounted(() => {
-  fetchStatusOptions();
-  fetchTableData();
+  void fetchStatusOptions();
+  void fetchTableData();
 });
 </script>
 
@@ -275,7 +295,7 @@ onMounted(() => {
           hover
           stripe
           @page-change="handlePageChange"
-          @select-change="(keys: any) => handleSelectChange(keys as Array<number | string>)"
+          @select-change="handleTableSelectChange"
         >
           <template #sort="{ row }">
             <InputNumber
@@ -291,7 +311,7 @@ onMounted(() => {
             <Switch
               :disabled="isRecycleBin"
               :value="row.status === 1"
-              @change="(value: any) => handleStatusChange(row, Boolean(value))"
+              @change="(value: unknown) => handleStatusSwitchChange(row, value)"
             />
           </template>
 

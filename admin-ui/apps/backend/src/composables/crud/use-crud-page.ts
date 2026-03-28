@@ -1,6 +1,12 @@
+import type { IdType } from '#/types/common';
+import type { PageQuery, PageResponse } from '#/types/paging';
+
 import { reactive, ref } from 'vue';
 
-type RowKey = number | string;
+import { message } from '#/adapter/tdesign';
+
+type RowKey = IdType;
+type CrudRequestParams = Partial<PageQuery> & Record<string, unknown>;
 
 interface CrudPageContext {
   isRecycleBin: boolean;
@@ -11,25 +17,32 @@ interface CrudPageContext {
   };
 }
 
-interface UseCrudPageOptions<TItem, TSearchForm extends Record<string, any>> {
+interface UseCrudPageOptions<
+  TItem,
+  TSearchForm extends object,
+  TResponse extends PageResponse<TItem> = PageResponse<TItem>,
+> {
   buildParams?: (
     searchForm: TSearchForm,
     context: CrudPageContext,
-  ) => Record<string, any>;
+  ) => Record<string, unknown>;
   defaultSearchForm: () => TSearchForm;
+  errorMessage?: string;
   fetchList: (
-    params: Record<string, any>,
+    params: CrudRequestParams,
     context: CrudPageContext,
-  ) => Promise<any>;
+  ) => Promise<TResponse>;
+  onFetchError?: (error: unknown) => void;
   pageSize?: number;
-  resolveItems?: (response: any) => TItem[];
-  resolveTotal?: (response: any) => number;
+  resolveItems?: (response: TResponse) => TItem[];
+  resolveTotal?: (response: TResponse) => number;
 }
 
 export function useCrudPage<
-  TItem = Record<string, any>,
-  TSearchForm extends Record<string, any> = Record<string, any>,
->(options: UseCrudPageOptions<TItem, TSearchForm>) {
+  TItem = Record<string, unknown>,
+  TSearchForm extends object = Record<string, unknown>,
+  TResponse extends PageResponse<TItem> = PageResponse<TItem>,
+>(options: UseCrudPageOptions<TItem, TSearchForm, TResponse>) {
   const searchForm = reactive<TSearchForm>(options.defaultSearchForm());
   const tableData = ref<TItem[]>([]);
   const loading = ref(false);
@@ -47,10 +60,12 @@ export function useCrudPage<
 
   const resolveItems =
     options.resolveItems ??
-    ((response: any) => (Array.isArray(response?.items) ? response.items : []));
+    ((response: TResponse) =>
+      Array.isArray(response?.items) ? response.items : []);
   const resolveTotal =
     options.resolveTotal ??
-    ((response: any) => Number(response?.pageInfo?.total || response?.total || 0));
+    ((response: TResponse) =>
+      Number(response?.pageInfo?.total || response?.total || 0));
 
   function getContext(): CrudPageContext {
     return {
@@ -63,11 +78,11 @@ export function useCrudPage<
     };
   }
 
-  function buildRequestParams(includePagination = true) {
+  function buildRequestParams(includePagination = true): CrudRequestParams {
     const context = getContext();
     const businessParams = options.buildParams
       ? options.buildParams(searchForm as TSearchForm, context)
-      : { ...searchForm };
+      : { ...(searchForm as Record<string, unknown>) };
     if (!includePagination) {
       return businessParams;
     }
@@ -79,11 +94,7 @@ export function useCrudPage<
   }
 
   function resetSearchForm() {
-    const defaults = options.defaultSearchForm();
-    Object.keys(defaults).forEach((key) => {
-      (searchForm as Record<string, any>)[key] =
-        (defaults as Record<string, any>)[key];
-    });
+    Object.assign(searchForm, options.defaultSearchForm());
   }
 
   async function fetchTableData() {
@@ -94,6 +105,8 @@ export function useCrudPage<
       pagination.total = resolveTotal(response);
     } catch (error) {
       console.error(error);
+      message.error(options.errorMessage ?? '列表加载失败，请稍后重试');
+      options.onFetchError?.(error);
     } finally {
       loading.value = false;
     }
@@ -109,26 +122,26 @@ export function useCrudPage<
 
   function handleSearch() {
     pagination.current = 1;
-    fetchTableData();
+    void fetchTableData();
   }
 
   function handleReset() {
     resetSearchForm();
     pagination.current = 1;
-    fetchTableData();
+    void fetchTableData();
   }
 
   function handlePageChange(pageInfo: { current: number; pageSize: number }) {
     pagination.current = pageInfo.current;
     pagination.pageSize = pageInfo.pageSize;
-    fetchTableData();
+    void fetchTableData();
   }
 
   function toggleRecycleBin(next?: boolean) {
     isRecycleBin.value = typeof next === 'boolean' ? next : !isRecycleBin.value;
     clearSelectedRowKeys();
     pagination.current = 1;
-    fetchTableData();
+    void fetchTableData();
   }
 
   return {

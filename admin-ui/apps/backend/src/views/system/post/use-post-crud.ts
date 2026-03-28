@@ -1,4 +1,5 @@
 import type { PostListItem } from './model';
+import type { PostApi } from '#/api/system/post';
 
 import { getPostPageList, getRecyclePostList } from '#/api/system/post';
 import { useCrudPage } from '#/composables/crud/use-crud-page';
@@ -11,7 +12,7 @@ export function usePostCrud() {
     fetchList: (params, context) =>
       context.isRecycleBin ? getRecyclePostList(params) : getPostPageList(params),
     buildParams: (form) => {
-      const params: Record<string, any> = {};
+      const params: Partial<PostApi.ListQuery> = {};
       if (form.name) params.name = form.name;
       if (form.code) params.code = form.code;
       if (form.status !== undefined) params.status = form.status;

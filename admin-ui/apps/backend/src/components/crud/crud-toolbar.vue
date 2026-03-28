@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { OptionItem } from '#/types/common';
+
 import { computed } from 'vue';
 
 import {
@@ -9,10 +11,7 @@ import {
 } from 'tdesign-icons-vue-next';
 import { Button, Checkbox, CheckboxGroup, Popup, Tooltip } from 'tdesign-vue-next';
 
-interface ColumnOption {
-  label: string;
-  value: string;
-}
+type ColumnOption = OptionItem<string>;
 
 interface Props {
   columnOptions?: ColumnOption[];
@@ -58,6 +57,10 @@ const isIndeterminate = computed(
 function toggleSelectAll(checked: boolean) {
   emit('update:modelValue', checked ? [...allColumnKeys.value] : []);
 }
+
+function handleSelectAllChange(value: unknown) {
+  toggleSelectAll(Boolean(value));
+}
 </script>
 
 <template>
@@ -88,7 +91,7 @@ function toggleSelectAll(checked: boolean) {
             <Checkbox
               :checked="isAllSelected"
               :indeterminate="isIndeterminate"
-              @change="(value: any) => toggleSelectAll(Boolean(value))"
+              @change="handleSelectAllChange"
             >
               全选
             </Checkbox>

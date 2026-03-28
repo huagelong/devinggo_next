@@ -1,4 +1,6 @@
 import type { Ref } from 'vue';
+import type { UserApi } from '#/api/system/user';
+import type { IdType } from '#/types/common';
 
 import { useCrudPage } from '#/composables/crud/use-crud-page';
 
@@ -7,13 +9,13 @@ import { getRecycleUserList, getUserList } from '#/api/system/user';
 import type { UserListItem } from './model';
 import { createUserSearchForm } from './schemas';
 
-export function useUserCrud(currentDeptId: Ref<number | string>) {
+export function useUserCrud(currentDeptId: Ref<IdType>) {
   const crud = useCrudPage<UserListItem, ReturnType<typeof createUserSearchForm>>({
     defaultSearchForm: createUserSearchForm,
     fetchList: (params, context) =>
       context.isRecycleBin ? getRecycleUserList(params) : getUserList(params),
     buildParams: (form) => {
-      const params: Record<string, any> = {};
+      const params: Partial<UserApi.ListQuery> = {};
 
       if (form.username) params.username = form.username;
       if (form.role_id !== undefined) params.role_id = form.role_id;
@@ -28,8 +30,13 @@ export function useUserCrud(currentDeptId: Ref<number | string>) {
 
       if (currentDeptId.value) {
         params.dept_id = currentDeptId.value;
-      } else if (form.dept_id !== undefined) {
-        params.dept_id = form.dept_id;
+      } else if (form.dept_ids?.length) {
+        const ids = form.dept_ids
+          .map((item) => Number(item))
+          .filter((item) => !Number.isNaN(item));
+        if (ids.length > 0) {
+          params.dept_ids = ids;
+        }
       }
 
       return params;
@@ -38,10 +45,10 @@ export function useUserCrud(currentDeptId: Ref<number | string>) {
       Number(response?.pageInfo?.total || response?.total || 0),
   });
 
-  function handleDeptSelect(deptId: number | string) {
+  function handleDeptSelect(deptId: IdType) {
     currentDeptId.value = deptId;
     crud.pagination.current = 1;
-    crud.fetchTableData();
+    void crud.fetchTableData();
   }
 
   function handleResetWithDept() {

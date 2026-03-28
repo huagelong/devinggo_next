@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
+import { message } from '#/adapter/tdesign';
 
 import {
   AddIcon,
@@ -23,7 +24,6 @@ import {
   Form,
   FormItem,
   Input,
-  MessagePlugin,
   Popconfirm,
   Select,
   Space,
@@ -37,27 +37,40 @@ import CrudToolbar from '#/components/crud/crud-toolbar.vue';
 import { getDeptTree } from '#/api/system/dept';
 import { getPostList } from '#/api/system/post';
 import { getRoleList } from '#/api/system/role';
+import type { DeptApi } from '#/api/system/dept';
+import type { PostApi } from '#/api/system/post';
+import type { RoleApi } from '#/api/system/role';
+import type { DictOption } from '#/composables/crud/use-dict-options';
 import { useDictOptions } from '#/composables/crud/use-dict-options';
 
 import DeptTree from './components/dept-tree.vue';
 import UserModal from './components/user-modal.vue';
+import type {
+  UserActionDropdownItem,
+  UserListItem,
+  UserTableColumn,
+} from './model';
 import { createUserColumnOptions, createUserTableColumns, userActionDropdownOptions } from './schemas';
 import { useUserActions } from './use-user-actions';
 import { useUserCrud } from './use-user-crud';
 
 const currentDeptId = ref<number | string>('');
-const userModalRef = ref();
+type UserModalInstance = {
+  open: (data?: Partial<UserListItem>) => void;
+};
+
+const userModalRef = ref<UserModalInstance>();
 const tableContainerRef = ref<HTMLElement>();
 const isFullscreen = ref(false);
 
-const roleOptions = ref<any[]>([]);
-const postOptions = ref<any[]>([]);
-const deptTreeData = ref<any[]>([]);
-const statusOptions = ref<any[]>([]);
-const userTypeOptions = ref<any[]>([]);
-const homePageOptions = ref<any[]>([]);
+const roleOptions = ref<RoleApi.ListItem[]>([]);
+const postOptions = ref<PostApi.ListItem[]>([]);
+const deptTreeData = ref<DeptApi.TreeNode[]>([]);
+const statusOptions = ref<DictOption[]>([]);
+const userTypeOptions = ref<DictOption[]>([]);
+const homePageOptions = ref<DictOption[]>([]);
 
-const columns: any[] = createUserTableColumns();
+const columns: UserTableColumn[] = createUserTableColumns();
 const columnOptions = createUserColumnOptions(columns);
 const allColumnKeys = columnOptions.map((item) => item.value);
 const visibleColumns = ref<string[]>([...allColumnKeys]);
@@ -132,6 +145,13 @@ function toggleFullscreen() {
   tableContainerRef.value?.requestFullscreen();
 }
 
+function normalizeListData<T>(data: T[] | { items?: T[] } | null | undefined): T[] {
+  if (Array.isArray(data)) {
+    return data;
+  }
+  return Array.isArray(data?.items) ? data.items : [];
+}
+
 async function fetchOptions() {
   try {
     const [roleRes, postRes, deptRes, statusDict, userTypeDict, dashboardDict] = await Promise.all([
@@ -143,14 +163,15 @@ async function fetchOptions() {
       getDictOptions('dashboard'),
     ]);
 
-    roleOptions.value = roleRes?.items || roleRes || [];
-    postOptions.value = postRes?.items || postRes || [];
+    roleOptions.value = normalizeListData(roleRes);
+    postOptions.value = normalizeListData(postRes);
     deptTreeData.value = deptRes || [];
     statusOptions.value = statusDict || [];
     userTypeOptions.value = userTypeDict || [];
     homePageOptions.value = dashboardDict || [];
   } catch (error) {
     console.error(error);
+    message.error('筛选项加载失败，请稍后重试');
   }
 }
 
@@ -158,21 +179,36 @@ function handleAdd() {
   userModalRef.value?.open();
 }
 
-function handleEdit(row: any) {
+function handleEdit(row: UserListItem) {
   if (isSuperAdmin(row)) {
-    MessagePlugin.warning('超级管理员不可编辑');
+    message.warning('超级管理员不可编辑');
     return;
   }
   userModalRef.value?.open(row);
 }
 
 function handleSuccess() {
-  fetchTableData();
+  void fetchTableData();
+}
+
+function handleTableSelectChange(keys: Array<number | string>) {
+  handleSelectChange(keys);
+}
+
+function handleStatusSwitchChange(row: UserListItem, value: unknown) {
+  void handleStatusChange(row, Boolean(value));
+}
+
+function handleActionDropdownItemClick(
+  item: unknown,
+  row: UserListItem,
+) {
+  handleActionDropdownClick(item as UserActionDropdownItem, row);
 }
 
 onMounted(() => {
-  fetchOptions();
-  fetchTableData();
+  void fetchOptions();
+  void fetchTableData();
   document.addEventListener('fullscreenchange', handleFullscreenChange);
 });
 
@@ -199,11 +235,13 @@ onUnmounted(() => {
                   clearable
                 />
               </FormItem>
-              <FormItem label="所属部门" name="dept_id">
+              <FormItem label="所属部门" name="dept_ids">
                 <TreeSelect
-                  v-model="searchForm.dept_id"
+                  v-model="searchForm.dept_ids"
                   :data="deptTreeData"
                   :keys="{ value: 'id', label: 'label', children: 'children' }"
+                  :multiple="true"
+                  :tree-props="{ checkStrictly: true }"
                   placeholder="请选择所属部门"
                   clearable
                   class="w-full"
@@ -346,7 +384,7 @@ onUnmounted(() => {
             hover
             stripe
             @page-change="handlePageChange"
-            @select-change="(keys: any) => handleSelectChange(keys as Array<number | string>)"
+            @select-change="handleTableSelectChange"
           >
             <template #avatar="{ row }">
               <img
@@ -362,7 +400,7 @@ onUnmounted(() => {
               <Switch
                 :disabled="isRecycleBin || isSuperAdmin(row)"
                 :value="row.status === 1"
-                @change="(value: any) => handleStatusChange(row, Boolean(value))"
+                @change="(value: unknown) => handleStatusSwitchChange(row, value)"
               />
             </template>
 
@@ -402,7 +440,7 @@ onUnmounted(() => {
                     <Dropdown
                       :options="userActionDropdownOptions"
                       trigger="click"
-                      @click="(item: any) => handleActionDropdownClick(item, row)"
+                      @click="(item: unknown) => handleActionDropdownItemClick(item, row)"
                     >
                       <Button size="small" theme="default" variant="outline">
                         <template #icon><MoreIcon /></template>

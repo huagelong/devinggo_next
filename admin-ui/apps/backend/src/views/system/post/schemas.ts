@@ -1,4 +1,9 @@
-import type { PostFormModel, PostSearchFormModel } from './model';
+import type {
+  PostColumnOptionItem,
+  PostFormModel,
+  PostSearchFormModel,
+  PostTableColumn,
+} from './model';
 
 export function createPostSearchForm(): PostSearchFormModel {
   return {
@@ -19,7 +24,7 @@ export function createPostFormDefaultValues(): PostFormModel {
   };
 }
 
-export function createPostTableColumns() {
+export function createPostTableColumns(): PostTableColumn[] {
   return [
     {
       align: 'center',
@@ -44,7 +49,9 @@ export function createPostTableColumns() {
   ];
 }
 
-export function createPostColumnOptions(columns: any[]) {
+export function createPostColumnOptions(
+  columns: PostTableColumn[],
+): PostColumnOptionItem[] {
   return columns
     .filter((column) => column.colKey !== 'row-select' && column.title)
     .map((column) => ({
