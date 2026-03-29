@@ -1,0 +1,109 @@
+<script lang="ts" setup>
+import type { GenerateApi, LoadTableRow } from '../model';
+
+import { onMounted, ref } from 'vue';
+
+import { useVbenModal } from '@vben/common-ui';
+import { message } from '#/adapter/tdesign';
+
+import { loadTable } from '#/api/system/generate';
+
+import { Checkbox, CheckboxGroup, Table } from 'tdesign-vue-next';
+
+const emit = defineEmits<{
+  success: [];
+}>();
+
+const tableData = ref<GenerateApi.TableColumn[]>([]);
+const tableLoading = ref(false);
+const submitLoading = ref(false);
+const selectedNames = ref<string[]>([]);
+
+const columns = [
+  { colKey: 'selection', width: 60 },
+  { colKey: 'name', title: '表名称', width: 200 },
+  { colKey: 'comment', title: '表描述', minWidth: 200 },
+];
+
+function open() {
+  modalApi.open();
+  selectedNames.value = [];
+  tableData.value = [];
+  void fetchTableList();
+}
+
+async function fetchTableList() {
+  tableLoading.value = true;
+  try {
+    // 模拟数据，实际应该从API获取
+    tableData.value = [];
+  } catch (error) {
+    console.error(error);
+    message.error('获取数据表列表失败');
+  } finally {
+    tableLoading.value = false;
+  }
+}
+
+async function handleSubmit() {
+  if (selectedNames.value.length === 0) {
+    message.warning('请选择要装载的表');
+    return;
+  }
+
+  submitLoading.value = true;
+  try {
+    const names = selectedNames.value.map((name) => ({
+      name,
+      comment: name,
+      sourceName: name,
+    }));
+    await loadTable({ source: 'default', names });
+    message.success('装载成功');
+    emit('success');
+    modalApi.close();
+  } catch (error) {
+    console.error(error);
+    message.error('装载失败，请稍后重试');
+  } finally {
+    submitLoading.value = false;
+  }
+}
+
+const [Modal, modalApi] = useVbenModal({
+  onConfirm: handleSubmit,
+  class: 'w-[800px]',
+});
+
+defineExpose({ open });
+</script>
+
+<template>
+  <Modal title="装载数据表">
+    <div class="flex flex-col gap-4">
+      <div class="text-sm text-gray-500">
+        选择要装载的数据表，装载后可以在代码生成中配置并生成代码。
+      </div>
+
+      <Table
+        :columns="columns"
+        :data="tableData"
+        :loading="tableLoading"
+        row-key="name"
+        hover
+        stripe
+      >
+        <template #selection="{ row }">
+          <Checkbox
+            :value="row.name"
+            v-model:checked="selectedNames"
+          />
+        </template>
+      </Table>
+
+      <div class="text-sm text-gray-500">
+        已选择 {{ selectedNames.length }} 个表
+      </div>
+    </div>
+  </Modal>
+</template>
