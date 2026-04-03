@@ -1,16 +1,36 @@
 <script lang="ts" setup>
+import type { DataMaintainApi } from '#/api/system/data-maintain';
+
 import { computed, onMounted, ref } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 
 import { message } from '#/adapter/tdesign';
+import {
+  fragmentDataMaintainTable,
+  getDataMaintainDetailed,
+  optimizeDataMaintainTable,
+} from '#/api/system/data-maintain';
 import CrudToolbar from '#/components/crud/crud-toolbar.vue';
 
-import { InfoCircleFilledIcon, SearchIcon } from 'tdesign-icons-vue-next';
-import { Button, Form, FormItem, Input, Popup, Space, Table } from 'tdesign-vue-next';
+import {
+  InfoCircleFilledIcon,
+  SearchIcon,
+  ViewIcon,
+} from 'tdesign-icons-vue-next';
+import {
+  Button,
+  Form,
+  FormItem,
+  Input,
+  Popup,
+  Space,
+  Table,
+  Tag,
+} from 'tdesign-vue-next';
 
-import type { DataMaintainTableColumn } from './model';
+import type { DataMaintainListItem, DataMaintainTableColumn } from './model';
 import {
   createDataMaintainColumnOptions,
   createDataMaintainTableColumns,
@@ -23,6 +43,25 @@ const { hasAccessByCodes } = useAccess();
 const canView = computed(() =>
   hasAccessByCodes(['system:dataMaintain:index', 'system:dataMaintain']),
 );
+const canDetailed = computed(() =>
+  hasAccessByCodes(['system:dataMaintain:detailed', 'system:dataMaintain:index']),
+);
+const canOptimize = computed(() =>
+  hasAccessByCodes(['system:dataMaintain:optimize', 'system:dataMaintain:index']),
+);
+const canFragment = computed(() =>
+  hasAccessByCodes(['system:dataMaintain:fragment', 'system:dataMaintain:index']),
+);
+
+// Current backend only exposes index; detailed/optimize/fragment are prepared for future rollout.
+const hasDetailedApi = false;
+const hasOptimizeApi = false;
+const hasFragmentApi = false;
+
+const detailVisible = ref(false);
+const detailLoading = ref(false);
+const currentTable = ref<DataMaintainListItem>();
+const detailColumns = ref<Array<{ field: string; type?: string; comment?: string }>>([]);
 
 const columns: DataMaintainTableColumn[] = createDataMaintainTableColumns();
 const columnOptions = createDataMaintainColumnOptions(columns);
@@ -49,6 +88,70 @@ const {
 
 function handleUnimplementedAction(actionName: string) {
   message.info(`${actionName}接口暂未在当前后端开放`);
+}
+
+async function handleViewDetail(row: DataMaintainListItem) {
+  currentTable.value = row;
+  detailVisible.value = true;
+  detailColumns.value = [];
+
+  if (!hasDetailedApi) {
+    return;
+  }
+
+  detailLoading.value = true;
+  try {
+    const response = await getDataMaintainDetailed({
+      group_name: searchForm.group_name,
+      table_name: row.name,
+    });
+    detailColumns.value = Object.values(response || {}).map((item) => ({
+      comment: item.comment,
+      field: item.field,
+      type: item.type,
+    }));
+  } catch (error) {
+    console.error(error);
+    message.error('获取字段详情失败，请稍后重试');
+  } finally {
+    detailLoading.value = false;
+  }
+}
+
+async function handleOptimize(row: DataMaintainListItem) {
+  if (!hasOptimizeApi) {
+    handleUnimplementedAction('优化表');
+    return;
+  }
+
+  try {
+    await optimizeDataMaintainTable({
+      group_name: searchForm.group_name,
+      table_name: row.name,
+    });
+    message.success('优化成功');
+  } catch (error) {
+    console.error(error);
+    message.error('优化失败，请稍后重试');
+  }
+}
+
+async function handleFragment(row: DataMaintainListItem) {
+  if (!hasFragmentApi) {
+    handleUnimplementedAction('清理碎片');
+    return;
+  }
+
+  try {
+    await fragmentDataMaintainTable({
+      group_name: searchForm.group_name,
+      table_name: row.name,
+    });
+    message.success('清理成功');
+  } catch (error) {
+    console.error(error);
+    message.error('清理失败，请稍后重试');
+  }
 }
 
 onMounted(() => {
@@ -137,7 +240,79 @@ onMounted(() => {
             <template #create_time="{ row }">
               {{ row.create_time || '-' }}
             </template>
+            <template #action="{ row }">
+              <Space>
+                <Button
+                  v-if="canDetailed"
+                  size="small"
+                  variant="text"
+                  @click="handleViewDetail(row)"
+                >
+                  详情
+                </Button>
+                <Button
+                  v-if="canOptimize"
+                  size="small"
+                  theme="warning"
+                  variant="text"
+                  @click="handleOptimize(row)"
+                >
+                  优化
+                </Button>
+                <Button
+                  v-if="canFragment"
+                  size="small"
+                  theme="danger"
+                  variant="text"
+                  @click="handleFragment(row)"
+                >
+                  碎片整理
+                </Button>
+              </Space>
+            </template>
           </Table>
+
+          <div
+            v-if="detailVisible"
+            class="mt-3 rounded-md border border-gray-100 bg-gray-50 p-4"
+          >
+            <div class="mb-2 flex items-center justify-between">
+              <div class="text-sm font-medium text-gray-700">
+                表详情：{{ currentTable?.name || '-' }}
+              </div>
+              <Button size="small" variant="text" @click="detailVisible = false">
+                收起
+              </Button>
+            </div>
+
+            <div class="mb-3 grid grid-cols-3 gap-3 text-sm text-gray-600">
+              <div>引擎：{{ currentTable?.engine || '-' }}</div>
+              <div>字符集：{{ currentTable?.collation || '-' }}</div>
+              <div>行数：{{ currentTable?.rows ?? '-' }}</div>
+            </div>
+
+            <div v-if="!hasDetailedApi" class="text-sm text-gray-500">
+              当前后端未开放字段详情接口，已预留展示区域。
+            </div>
+
+            <Table
+              v-else
+              row-key="field"
+              size="small"
+              :loading="detailLoading"
+              :data="detailColumns"
+              :columns="[
+                { colKey: 'field', title: '字段名', width: 220 },
+                { colKey: 'type', title: '类型', width: 180 },
+                { colKey: 'comment', title: '注释', minWidth: 240 },
+              ]"
+            />
+
+            <div class="mt-3 flex items-center gap-2 text-xs text-gray-500">
+              <Tag theme="warning" variant="light">能力预留</Tag>
+              <span>详细字段、优化、碎片整理待后端接口开放后无缝启用。</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

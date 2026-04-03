@@ -19,6 +19,13 @@ export function createDataMaintainTableColumns(): DataMaintainTableColumn[] {
     { colKey: 'collation', title: '字符集', width: 160 },
     { colKey: 'rows', title: '行数', width: 120 },
     { colKey: 'create_time', title: '创建时间', minWidth: 180 },
+    {
+      align: 'center',
+      colKey: 'action',
+      fixed: 'right',
+      title: '操作',
+      width: 260,
+    },
   ];
 }
 
@@ -26,7 +33,7 @@ export function createDataMaintainColumnOptions(
   columns: DataMaintainTableColumn[],
 ): DataMaintainColumnOptionItem[] {
   return columns
-    .filter((column) => column.title)
+    .filter((column) => column.title && column.colKey !== 'action')
     .map((column) => ({
       label: String(column.title),
       value: String(column.colKey),

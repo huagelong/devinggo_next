@@ -192,4 +192,6 @@
 - 已完成：日志删除按钮权限点接入（system:loginLog:delete / system:operLog:delete / system:apiLog:delete）。
 - 已完成：dataMaintain 首版骨架（api + model + schemas + use-crud + index）。
 - 约束确认：当前后端仅开放 `/system/dataMaintain/index`，旧版 `detailed/optimize/fragment` 暂未提供。
+- 已完成：dataMaintain 第二版页面细化（操作列、详情面板、权限按钮点位预埋）。
+- 已完成：dataMaintain API 预留（detailed/optimize/fragment）并在页面侧做后端未开放降级提示。
 - 下一步执行：联调日志页查询字段与响应字段，补菜单与权限点校验。
