@@ -22,6 +22,7 @@ import {
   Form,
   FormItem,
   Input,
+  Popconfirm,
   Popup,
   Space,
   Table,
@@ -67,6 +68,8 @@ type DataMaintainDetailPanelInstance = {
 };
 
 const detailPanelRef = ref<DataMaintainDetailPanelInstance>();
+const optimizingTableName = ref('');
+const fragmentingTableName = ref('');
 
 const columns: DataMaintainTableColumn[] = createDataMaintainTableColumns();
 const columnOptions = createDataMaintainColumnOptions(columns);
@@ -109,15 +112,19 @@ async function handleOptimize(row: DataMaintainListItem) {
     return;
   }
 
+  optimizingTableName.value = row.name;
   try {
     await optimizeDataMaintainTable({
       group_name: searchForm.group_name,
       table_name: row.name,
     });
     message.success('优化成功');
+    await fetchTableData();
   } catch (error) {
     console.error(error);
     message.error('优化失败，请稍后重试');
+  } finally {
+    optimizingTableName.value = '';
   }
 }
 
@@ -127,15 +134,19 @@ async function handleFragment(row: DataMaintainListItem) {
     return;
   }
 
+  fragmentingTableName.value = row.name;
   try {
     await fragmentDataMaintainTable({
       group_name: searchForm.group_name,
       table_name: row.name,
     });
     message.success('清理成功');
+    await fetchTableData();
   } catch (error) {
     console.error(error);
     message.error('清理失败，请稍后重试');
+  } finally {
+    fragmentingTableName.value = '';
   }
 }
 
@@ -235,24 +246,36 @@ onMounted(() => {
                 >
                   详情
                 </Button>
-                <Button
+                <Popconfirm
                   v-if="canOptimize"
-                  size="small"
-                  theme="warning"
-                  variant="text"
-                  @click="handleOptimize(row)"
+                  content="确认优化该数据表吗？"
+                  placement="bottom"
+                  @confirm="handleOptimize(row)"
                 >
-                  优化
-                </Button>
-                <Button
+                  <Button
+                    size="small"
+                    theme="warning"
+                    variant="text"
+                    :loading="optimizingTableName === row.name"
+                  >
+                    优化
+                  </Button>
+                </Popconfirm>
+                <Popconfirm
                   v-if="canFragment"
-                  size="small"
-                  theme="danger"
-                  variant="text"
-                  @click="handleFragment(row)"
+                  content="确认执行碎片整理吗？"
+                  placement="bottom"
+                  @confirm="handleFragment(row)"
                 >
-                  碎片整理
-                </Button>
+                  <Button
+                    size="small"
+                    theme="danger"
+                    variant="text"
+                    :loading="fragmentingTableName === row.name"
+                  >
+                    碎片整理
+                  </Button>
+                </Popconfirm>
               </Space>
             </template>
           </Table>

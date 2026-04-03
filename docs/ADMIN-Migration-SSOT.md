@@ -195,4 +195,5 @@
 - 已完成：dataMaintain 第二版页面细化（操作列、详情面板、权限按钮点位预埋）。
 - 已完成：dataMaintain API 预留（detailed/optimize/fragment）并在页面侧做后端未开放降级提示。
 - 已完成：详情区组件化（data-maintain-detail-panel），后续后端开放接口可局部替换启用。
+- 已完成：优化/碎片整理动作二次确认与行级 loading 态，成功后自动刷新列表。
 - 下一步执行：联调日志页查询字段与响应字段，补菜单与权限点校验。
