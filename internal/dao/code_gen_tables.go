@@ -8,7 +8,8 @@ import (
 	"devinggo/internal/dao/internal"
 )
 
-// codeGenTablesDao is the data access object for table code_gen_tables.
+// codeGenTablesDao is the data access object for the table code_gen_tables.
+// You can define custom methods on it to extend its functionality as needed.
 type codeGenTablesDao struct {
 	*internal.CodeGenTablesDao
 }

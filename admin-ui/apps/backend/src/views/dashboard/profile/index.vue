@@ -243,13 +243,13 @@ onMounted(() => {
                 label-width="100px"
                 @submit="handleUpdateInfo"
               >
-                <FormItem label="璐︽埛鍚? name="username">
+                <FormItem label="璐︽埛鍚?" name="username">
                   <Input v-model="userInfoForm.username" disabled />
                 </FormItem>
                 <FormItem label="鏄电О" name="nickname">
                   <Input
                     v-model="userInfoForm.nickname"
-                    placeholder="璇疯緭鍏ユ樀绉?
+                    placeholder="璇疯緭鍏ユ樀绉?"
                   />
                 </FormItem>
                 <FormItem label="鎵嬫満" name="phone">
@@ -261,13 +261,13 @@ onMounted(() => {
                 <FormItem label="閭" name="email">
                   <Input
                     v-model="userInfoForm.email"
-                    placeholder="璇疯緭鍏ラ偖绠?
+                    placeholder="璇疯緭鍏ラ偖绠?"
                   />
                 </FormItem>
                 <FormItem label="涓汉绛惧悕" name="signed">
                   <Textarea
                     v-model="userInfoForm.signed"
-                    placeholder="璇疯緭鍏ヤ釜浜虹鍚?
+                    placeholder="璇疯緭鍏ヤ釜浜虹鍚?"
                     :maxlength="255"
                     :autosize="{ minRows: 3, maxRows: 5 }"
                   />
@@ -293,14 +293,14 @@ onMounted(() => {
                 label-width="100px"
                 @submit="handleUpdatePassword"
               >
-                <FormItem label="鏃у瘑鐮? name="oldPassword" required-mark>
+                <FormItem label="鏃у瘑鐮?" name="oldPassword" required-mark>
                   <Input
                     type="password"
                     v-model="securityForm.oldPassword"
                     placeholder="璇疯緭鍏ユ棫瀵嗙爜"
                   />
                 </FormItem>
-                <FormItem label="鏂板瘑鐮? name="newPassword" required-mark>
+                <FormItem label="鏂板瘑鐮?" name="newPassword" required-mark>
                   <Input
                     type="password"
                     v-model="securityForm.newPassword"

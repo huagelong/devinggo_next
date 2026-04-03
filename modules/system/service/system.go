@@ -18,6 +18,28 @@ import (
 )
 
 type (
+	ICodeGen interface {
+		// Model 返回数据库 Model
+		Model(ctx context.Context) *gdb.Model
+		// GetPageList 获取分页列表
+		GetPageList(ctx context.Context, req *model.PageListReq, in *req.CodeGenSearch) (rs []*res.CodeGenTable, total int, err error)
+		// Delete 删除记录
+		Delete(ctx context.Context, ids []int64) (err error)
+		// Update 更新配置
+		Update(ctx context.Context, in *req.CodeGenUpdate, userId int64) (err error)
+		// LoadTable 装载数据表
+		LoadTable(ctx context.Context, in *req.CodeGenLoadTable, userId int64) (err error)
+		// SyncTable 同步数据表结构
+		SyncTable(ctx context.Context, id int64, userId int64) (err error)
+		// GenerateCode 生成代码
+		GenerateCode(ctx context.Context, ids string) (fileBytes []byte, err error)
+		// PreviewCode 预览代码
+		PreviewCode(ctx context.Context, id int64) (preview []res.CodeGenPreview, err error)
+		// ReadTable 读取表信息
+		ReadTable(ctx context.Context, id int64) (tableInfo res.CodeGenReadTable, err error)
+		// ListSourceTables 获取数据源表列表
+		ListSourceTables(ctx context.Context, source string) (tables []res.CodeGenSourceTable, err error)
+	}
 	IDashboard interface {
 		// GetStatistics 获取仪表板统计数据
 		GetStatistics(ctx context.Context) (statistics map[string]interface{}, err error)
@@ -348,21 +370,10 @@ type (
 		Model(ctx context.Context) *gdb.Model
 		GetRoleIdsByUserId(ctx context.Context, userId int64) (roleIds []int64, err error)
 	}
-	ICodeGen interface {
-		Model(ctx context.Context) *gdb.Model
-		GetPageList(ctx context.Context, req *model.PageListReq, in *req.CodeGenSearch) (rs []*res.CodeGenTable, total int, err error)
-		Delete(ctx context.Context, ids []int64) (err error)
-		Update(ctx context.Context, in *req.CodeGenUpdate, userId int64) (err error)
-		LoadTable(ctx context.Context, in *req.CodeGenLoadTable, userId int64) (err error)
-		SyncTable(ctx context.Context, id int64, userId int64) (err error)
-		GenerateCode(ctx context.Context, ids string) (fileBytes []byte, err error)
-		PreviewCode(ctx context.Context, id int64) (preview []res.CodeGenPreview, err error)
-		ReadTable(ctx context.Context, id int64) (tableInfo res.CodeGenReadTable, err error)
-		ListSourceTables(ctx context.Context, source string) (tables []res.CodeGenSourceTable, err error)
-	}
 )
 
 var (
+	localCodeGen                   ICodeGen
 	localDashboard                 IDashboard
 	localDataMaintain              IDataMaintain
 	localLogin                     ILogin
@@ -396,8 +407,18 @@ var (
 	localSystemUserDept            ISystemUserDept
 	localSystemUserPost            ISystemUserPost
 	localSystemUserRole            ISystemUserRole
-	localCodeGen                   ICodeGen
 )
+
+func CodeGen() ICodeGen {
+	if localCodeGen == nil {
+		panic("implement not found for interface ICodeGen, forgot register?")
+	}
+	return localCodeGen
+}
+
+func RegisterCodeGen(i ICodeGen) {
+	localCodeGen = i
+}
 
 func Dashboard() IDashboard {
 	if localDashboard == nil {
@@ -760,19 +781,4 @@ func SystemUserRole() ISystemUserRole {
 
 func RegisterSystemUserRole(i ISystemUserRole) {
 	localSystemUserRole = i
-}
-
-var (
-	localCodeGen ICodeGen
-)
-
-func CodeGen() ICodeGen {
-	if localCodeGen == nil {
-		panic("implement not found for interface ICodeGen, forgot register?")
-	}
-	return localCodeGen
-}
-
-func RegisterCodeGen(i ICodeGen) {
-	localCodeGen = i
 }

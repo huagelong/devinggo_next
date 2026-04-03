@@ -11,6 +11,7 @@ import (
 
 	"devinggo/modules/system/api/system"
 	"devinggo/modules/system/controller/base"
+	"devinggo/modules/system/model/res"
 	"devinggo/modules/system/service"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -32,11 +33,12 @@ func (c *codeGenController) Index(ctx context.Context, in *system.CodeGenIndexRe
 		return
 	}
 	if !g.IsEmpty(items) {
+		out.Items = make([]res.CodeGenTable, 0, len(items))
 		for _, item := range items {
-			out.Items = append(out.Items, item)
+			out.Items = append(out.Items, *item)
 		}
 	} else {
-		out.Items = make([]system.CodeGenIndexRes, 0)
+		out.Items = make([]res.CodeGenTable, 0)
 	}
 	out.PageRes.Pack(in, totalCount)
 	return

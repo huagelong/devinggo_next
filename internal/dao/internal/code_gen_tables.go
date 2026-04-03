@@ -11,44 +11,44 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 )
 
-// CodeGenTablesDao is the data access object for table code_gen_tables.
+// CodeGenTablesDao is the data access object for the table code_gen_tables.
 type CodeGenTablesDao struct {
-	table    string                  // table is the underlying table name of the DAO.
-	group    string                  // group is the database configuration group name of the current DAO.
-	columns  CodeGenTablesColumns   // columns contains all the column names of Table for convenient usage.
-	handlers []gdb.ModelHandler     // handlers for customized model modification.
+	table    string               // table is the underlying table name of the DAO.
+	group    string               // group is the database configuration group name of the current DAO.
+	columns  CodeGenTablesColumns // columns contains all the column names of Table for convenient usage.
+	handlers []gdb.ModelHandler   // handlers for customized model modification.
 }
 
-// CodeGenTablesColumns defines and stores column names for table code_gen_tables.
+// CodeGenTablesColumns defines and stores column names for the table code_gen_tables.
 type CodeGenTablesColumns struct {
-	Id            string
-	TableName     string
-	TableComment  string
-	Remark        string
-	ModuleName    string
-	BelongMenuId  string
-	Type          string
-	MenuName      string
-	ComponentType string
-	TplType       string
-	TreeId        string
-	TreeParentId  string
-	TreeName      string
-	TagId         string
-	TagName       string
-	TagViewName   string
-	GenerateMenus string
-	Options       string
-	CreatedAt     string
-	UpdatedAt     string
-	DeletedAt     string
-	CreatedBy     string
-	UpdatedBy     string
-	Status        string
-	Sort          string
+	Id            string //
+	TableName     string // 表名称
+	TableComment  string // 表描述
+	Remark        string // 备注信息
+	ModuleName    string // 所属模块
+	BelongMenuId  string // 所属菜单ID
+	Type          string // 生成类型: single=单表, tree=树表
+	MenuName      string // 菜单名称
+	ComponentType string // 组件类型: 1=模态框, 2=抽屉, 3=Tag页
+	TplType       string // 模板类型: default
+	TreeId        string // 树表主ID字段
+	TreeParentId  string // 树表父ID字段
+	TreeName      string // 树表显示名称字段
+	TagId         string // Tag页ID
+	TagName       string // Tag页名称
+	TagViewName   string // Tag页显示字段
+	GenerateMenus string // 生成的菜单按钮
+	Options       string // 扩展配置
+	CreatedAt     string // 创建时间
+	UpdatedAt     string // 更新时间
+	DeletedAt     string // 删除时间
+	CreatedBy     string // 创建者ID
+	UpdatedBy     string // 更新者ID
+	Status        string // 状态: 1=正常, 0=停用
+	Sort          string // 排序
 }
 
-// codeGenTablesColumns holds the columns for table code_gen_tables.
+// codeGenTablesColumns holds the columns for the table code_gen_tables.
 var codeGenTablesColumns = CodeGenTablesColumns{
 	Id:            "id",
 	TableName:     "table_name",
@@ -109,10 +109,19 @@ func (dao *CodeGenTablesDao) Group() string {
 
 // Ctx creates and returns a Model for the current DAO. It automatically sets the context for the current operation.
 func (dao *CodeGenTablesDao) Ctx(ctx context.Context) *gdb.Model {
-	return g.DB(dao.group).Model(dao.table).Safe().Ctx(ctx).Hook(dao.handlers...)
+	model := dao.DB().Model(dao.table)
+	for _, handler := range dao.handlers {
+		model = handler(model)
+	}
+	return model.Safe().Ctx(ctx)
 }
 
-// Columns returns all column names of the current DAO for internal usage.
-func (dao *CodeGenTablesDao) Columns() CodeGenTablesColumns {
-	return dao.columns
+// Transaction wraps the transaction logic using function f.
+// It rolls back the transaction and returns the error if function f returns a non-nil error.
+// It commits the transaction and returns nil if function f returns nil.
+//
+// Note: Do not commit or roll back the transaction in function f,
+// as it is automatically handled by this function.
+func (dao *CodeGenTablesDao) Transaction(ctx context.Context, f func(ctx context.Context, tx gdb.TX) error) (err error) {
+	return dao.Ctx(ctx).Transaction(ctx, f)
 }

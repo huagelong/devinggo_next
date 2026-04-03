@@ -1641,6 +1641,12 @@ importers:
         specifier: 'catalog:'
         version: 5.0.3(@vue/compiler-sfc@3.5.30)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.30(typescript@5.9.3)))(vue@3.5.30(typescript@5.9.3))
 
+  scripts/gen-crud:
+    dependencies:
+      cac:
+        specifier: 'catalog:'
+        version: 7.0.0
+
   scripts/turbo-run:
     dependencies:
       '@clack/prompts':

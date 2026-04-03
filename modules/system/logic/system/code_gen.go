@@ -20,6 +20,7 @@ import (
 	"devinggo/modules/system/pkg/hook"
 	"devinggo/modules/system/pkg/orm"
 	"devinggo/modules/system/pkg/utils"
+	"devinggo/modules/system/service"
 
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
@@ -180,7 +181,7 @@ func (s *sCodeGen) LoadTable(ctx context.Context, in *req.CodeGenLoadTable, user
 	for _, item := range in.Names {
 		// 检查是否已存在
 		var existing int
-		err = s.Model(ctx).Where("table_name", item.Name).Count(&existing)
+		existing, err = s.Model(ctx).Where("table_name", item.Name).Count()
 		if utils.IsError(err) {
 			return
 		}
@@ -189,7 +190,8 @@ func (s *sCodeGen) LoadTable(ctx context.Context, in *req.CodeGenLoadTable, user
 		}
 
 		// 插入主表记录
-		id, err := s.Model(ctx).Data(g.Map{
+		var id int64
+		id, err = s.Model(ctx).Data(g.Map{
 			"table_name":    item.Name,
 			"table_comment": item.Comment,
 			"type":          "single",
@@ -243,15 +245,17 @@ func (s *sCodeGen) getTableColumns(ctx context.Context, tableName string) ([]res
 	sql := `SELECT column_name, column_comment, column_type, data_type, is_nullable
 		FROM information_schema.columns
 		WHERE table_name = ? AND table_schema = current_schema()`
-	rows, err := db.GetCore().Query(ctx, sql, tableName)
+	resultSet, err := db.GetCore().Query(ctx, sql, tableName)
 	if utils.IsError(err) {
 		return nil, err
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var col res.CodeGenColumn
-		if err := rows.Scan(&col.ColumnName, &col.ColumnComment, &col.ColumnType, &col.DataType, &col.IsNullable); err != nil {
-			continue
+	for _, row := range resultSet {
+		col := res.CodeGenColumn{
+			ColumnName:   row["column_name"].String(),
+			ColumnComment: row["column_comment"].String(),
+			ColumnType:   row["column_type"].String(),
+			DataType:     row["data_type"].String(),
+			IsNullable:   row["is_nullable"].String(),
 		}
 		result = append(result, col)
 	}
@@ -534,7 +538,6 @@ func (s *sCodeGen) generateApiCode(table *entity.CodeGenTables, fields []entity.
 func (s *sCodeGen) generateControllerCode(table *entity.CodeGenTables, fields []entity.CodeGenFields) string {
 	var buf bytes.Buffer
 	entityName := gstr.CaseCamel(table.TableName)
-	varName := gstr.CaseCamelLower(table.TableName)
 
 	buf.WriteString("func (c *c" + entityName + ") Index(ctx context.Context, req *system.Index" + entityName + "Req) (res *system.Index" + entityName + "Res, err error) {\n")
 	buf.WriteString("\tres = &system.Index" + entityName + "Res{}\n")
@@ -602,11 +605,10 @@ func (s *sCodeGen) ListSourceTables(ctx context.Context, source string) (tables 
 	if utils.IsError(err) {
 		return nil, err
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var t res.CodeGenSourceTable
-		if err := rows.Scan(&t.Name, &t.Comment); err != nil {
-			continue
+	for _, row := range rows {
+		t := res.CodeGenSourceTable{
+			Name:    row["table_name"].String(),
+			Comment: row["table_comment"].String(),
 		}
 		tables = append(tables, t)
 	}
