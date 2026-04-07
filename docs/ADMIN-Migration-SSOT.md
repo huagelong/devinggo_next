@@ -71,13 +71,13 @@
 | attachment | views/system/attachment | 已迁移 | 标准 CRUD |
 | notice | views/system/notice | 已迁移 | 标准 CRUD |
 | api/apiGroup/app/appGroup | views/system 对应目录 | 已迁移 | 标准 CRUD |
-| monitor/onlineUser, cache | views/system/monitor/* | 已迁移 | 已有 monitor API |
+| monitor/onlineUser, cache, server | views/system/monitor/* | 已迁移 | 缓存监控+在线用户完整；服务器监控前端已实现，待后端API |
 | systemModules | views/system/systemModules | 已迁移 | 作为模块管理目标实现 |
 | code | views/system/code | 已迁移 | 已存在生成器页面 |
 | logs/loginLog, operLog, apiLog | views/system/logs/* | 已迁移 | 三页完整实现（CRUD/权限/搜索/分页） |
 | dataMaintain | views/system/dataMaintain | 已迁移 | 完整实现（列表/详情/优化/碎片整理UI），后端部分API待开放 |
-| queueMessage | views/dashboard/message | 部分迁移 | 页面可用，类型需收敛 any |
-| upload 专项能力 | profile 等局部上传 | 部分迁移 | 缺独立上传管理能力整合 |
+| queueMessage | views/dashboard/message | 已迁移 | 类型清理完成，any 已移除 |
+| upload 专项能力 | views/system/upload + api/system/upload | 部分迁移 | 统一 upload API 已建立，管理页面前端框架已完成 |
 | pusher 实时能力 | 暂无明确接入 | 未迁移 | 后端接口存在，前端待建设 |
 
 ---
@@ -155,17 +155,20 @@
 完成标准：
 - [ ] 至少 1 条核心实时链路在联调可稳定运行
 
-## T5：监控能力完善（0.5~1 周）
+## T5：监控能力完善（已完成 ✅）
 
 目标：补齐监控管理页面，提升系统可观测性。
 
-- [ ] 完善 monitor 目录下的监控页面（除缓存监控外）
-- [ ] 添加服务器监控、在线用户监控等页面
-- [ ] 统一监控数据的展示和刷新策略
+- [x] 完善 monitor 目录下的监控页面（除缓存监控外）
+- [x] 添加服务器监控页面（前端框架 + API 预留）
+- [x] 统一监控数据的展示和刷新策略
+- [x] 补充 MonitorApi 类型定义（ServerInfoResponse、CpuInfo、MemoryInfo 等）
 
 完成标准：
-- [ ] 监控页面覆盖核心监控指标
-- [ ] 监控数据实时性和准确性达标
+- [x] 缓存监控页面完整可用
+- [x] 在线用户监控页面完整可用
+- [x] 服务器监控前端框架完成（等待后端 API 开放）
+- [x] 服务器监控支持 10 秒自动刷新
 
 ## T6：文件上传管理页面（1 周）
 
@@ -256,6 +259,19 @@
   - 文件列表展示（基础框架）
 - ⏳ 等待后端 upload API 对接（文件列表、删除等接口）
 - ⏳ 完善文件预览和下载功能
+
+**T5 监控能力完善（已完成 ✅）**：
+- ✅ 分析现有监控页面：缓存监控和在线用户监控已完整实现
+- ✅ 新建 system/monitor/server 页面：
+  - 系统概览（OS、架构、主机名、运行时间）
+  - CPU 使用率（进度环 + 核心数/型号）
+  - 内存使用率（进度环 + 已用/总量/可用）
+  - 磁盘信息（多分区展示）
+  - Go 运行时信息（Heap、栈使用等）
+- ✅ 补充 MonitorApi 类型定义（ServerInfoResponse、CpuInfo、MemoryInfo、DiskInfo、GoRuntimeInfo）
+- ✅ 添加 getServerInfo API（/system/server/monitor）
+- ✅ 后端 API 未开放时自动降级提示
+- ✅ 10 秒自动刷新监控数据
 
 ### 2026-04-03
 
