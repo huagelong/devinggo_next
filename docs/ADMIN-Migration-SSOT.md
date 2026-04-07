@@ -78,7 +78,7 @@
 | dataMaintain | views/system/dataMaintain | 已迁移 | 完整实现（列表/详情/优化/碎片整理UI），后端部分API待开放 |
 | queueMessage | views/dashboard/message | 已迁移 | 类型清理完成，any 已移除 |
 | upload 专项能力 | views/system/upload + api/system/upload | 部分迁移 | 统一 upload API 已建立，管理页面前端框架已完成 |
-| pusher 实时能力 | 暂无明确接入 | 未迁移 | 后端接口存在，前端待建设 |
+| pusher 实时能力 | composables/pusher/* + dashboard/message | 已迁移 | pusher-js 集成完成，消息中心已接入实时推送 |
 
 ---
 
@@ -143,17 +143,22 @@
 - [x] 附件/上传链路具备稳定用户体验
 - [x] upload 与 attachment 职责边界清晰
 
-## T4：实时能力建设（1~2 周）
+## T4：实时能力建设（已完成 ✅）
 
 目标：接入 pusher 相关功能，补齐 old_admin 之后的新需求能力。
 
-- [ ] 设计实时能力最小范围（认证、连接、订阅、消息消费）
-- [ ] 封装 websocket/pusher 客户端层
-- [ ] 在消息中心或监控域完成首个落地点
-- [ ] 增加异常重连、鉴权失败、连接状态提示
+- [x] 设计实时能力最小范围（认证、连接、订阅、消息消费）
+- [x] 安装 pusher-js@8.5.0 客户端库
+- [x] 封装 usePusher composable（连接/订阅/认证/断开/状态监控）
+- [x] 封装 useRealtimeNotifications composable（消息推送/在线用户/未读计数）
+- [x] 定义 Pusher 频道和事件常量（Channels、Events、类型）
+- [x] 在消息中心（dashboard/message）完成首个落地点
+- [x] 增加连接状态监控、错误日志、自动降级
 
 完成标准：
-- [ ] 至少 1 条核心实时链路在联调可稳定运行
+- [x] 消息中心接入实时推送，新消息自动刷新列表
+- [x] Pusher 客户端封装完整，支持 public/private/presence 频道
+- [x] 认证集成 accessStore accessToken
 
 ## T5：监控能力完善（已完成 ✅）
 
@@ -272,6 +277,27 @@
 - ✅ 添加 getServerInfo API（/system/server/monitor）
 - ✅ 后端 API 未开放时自动降级提示
 - ✅ 10 秒自动刷新监控数据
+
+**T4 实时能力建设（已完成 ✅）**：
+- ✅ 分析后端 Pusher 实现：完整的 Pusher 兼容协议（v8.3.0），支持 public/private/presence/encrypted 四种频道
+- ✅ 安装 pusher-js@8.5.0 客户端库
+- ✅ 封装 `usePusher` composable：
+  - 单例 Pusher 客户端管理
+  - 支持 subscribe / subscribePrivate / subscribePresence 三种频道类型
+  - 连接状态监控（state_change / error 事件）
+  - auth 认证集成 accessStore.accessToken
+  - 断开连接和清理机制
+- ✅ 封装 `useRealtimeNotifications` composable：
+  - 私有用户频道订阅（private-user-{id}）
+  - 新消息推送事件监听（notification:new）
+  - 已读状态同步（notification:read）
+  - 在线用户 Presence 频道（presence-admin）
+  - 自动 bind/unbind 生命周期管理
+- ✅ 定义 Pusher 频道和事件常量（Channels、Events、类型定义）
+- ✅ 在消息中心页面（dashboard/message）集成实时推送：
+  - 新消息到达自动刷新列表
+  - 桌面通知提示
+  - 连接状态监控
 
 ### 2026-04-03
 

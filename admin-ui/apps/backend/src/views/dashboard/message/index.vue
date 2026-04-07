@@ -1,7 +1,7 @@
 ﻿<script setup lang="ts">
 import type { MessageApi } from '#/api/core/message';
 
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 
 import { useWindowSize } from '@vueuse/core';
 import {
@@ -23,8 +23,17 @@ import {
   getQueueMessageReceiveListApi,
   updateQueueMessageReadStatusApi,
 } from '#/api/core/message';
+import { useRealtimeNotifications } from '#/composables/pusher';
 
 const { height } = useWindowSize();
+
+// Real-time push notifications
+const {
+  start: startRealtime,
+  stop: stopRealtime,
+  latestNotification,
+  connectionState,
+} = useRealtimeNotifications();
 
 const currentType = ref('all'); // all 全部
 const dictOptions = ref<MessageApi.DataDictItem[]>([]);
@@ -173,6 +182,20 @@ const handleDetail = async (row: MessageApi.QueueMessageItem) => {
 
 onMounted(() => {
   loadDict().then(() => fetchData());
+  // Start real-time push connection
+  startRealtime();
+});
+
+onUnmounted(() => {
+  stopRealtime();
+});
+
+// Watch for new push notifications and auto-refresh
+watch(latestNotification, (notification) => {
+  if (notification) {
+    MessagePlugin.info(`收到新消息: ${notification.title}`);
+    fetchData(); // refresh the message list
+  }
 });
 </script>
 
