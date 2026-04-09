@@ -7,7 +7,6 @@ import { useWindowSize } from '@vueuse/core';
 import {
   Button,
   DateRangePicker,
-  DeleteIcon,
   Dialog,
   DialogPlugin,
   Input,
@@ -15,10 +14,9 @@ import {
   MessagePlugin,
   RadioButton,
   RadioGroup,
-  RefreshIcon,
-  SearchIcon,
   Table,
 } from 'tdesign-vue-next';
+import { DeleteIcon, RefreshIcon, SearchIcon } from 'tdesign-icons-vue-next';
 
 import {
   deleteQueueMessageApi,

@@ -41,7 +41,7 @@ export function usePusher(config?: Partial<PusherConfig>) {
     const token = accessStore.accessToken ?? '';
 
     pusherInstance = new Pusher(merged.appKey, {
-      cluster: merged.cluster || undefined,
+      cluster: merged.cluster || 'local',
       wsHost: merged.wsHost,
       wsPort: merged.wsPort,
       wssPort: merged.wssPort,
