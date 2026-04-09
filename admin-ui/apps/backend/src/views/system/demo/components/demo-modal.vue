@@ -50,7 +50,7 @@ const [Form, formApi] = useVbenForm({
     {
       component: 'RadioGroup',
       fieldName: 'status',
-      label: '״̬',
+      label: '状态',
       defaultValue: 1,
       componentProps: {
         options: [{"label":"正常","value":1},{"label":"已禁用","value":2}],
@@ -81,7 +81,7 @@ const [Form, formApi] = useVbenForm({
     {
       component: 'Upload',
       fieldName: 'cover',
-      label: 'ͼƬ',
+      label: '图片',
       componentProps: {
         accept: 'image/*',
         placeholder: '请上传图片',

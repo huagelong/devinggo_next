@@ -93,7 +93,7 @@ function handleSelectAllChange(value: unknown) {
               :indeterminate="isIndeterminate"
               @change="handleSelectAllChange"
             >
-              ȫѡ
+              全选
             </Checkbox>
             <div class="my-2 h-px bg-gray-100" />
             <CheckboxGroup

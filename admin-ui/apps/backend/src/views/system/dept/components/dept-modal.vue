@@ -86,7 +86,7 @@ const [Form, formApi] = useVbenForm({
       },
       defaultValue: 1,
       fieldName: 'status',
-      label: '״̬',
+      label: '状态',
       rules: 'required',
     },
     {

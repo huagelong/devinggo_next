@@ -25,7 +25,7 @@ const notifications = ref<NotificationItem[]>([
   {
     id: 1,
     avatar: 'https://avatar.vercel.sh/vercel.svg?text=VB',
-    date: '3Сʱǰ',
+    date: '3小时ǰ',
     isRead: true,
     message: '描述信息描述信息描述信息',
     title: '收到了 14 份新周报',

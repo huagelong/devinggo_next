@@ -359,7 +359,7 @@ onMounted(() => {
                   </div>
                   <div class="mt-1 text-xs text-gray-500">
                     地理位置: {{ log.ip_location || '未知' }}，操作系统:
-                    {{ log.os || 'δ֪' }}
+                    {{ log.os || '未知' }}
                   </div>
                 </TimelineItem>
                 <div

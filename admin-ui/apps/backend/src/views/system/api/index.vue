@@ -313,7 +313,7 @@ onMounted(() => {
                 class="w-full"
               />
             </FormItem>
-            <FormItem label="״̬" name="status">
+            <FormItem label="状态" name="status">
               <Select
                 v-model="searchForm.status"
                 :options="statusOptions"

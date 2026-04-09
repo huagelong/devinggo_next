@@ -47,7 +47,7 @@ const [Form, formApi] = useVbenForm({
       component: 'RadioGroup',
       componentProps: { options: statusOptions.value },
       fieldName: 'status',
-      label: '״̬',
+      label: '状态',
       rules: 'required',
     },
     {

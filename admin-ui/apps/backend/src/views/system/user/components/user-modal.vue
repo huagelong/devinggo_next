@@ -200,7 +200,7 @@ const [Form, formApi] = useVbenForm({
     },
     {
       fieldName: 'status',
-      label: '״̬',
+      label: '状态',
       component: 'RadioGroup',
       defaultValue: 1,
       componentProps: {

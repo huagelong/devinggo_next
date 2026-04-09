@@ -6,7 +6,7 @@ export const defaultUploadTreeData: UploadTreeItem[] = [
     value: 'all',
   },
   {
-    label: 'ͼƬ',
+    label: '图片',
     value: 'image',
     children: [
       { label: 'JPEG', value: 'image/jpeg' },

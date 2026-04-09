@@ -54,7 +54,7 @@ function handleUpdate(index: number, field: keyof KeyValueItem, value: string) {
       />
       <Input
         v-model="item.value"
-        placeholder="ֵ"
+        placeholder="值"
         class="flex-1"
         @change="(val) => handleUpdate(index, 'value', val as string)"
       />
