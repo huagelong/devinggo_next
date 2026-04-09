@@ -18,11 +18,11 @@ export interface PusherConfig {
 const defaultConfig: PusherConfig = {
   appKey: 'devinggo-app-key',
   wsHost: window.location.hostname,
-  wsPort: 8900,
-  wssPort: 8901,
+  wsPort: 8070,
+  wssPort: 8070,
   forceTLS: window.location.protocol === 'https:',
   authEndpoint: '/system/pusher/auth',
-  cluster: '',
+  cluster: 'local',
 };
 
 let pusherInstance: Pusher | null = null;
