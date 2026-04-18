@@ -30,7 +30,9 @@ export function transformComponent(
   if (!routeName) {
     return component;
   }
-  const componentName = (component?.type as any)?.name;
+  // 安全访问 VNode.type 上的 name 属性
+  const componentType = component.type as Record<string, unknown> | null;
+  const componentName = componentType?.name as string | undefined;
 
   // 已经设置过 name，则直接返回
   if (componentName) {
@@ -44,7 +46,7 @@ export function transformComponent(
 
   // 设置 name
   component.type ||= {};
-  (component.type as any).name = routeName;
+  (component.type as Record<string, unknown>).name = routeName;
 
   return component;
 }

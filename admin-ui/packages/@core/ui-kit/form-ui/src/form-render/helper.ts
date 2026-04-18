@@ -29,7 +29,7 @@ export function getBaseRules<
 /**
  * Search for a "ZodDefault" in the Zod stack and return its value.
  */
-export function getDefaultValueInZodStack(schema: ZodTypeAny): any {
+export function getDefaultValueInZodStack(schema: ZodTypeAny): unknown {
   if (!schema || isString(schema)) {
     return;
   }
@@ -45,14 +45,14 @@ export function getDefaultValueInZodStack(schema: ZodTypeAny): any {
   }
   if ('schema' in typedSchema._def) {
     return getDefaultValueInZodStack(
-      (typedSchema._def as any).schema as ZodTypeAny,
+      (typedSchema._def as { schema: ZodTypeAny }).schema as ZodTypeAny,
     );
   }
 
   return undefined;
 }
 
-export function isEventObjectLike(obj: any) {
+export function isEventObjectLike(obj: unknown) {
   if (!obj || !isObject(obj)) {
     return false;
   }

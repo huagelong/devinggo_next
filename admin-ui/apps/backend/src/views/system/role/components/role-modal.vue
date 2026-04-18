@@ -1,4 +1,4 @@
-﻿<script lang="ts" setup>
+<script lang="ts" setup>
 import { logger } from '#/utils/logger';
 import type { RoleApi } from '#/api/system/role';
 
@@ -130,10 +130,14 @@ async function open(data?: Partial<RoleApi.SubmitPayload>) {
   });
   modalApi.open();
 
-  await formApi.resetForm();
-  formApi.setValues(baseValues.value);
-  await nextTick();
-  await formApi.resetValidate();
+  try {
+    await formApi.resetForm();
+    formApi.setValues(baseValues.value);
+    await nextTick();
+    await formApi.resetValidate();
+  } catch (error) {
+    logger.error('加载角色表单失败', error);
+  }
 }
 
 defineExpose({

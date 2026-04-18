@@ -1,4 +1,4 @@
-﻿<script lang="ts" setup>
+<script lang="ts" setup>
 import { logger } from '#/utils/logger';
 import type { DeptApi } from '#/api/system/dept';
 
@@ -135,28 +135,32 @@ async function open(data?: Partial<DeptApi.SubmitPayload>) {
   });
   modalApi.open();
 
-  const deptTree = await getDeptTree().catch(() => [] as DeptApi.TreeNode[]);
+  try {
+    const deptTree = await getDeptTree().catch(() => [] as DeptApi.TreeNode[]);
 
-  formApi.updateSchema([
-    {
-      fieldName: 'parent_id',
-      componentProps: {
-        data: deptTree,
+    formApi.updateSchema([
+      {
+        fieldName: 'parent_id',
+        componentProps: {
+          data: deptTree,
+        },
       },
-    },
-  ]);
+    ]);
 
-  await formApi.resetForm();
-  formApi.setValues(createDeptFormDefaultValues());
-  if (data) {
-    formApi.setValues({
-      ...data,
-      status:
-        data.status !== undefined ? Number(data.status) : createDeptFormDefaultValues().status,
-    });
+    await formApi.resetForm();
+    formApi.setValues(createDeptFormDefaultValues());
+    if (data) {
+      formApi.setValues({
+        ...data,
+        status:
+          data.status !== undefined ? Number(data.status) : createDeptFormDefaultValues().status,
+      });
+    }
+    await nextTick();
+    await formApi.resetValidate();
+  } catch (error) {
+    logger.error('加载部门表单失败', error);
   }
-  await nextTick();
-  await formApi.resetValidate();
 }
 
 defineExpose({

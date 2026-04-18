@@ -1,4 +1,4 @@
-﻿<script lang="ts" setup>
+<script lang="ts" setup>
 import { logger } from '#/utils/logger';
 import type { MenuApi } from '#/api/system/menu';
 import type { DictOption } from '#/composables/crud/use-dict-options';
@@ -243,32 +243,36 @@ async function open(data?: Partial<MenuApi.SubmitPayload>) {
   });
   modalApi.open();
 
-  statusOptions.value = (await getDictOptions('data_status')) || [
-    { label: '正常', value: 1 },
-    { label: '停用', value: 2 },
-  ];
+  try {
+    statusOptions.value = (await getDictOptions('data_status')) || [
+      { label: '正常', value: 1 },
+      { label: '停用', value: 2 },
+    ];
 
-  formApi.updateSchema([
-    {
-      fieldName: 'status',
-      componentProps: {
-        options: statusOptions.value,
+    formApi.updateSchema([
+      {
+        fieldName: 'status',
+        componentProps: {
+          options: statusOptions.value,
+        },
       },
-    },
-  ]);
+    ]);
 
-  await fetchParentOptions();
-  await formApi.resetForm();
-  formApi.setValues(createMenuFormDefaultValues());
+    await fetchParentOptions();
+    await formApi.resetForm();
+    formApi.setValues(createMenuFormDefaultValues());
 
-  if (data) {
-    formApi.setValues({
-      ...data,
-      parent_id: data.parent_id ?? 0,
-    });
+    if (data) {
+      formApi.setValues({
+        ...data,
+        parent_id: data.parent_id ?? 0,
+      });
+    }
+    await nextTick();
+    await formApi.resetValidate();
+  } catch (error) {
+    logger.error('加载菜单表单失败', error);
   }
-  await nextTick();
-  await formApi.resetValidate();
 }
 
 defineExpose({

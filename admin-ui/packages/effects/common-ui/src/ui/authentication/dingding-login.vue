@@ -40,17 +40,18 @@ const getRedirectUri = () => {
 };
 
 /**
- * 内嵌二维码登录
- */
+  * 内嵌二维码登录
+  */
 const handleQrCodeLogin = async () => {
   const { clientId, corpId } = props;
-  if (!(window as any).DTFrameLogin) {
+  const win = window as unknown as Record<string, unknown>;
+  if (typeof win.DTFrameLogin !== 'function') {
     // 二维码登录 加载资源
     await loadScript(
       'https://g.alicdn.com/dingding/h5-dingtalk-login/0.21.0/ddlogin.js',
     );
   }
-  (window as any).DTFrameLogin(
+  (win.DTFrameLogin as (options: Record<string, unknown>, config: Record<string, unknown>, onSuccess: (result: { redirectUrl: string }) => void, onError: (msg: string) => void) => void)(
     {
       id: 'dingding_qrcode_login_element',
       width: 300,
@@ -66,7 +67,7 @@ const handleQrCodeLogin = async () => {
       prompt: 'consent',
       corpId,
     },
-    (loginResult: any) => {
+    (loginResult: { redirectUrl: string }) => {
       const { redirectUrl } = loginResult;
       // 这里可以直接进行重定向
       window.location.href = redirectUrl;
