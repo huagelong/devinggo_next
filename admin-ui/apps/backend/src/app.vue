@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { GlobalConfigProvider } from 'tdesign-vue-next';
 
-import { watch } from 'vue';
+import { onErrorCaptured, watch } from 'vue';
 
 import { usePreferences } from '@vben/preferences';
 
@@ -11,6 +11,17 @@ import zhConfig from 'tdesign-vue-next/es/locale/zh_CN';
 
 defineOptions({ name: 'App' });
 const { isDark } = usePreferences();
+
+// 全局错误捕获：防止未处理的组件错误导致白屏
+onErrorCaptured((error, instance, info) => {
+  // 开发环境输出详细错误信息
+  if (import.meta.env.DEV) {
+    console.error('[GlobalErrorBoundary]', error, { component: instance?.$options?.name, info });
+  }
+  // 返回 false 阻止错误继续向上传播，避免白屏
+  // 返回 true 则允许传播到父级错误边界
+  return false;
+});
 
 watch(
   () => isDark.value,

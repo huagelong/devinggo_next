@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { WorkbenchTrendItem } from '../typing';
 
+import DOMPurify from 'dompurify';
+
 import {
   Card,
   CardContent,
@@ -45,10 +47,9 @@ withDefaults(defineProps<Props>(), {
               <p class="text-sm/6 font-semibold text-foreground">
                 {{ item.title }}
               </p>
-              <!-- eslint-disable vue/no-v-html -->
               <p
                 class="mt-1 truncate text-xs/5 text-foreground/80 *:text-primary"
-                v-html="item.content"
+                v-html="DOMPurify.sanitize(item.content)"
               ></p>
             </div>
           </div>

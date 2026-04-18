@@ -87,11 +87,15 @@ class SSE {
     ) {
       bodyInit = JSON.stringify(bodyInit);
     }
+
+    // 创建 AbortController 用于取消 SSE 连接
+    const abortController = new AbortController();
     const requestInit: RequestInit = {
       ...requestOptions,
       method: axiosConfig.method,
       headers: merged,
       body: bodyInit as BodyInit | undefined,
+      signal: abortController.signal,
     };
 
     const response = await fetch(safeJoinUrl(baseUrl, url), requestInit);
@@ -105,7 +109,17 @@ class SSE {
     if (!reader) {
       throw new Error('No reader');
     }
-    while (true) {
+
+    // 返回包含 abort 方法的对象，以便调用方可以取消 SSE 连接
+    const sseConnection = {
+      abort: () => {
+        abortController.abort();
+        reader.releaseLock?.();
+      },
+    };
+
+    // eslint-disable-next-line no-constant-condition
+    while (!abortController.signal.aborted) {
       const { done, value } = await reader.read();
       if (done) {
         decoder.decode(new Uint8Array(0), { stream: false });
@@ -116,6 +130,8 @@ class SSE {
       const content = decoder.decode(value, { stream: true });
       requestOptions?.onMessage?.(content);
     }
+
+    return sseConnection;
   }
 }
 

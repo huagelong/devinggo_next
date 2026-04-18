@@ -33,27 +33,15 @@ class FileDownloader {
       responseType: 'blob',
     };
 
-    // Prefer a generic request if available; otherwise, dispatch to method-specific calls.
+    // 使用 RequestClient 的公共 request 方法，避免 as any 类型断言
     const method = (finalConfig.method || 'GET').toUpperCase();
-    const clientAny = this.client as any;
 
-    if (typeof clientAny.request === 'function') {
-      return await clientAny.request(url, finalConfig);
-    }
-    const lower = method.toLowerCase();
-
-    if (typeof clientAny[lower] === 'function') {
-      if (['POST', 'PUT'].includes(method)) {
-        const { data, ...rest } = finalConfig as Record<string, any>;
-        return await clientAny[lower](url, data, rest);
-      }
-
-      return await clientAny[lower](url, finalConfig);
+    if (['POST', 'PUT'].includes(method)) {
+      const { data, ...rest } = finalConfig;
+      return await this.client.request<T>(url, { ...rest, data, method });
     }
 
-    throw new Error(
-      `RequestClient does not support method "${method}". Please ensure the method is properly implemented in your RequestClient instance.`,
-    );
+    return await this.client.request<T>(url, { ...finalConfig, method });
   }
 }
 

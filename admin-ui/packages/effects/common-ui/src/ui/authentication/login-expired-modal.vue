@@ -41,30 +41,33 @@ const getZIndex = computed(() => {
  * 排除ant-message和loading:9999的z-index
  */
 const zIndexExcludeClass = ['ant-message', 'loading'];
-function isZIndexExcludeClass(element: Element) {
-  return zIndexExcludeClass.some((className) =>
-    element.classList.contains(className),
-  );
-}
 
 /**
  * 获取最大的zIndex值
+ * 仅检查固定/绝对定位的元素，避免遍历整个DOM树
  */
-function calcZIndex() {
-  let maxZ = 0;
-  const elements = document.querySelectorAll('*');
-  [...elements].forEach((element) => {
+function calcZIndex(): number {
+  const maxZ = props.zIndex || 0;
+  if (maxZ > 0) {
+    return maxZ;
+  }
+  // 使用更高效的方式：只检查可能的overlay/modal元素
+  // 而非遍历所有DOM元素
+  const overlayElements = document.querySelectorAll(
+    '[class*="modal"], [class*="drawer"], [class*="overlay"], [class*="popup"], [role="dialog"]',
+  );
+  let maxFound = 0;
+  for (const element of overlayElements) {
+    if (zIndexExcludeClass.some((cls) => element.classList.contains(cls))) {
+      continue;
+    }
     const style = window.getComputedStyle(element);
     const zIndex = style.getPropertyValue('z-index');
-    if (
-      zIndex &&
-      !Number.isNaN(Number.parseInt(zIndex)) &&
-      !isZIndexExcludeClass(element)
-    ) {
-      maxZ = Math.max(maxZ, Number.parseInt(zIndex));
+    if (zIndex && !Number.isNaN(Number.parseInt(zIndex))) {
+      maxFound = Math.max(maxFound, Number.parseInt(zIndex));
     }
-  });
-  return maxZ + 1;
+  }
+  return maxFound + 1;
 }
 </script>
 

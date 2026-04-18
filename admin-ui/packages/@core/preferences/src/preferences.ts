@@ -40,6 +40,21 @@ class PreferenceManager {
     );
   }
 
+  // MediaQueryList 引用，用于清理监听器
+  private mediaQueryList: MediaQueryList | null = null;
+  private mediaQueryHandler: ((event: MediaQueryListEvent) => void) | null = null;
+
+  /**
+   * 清理所有监听器（用于测试环境或组件销毁时）
+   */
+  dispose = () => {
+    if (this.mediaQueryList && this.mediaQueryHandler) {
+      this.mediaQueryList.removeEventListener('change', this.mediaQueryHandler);
+      this.mediaQueryList = null;
+      this.mediaQueryHandler = null;
+    }
+  };
+
   /**
    * 清除所有缓存的偏好设置
    */
@@ -201,21 +216,21 @@ class PreferenceManager {
     );
 
     // 监听系统主题偏好设置变化
-    window
-      .matchMedia('(prefers-color-scheme: dark)')
-      .addEventListener('change', ({ matches: isDark }) => {
-        // 仅在自动模式下跟随系统主题
-        if (this.state.theme.mode === 'auto') {
-          // 先应用实际的主题
-          this.updatePreferences({
-            theme: { mode: isDark ? 'dark' : 'light' },
-          });
-          // 再恢复为 auto 模式，保持跟随系统的状态
-          this.updatePreferences({
-            theme: { mode: 'auto' },
-          });
-        }
-      });
+    this.mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+    this.mediaQueryHandler = ({ matches: isDark }) => {
+      // 仅在自动模式下跟随系统主题
+      if (this.state.theme.mode === 'auto') {
+        // 先应用实际的主题
+        this.updatePreferences({
+          theme: { mode: isDark ? 'dark' : 'light' },
+        });
+        // 再恢复为 auto 模式，保持跟随系统的状态
+        this.updatePreferences({
+          theme: { mode: 'auto' },
+        });
+      }
+    };
+    this.mediaQueryList.addEventListener('change', this.mediaQueryHandler);
   }
 
   /**

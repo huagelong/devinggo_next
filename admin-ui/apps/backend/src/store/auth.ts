@@ -121,6 +121,18 @@ export const useAuthStore = defineStore('auth', () => {
           });
         }
       }
+    } catch (error) {
+      // 登录失败时清理状态并提示用户
+      accessStore.setAccessToken(null);
+      accessStore.setRefreshToken(null);
+      const message =
+        error instanceof Error ? error.message : $t('common.loginFailed');
+      notification.error({
+        title: $t('authentication.loginFailed'),
+        content: message,
+        duration: 5000,
+      });
+      throw error;
     } finally {
       loginLoading.value = false;
     }
@@ -151,9 +163,15 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchUserInfo() {
-    const userInfo = await getUserInfoApi();
-    userStore.setUserInfo(userInfo);
-    return userInfo;
+    try {
+      const userInfo = await getUserInfoApi();
+      userStore.setUserInfo(userInfo);
+      return userInfo;
+    } catch (error) {
+      // 获取用户信息失败时清理状态并向上传播错误
+      userStore.setUserInfo(null as unknown as UserInfo);
+      throw error;
+    }
   }
 
   function $reset() {

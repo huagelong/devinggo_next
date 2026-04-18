@@ -103,7 +103,7 @@ onMounted(async () => {
       }
       handleValuesChangeDebounced();
     },
-    { deep: true },
+    { deep: true, flush: 'post' },
   );
 });
 </script>

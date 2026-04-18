@@ -41,6 +41,7 @@
     "@vben/types": "workspace:*",
     "@vueuse/core": "catalog:",
     "@vueuse/integrations": "catalog:",
+    "dompurify": "^3.4.0",
     "json-bigint": "catalog:",
     "qrcode": "catalog:",
     "tippy.js": "catalog:",
@@ -50,6 +51,7 @@
     "vue-tippy": "catalog:"
   },
   "devDependencies": {
+    "@types/dompurify": "^3.2.0",
     "@types/json-bigint": "catalog:",
     "@types/qrcode": "catalog:"
   }
