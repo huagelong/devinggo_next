@@ -44,6 +44,7 @@
     "eslint-plugin-yml": "catalog:",
     "globals": "catalog:",
     "vue-eslint-parser": "catalog:",
-    "yaml-eslint-parser": "catalog:"
+    "yaml-eslint-parser": "catalog:",
+    "unbuild": "catalog:"
   }
 }

@@ -38,5 +38,8 @@
     "ora": "catalog:",
     "pkg-types": "catalog:",
     "rimraf": "catalog:"
+  },
+  "devDependencies": {
+    "unbuild": "catalog:"
   }
 }

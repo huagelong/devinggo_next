@@ -93,6 +93,7 @@
   },
   "devDependencies": {
     "@types/lodash.clonedeep": "catalog:",
-    "@types/nprogress": "catalog:"
+    "@types/nprogress": "catalog:",
+    "unbuild": "catalog:"
   }
 }

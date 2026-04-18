@@ -56,6 +56,7 @@
     "vite-plugin-compression": "catalog:",
     "vite-plugin-dts": "catalog:",
     "vite-plugin-html": "catalog:",
-    "vite-plugin-lazy-import": "catalog:"
+    "vite-plugin-lazy-import": "catalog:",
+    "unbuild": "catalog:"
   }
 }

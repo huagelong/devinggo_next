@@ -28,5 +28,8 @@
   },
   "dependencies": {
     "oxfmt": "catalog:"
+  },
+  "devDependencies": {
+    "unbuild": "catalog:"
   }
 }

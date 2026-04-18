@@ -31,5 +31,8 @@
     "eslint-plugin-better-tailwindcss": "catalog:",
     "eslint-plugin-command": "catalog:",
     "oxlint": "catalog:"
+  },
+  "devDependencies": {
+    "unbuild": "catalog:"
   }
 }

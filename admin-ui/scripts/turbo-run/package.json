@@ -25,5 +25,8 @@
     "@clack/prompts": "catalog:",
     "@vben/node-utils": "workspace:*",
     "cac": "catalog:"
+  },
+  "devDependencies": {
+    "unbuild": "catalog:"
   }
 }

@@ -27,5 +27,8 @@
     "circular-dependency-scanner": "catalog:",
     "depcheck": "catalog:",
     "publint": "catalog:"
+  },
+  "devDependencies": {
+    "unbuild": "catalog:"
   }
 }
