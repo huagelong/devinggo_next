@@ -1,5 +1,7 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import type { MessageApi } from '#/api/core/message';
+
+import type { PrimaryTableCol, RadioValue } from 'tdesign-vue-next';
 
 import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 
@@ -25,6 +27,8 @@ import {
   updateQueueMessageReadStatusApi,
 } from '#/api/core/message';
 import { useRealtimeNotifications } from '#/composables/pusher';
+import { sanitizeHtml } from '#/utils/sanitize';
+import { logger } from '#/utils/logger';
 
 const { height } = useWindowSize();
 
@@ -33,7 +37,6 @@ const {
   start: startRealtime,
   stop: stopRealtime,
   latestNotification,
-  connectionState,
 } = useRealtimeNotifications();
 
 const currentType = ref('all'); // all 全部
@@ -55,7 +58,7 @@ const tableData = ref<MessageApi.QueueMessageItem[]>([]);
 const tableLoading = ref(false);
 const selectedRowKeys = ref<number[]>([]);
 
-const columns: any[] = [
+const columns: PrimaryTableCol[] = [
   { colKey: 'row-select', type: 'multiple' as const, width: 50 },
   { title: '发送人', colKey: 'send_user.nickname', width: 120 },
   { title: '消息标题', colKey: 'title', ellipsis: true },
@@ -67,11 +70,9 @@ const columns: any[] = [
 const loadDict = async () => {
   try {
     const res = await getDataDictListApi({ code: 'queue_msg_type' });
-    dictOptions.value = Array.isArray(res)
-      ? res
-      : res?.items || (res?.data?.items || []);
+    dictOptions.value = Array.isArray(res) ? res : [];
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
 };
 
@@ -98,10 +99,10 @@ const fetchData = async () => {
       params.created_at = searchForm.created_at;
     }
     const res = await getQueueMessageReceiveListApi(params);
-    tableData.value = res?.items ?? res?.data?.items ?? [];
-    pagination.total = res?.pageInfo?.total ?? res?.data?.pageInfo?.total ?? 0;
+    tableData.value = res?.items ?? [];
+    pagination.total = res?.pageInfo?.total ?? 0;
   } catch (error) {
-    console.error('获取消息列表失败', error);
+    logger.error('获取消息列表失败', error);
   } finally {
     tableLoading.value = false;
   }
@@ -174,24 +175,25 @@ const detailData = ref<MessageApi.QueueMessageItem>({} as MessageApi.QueueMessag
 const handleDetail = async (row: MessageApi.QueueMessageItem) => {
   detailData.value = row;
   detailVisible.value = true;
-  // Mark as read
   try {
     await updateQueueMessageReadStatusApi({ ids: [row.id] });
-    fetchData(); // refresh list
+    fetchData();
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
 };
 
 onMounted(() => {
   loadDict()
     .then(() => fetchData())
-    .catch((error) => console.error('加载消息数据失败', error));
+    .catch((error: unknown) => {
+      logger.error('加载消息数据失败', error);
+    });
   // Start real-time push connection
   try {
     startRealtime();
   } catch (error) {
-    console.error('启动实时推送失败', error);
+    logger.error('启动实时推送失败', error);
   }
 });
 
@@ -283,7 +285,7 @@ watch(latestNotification, (notification) => {
           <RadioGroup
             v-model="searchForm.read_status"
             variant="outline"
-            @change="handleChangeStatus as any"
+            @change="(val: RadioValue) => handleChangeStatus(val as string)"
           >
             <RadioButton value="all">全部</RadioButton>
             <RadioButton value="1">未读</RadioButton>
@@ -353,7 +355,7 @@ watch(latestNotification, (notification) => {
         </div>
         <div
           class="bg-gray-50 p-4 rounded min-h-[200px]"
-          v-html="detailData.content"
+          v-html="sanitizeHtml(detailData.content)"
         ></div>
       </div>
     </Dialog>

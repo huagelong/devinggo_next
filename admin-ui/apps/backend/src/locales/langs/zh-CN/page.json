@@ -10,6 +10,8 @@
   "dashboard": {
     "title": "广场",
     "analytics": "分析页",
-    "workspace": "工作台"
+    "workspace": "工作台",
+    "profile": "个人信息",
+    "message": "消息中心"
   }
 }

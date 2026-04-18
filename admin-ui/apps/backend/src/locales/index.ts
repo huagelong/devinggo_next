@@ -27,7 +27,7 @@ async function loadMessages(lang: SupportedLanguagesType) {
     localesMap[lang]?.(),
     loadThirdPartyMessage(lang),
   ]);
-  return appLocaleMessages?.default;
+  return appLocaleMessages?.default as Record<string, any> | undefined;
 }
 
 /**

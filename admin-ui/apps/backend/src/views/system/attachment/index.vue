@@ -65,11 +65,13 @@ const displayColumns = computed({
 const {
   clearSelectedRowKeys,
   fetchTableData,
+  handlePageChange,
   handleReset,
   handleSearch,
   handleSelectChange,
   isRecycleBin,
   loading,
+  pagination,
   selectedRowKeys,
   tableData,
   toggleRecycleBin,

@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import type { UploadListItem, UploadTreeItem } from './model';
+import type { UploadTreeItem } from './model';
 
 import { computed, onMounted, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
 import { message } from '#/adapter/tdesign';
 import CrudToolbar from '#/components/crud/crud-toolbar.vue';
 
 import {
   DeleteIcon,
-  LinkIcon,
   SearchIcon,
   UploadIcon,
 } from 'tdesign-icons-vue-next';
@@ -21,11 +21,9 @@ import {
   FormItem,
   Input,
   MessagePlugin,
-  Popconfirm,
   Radio,
   RadioGroup,
   Space,
-  Tag,
   Tree,
   Upload,
 } from 'tdesign-vue-next';
@@ -43,7 +41,6 @@ defineOptions({ name: 'SystemUpload' });
 
 const selectedTreeKey = ref<string[]>(['all']);
 const treeData = ref<UploadTreeItem[]>(defaultUploadTreeData);
-const uploadVisible = ref(false);
 const uploadingFiles = ref(0);
 
 const searchForm = ref(createUploadSearchForm());
@@ -63,23 +60,12 @@ const displayColumns = computed({
 });
 
 const {
-  clearSelectedRowKeys,
   fetchTableData,
-  handleDownload,
-  handlePageChange,
   handleReset,
   handleSearch,
-  handleSelectChange,
-  handleView,
-  loading,
-  pagination,
   selectedRowKeys,
   tableData,
 } = useUploadCrud();
-
-function toIds(keys: Array<number | string>) {
-  return keys.map((key) => Number(key));
-}
 
 function handleTreeChange(value: Array<string | number>) {
   const keys = value.map((item) => String(item));
@@ -88,27 +74,22 @@ function handleTreeChange(value: Array<string | number>) {
   if (key === 'all') {
     searchForm.value.mime_type = '';
   } else {
-    searchForm.value.mime_type = key;
+    searchForm.value.mime_type = key ?? '';
   }
   handleSearch();
 }
 
-async function handleUpload(file: File) {
+async function handleUpload(_file: File) {
   uploadingFiles.value++;
   try {
-    // TODO: 实际应该调用 upload API
-    // const res = await uploadFileApi(file);
-    // if (res?.url) {
-    //   MessagePlugin.success('上传成功');
-    //   await fetchTableData();
-    // }
-
-    // 临时模拟上传
+    // TODO: replace with actual upload API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    MessagePlugin.success('上传成功');
+    MessagePlugin.success($t('common.uploadSuccess'));
   } catch (error) {
-    console.error(error);
-    MessagePlugin.error('上传失败');
+    if (import.meta.env.DEV) {
+      console.error(error);
+    }
+    MessagePlugin.error($t('common.uploadFailed'));
   } finally {
     uploadingFiles.value--;
   }
@@ -116,40 +97,11 @@ async function handleUpload(file: File) {
 
 function handleBatchDelete() {
   if (selectedRowKeys.value.length === 0) {
-    message.warning('请选择需要删除的数据');
+    message.warning($t('common.selectDataFirst'));
     return;
   }
-  // TODO: 实现批量删除
+  // TODO: implement batch delete
   message.info('批量删除功能待实现');
-}
-
-async function handleDelete(row: UploadListItem) {
-  try {
-    // TODO: 实际应该调用删除 API
-    // await deleteUploadApi([row.id]);
-    message.success('删除成功');
-    await fetchTableData();
-  } catch (error) {
-    console.error(error);
-    message.error('删除失败');
-  }
-}
-
-function isImageType(mimeType: string): boolean {
-  return /^image\//.test(mimeType);
-}
-
-function getFileIcon(mimeType: string): string {
-  if (isImageType(mimeType)) {
-    return 'i-lucide:image';
-  }
-  if (mimeType.includes('pdf')) {
-    return 'i-lucide:file-text';
-  }
-  if (mimeType.includes('zip') || mimeType.includes('rar')) {
-    return 'i-lucide:archive';
-  }
-  return 'i-lucide:file';
 }
 
 onMounted(() => {
@@ -183,11 +135,11 @@ onMounted(() => {
               accept="*"
               multiple
               theme="file-input"
-              @select-files="(files: any[]) => {
-                files.forEach((file: any) => {
-                  handleUpload(file);
-                });
-              }"
+@select-files="(files: any[]) => {
+                 files.forEach((f: any) => {
+                   handleUpload(f.raw ?? f);
+                 });
+               }"
             >
               <template #trigger>
                 <Button theme="primary">

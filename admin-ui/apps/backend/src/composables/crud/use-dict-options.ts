@@ -1,6 +1,7 @@
 import type { IdType, OptionItem } from '#/types/common';
 
 import { getDictList } from '#/api/system/dict';
+import { logger } from '#/utils/logger';
 
 export interface DictItem<TKey extends IdType = IdType> {
   [key: string]: unknown;
@@ -15,7 +16,14 @@ interface DictOptionConfig<TItem extends DictItem = DictItem> {
   valueKey?: Extract<keyof TItem, string>;
 }
 
-const dictCache = new Map<string, DictItem[]>();
+const DEFAULT_CACHE_TTL = 5 * 60 * 1000;
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const dictCache = new Map<string, CacheEntry<DictItem[]>>();
 const dictPromiseCache = new Map<string, Promise<DictItem[]>>();
 
 function normalizeOptionValue(value: unknown): IdType {
@@ -39,8 +47,12 @@ function toOptions<TItem extends DictItem>(
 }
 
 async function fetchDictList(code: string, forceRefresh = false): Promise<DictItem[]> {
-  if (!forceRefresh && dictCache.has(code)) {
-    return dictCache.get(code)!;
+  if (!forceRefresh) {
+    const cached = dictCache.get(code);
+    if (cached && Date.now() - cached.timestamp < DEFAULT_CACHE_TTL) {
+      return cached.data;
+    }
+    dictCache.delete(code);
   }
 
   if (!forceRefresh && dictPromiseCache.has(code)) {
@@ -50,10 +62,13 @@ async function fetchDictList(code: string, forceRefresh = false): Promise<DictIt
   const requestPromise = getDictList(code)
     .then((response) => {
       const list = Array.isArray(response) ? response : [];
-      dictCache.set(code, list);
+      dictCache.set(code, { data: list, timestamp: Date.now() });
       return list;
     })
-    .catch(() => [])
+    .catch((error) => {
+      logger.error(`Failed to load dict list for code "${code}":`, error);
+      return [] as DictItem[];
+    })
     .finally(() => {
       dictPromiseCache.delete(code);
     });

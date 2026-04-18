@@ -1,4 +1,4 @@
-import type { UploadListItem, UploadTableColumn, UploadTreeItem } from './model';
+import type { UploadTableColumn, UploadTreeItem } from './model';
 
 export const defaultUploadTreeData: UploadTreeItem[] = [
   {

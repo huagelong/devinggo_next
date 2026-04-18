@@ -4,26 +4,28 @@ import type {
 } from '@vben/types';
 
 import { generateAccessible } from '@vben/access';
+import type { RouteRecordRaw } from 'vue-router';
+import type { Component } from 'vue';
 
 import { message } from '#/adapter/tdesign';
 import { getAllMenusApi } from '#/api';
 import { BasicLayout, IFrameView } from '#/layouts';
 import { $t } from '#/locales';
 
-const forbiddenComponent = () => import('#/views/_core/fallback/forbidden.vue');
+const forbiddenComponent = (): Promise<Component> => import('#/views/_core/fallback/forbidden.vue');
 
 async function generateAccess(options: GenerateMenuAndRoutesOptions) {
   const globMap = import.meta.glob('../views/**/*.vue');
 
   const pageMap: ComponentRecordType = {};
   for (const [key, value] of Object.entries(globMap)) {
-    pageMap[key] = value;
+    pageMap[key] = value as ComponentRecordType[string];
     // 为目录结构下的 index.vue 注册 .vue 别名
     // 使后端返回的 component 值（如 views/system/logs/apiLog）能正确解析
     if (key.endsWith('/index.vue')) {
       const alias = key.replace(/\/index\.vue$/, '.vue');
       if (!(alias in pageMap)) {
-        pageMap[alias] = value;
+        pageMap[alias] = value as ComponentRecordType[string];
       }
     }
   }
@@ -40,7 +42,7 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
     IFrameView,
   };
 
-  return await generateAccessible('mixed', {
+  return (await generateAccessible('mixed', {
     ...options,
     fetchMenuListAsync: async () => {
       message.loading({
@@ -49,12 +51,10 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
       });
       return await getAllMenusApi();
     },
-    // 可以指定没有权限跳转403页面
     forbiddenComponent,
-    // 如果 route.meta.menuVisibleWithForbidden = true
     layoutMap,
     pageMap,
-  });
+  })) as { accessibleMenus: RouteRecordRaw[]; accessibleRoutes: RouteRecordRaw[] };
 }
 
 export { generateAccess };

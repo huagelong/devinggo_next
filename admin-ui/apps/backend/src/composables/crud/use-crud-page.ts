@@ -3,7 +3,10 @@ import type { PageQuery, PageResponse } from '#/types/paging';
 
 import { reactive, ref } from 'vue';
 
+import { $t } from '@vben/locales';
+
 import { message } from '#/adapter/tdesign';
+import { logger } from '#/utils/logger';
 
 type RowKey = IdType;
 type CrudRequestParams = Partial<PageQuery> & Record<string, unknown>;
@@ -48,6 +51,7 @@ export function useCrudPage<
   const loading = ref(false);
   const selectedRowKeys = ref<RowKey[]>([]);
   const isRecycleBin = ref(false);
+  let fetchRequestId = 0;
 
   const pagination = reactive({
     current: 1,
@@ -65,7 +69,7 @@ export function useCrudPage<
   const resolveTotal =
     options.resolveTotal ??
     ((response: TResponse) =>
-      Number(response?.pageInfo?.total || response?.total || 0));
+      Number(response?.pageInfo?.total ?? response?.total ?? 0));
 
   function getContext(): CrudPageContext {
     return {
@@ -98,17 +102,22 @@ export function useCrudPage<
   }
 
   async function fetchTableData() {
+    const requestId = ++fetchRequestId;
     loading.value = true;
     try {
       const response = await options.fetchList(buildRequestParams(true), getContext());
+      if (requestId !== fetchRequestId) return;
       tableData.value = resolveItems(response);
       pagination.total = resolveTotal(response);
     } catch (error) {
-      console.error(error);
-      message.error(options.errorMessage ?? '列表加载失败，请稍后重试');
+      if (requestId !== fetchRequestId) return;
+      logger.error(error);
+      message.error(options.errorMessage ?? $t('common.listLoadFailed'));
       options.onFetchError?.(error);
     } finally {
-      loading.value = false;
+      if (requestId === fetchRequestId) {
+        loading.value = false;
+      }
     }
   }
 
@@ -134,6 +143,7 @@ export function useCrudPage<
   function handlePageChange(pageInfo: { current: number; pageSize: number }) {
     pagination.current = pageInfo.current;
     pagination.pageSize = pageInfo.pageSize;
+    clearSelectedRowKeys();
     void fetchTableData();
   }
 

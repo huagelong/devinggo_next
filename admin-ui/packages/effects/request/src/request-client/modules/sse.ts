@@ -15,7 +15,7 @@ class SSE {
 
   public async postSSE(
     url: string,
-    data?: any,
+    data?: unknown,
     requestOptions?: SseRequestOptions,
   ) {
     return this.requestSSE(url, data, {
@@ -32,26 +32,33 @@ class SSE {
    */
   public async requestSSE(
     url: string,
-    data?: any,
+    data?: unknown,
     requestOptions?: SseRequestOptions,
   ) {
     const baseUrl = this.client.getBaseUrl() || '';
 
     let axiosConfig: InternalAxiosRequestConfig<any> = {
       url,
-      method: (requestOptions?.method as any) ?? 'GET',
+      method: requestOptions?.method ?? 'GET',
       headers: {} as AxiosRequestHeaders,
     };
     const requestInterceptors = this.client.instance.interceptors
-      .request as any;
+      .request as unknown as { handlers?: Array<{ fulfilled?: (config: InternalAxiosRequestConfig<any>) => Promise<InternalAxiosRequestConfig<any>>; rejected?: (error: unknown) => void }> };
     if (
       requestInterceptors.handlers &&
       requestInterceptors.handlers.length > 0
     ) {
       for (const handler of requestInterceptors.handlers) {
         if (typeof handler?.fulfilled === 'function') {
-          const next = await handler.fulfilled(axiosConfig as any);
-          if (next) axiosConfig = next as InternalAxiosRequestConfig<any>;
+          try {
+            const next = await handler.fulfilled(axiosConfig);
+            if (next) axiosConfig = next;
+          } catch (error) {
+            if (typeof handler?.rejected === 'function') {
+              handler.rejected(error);
+            }
+            throw error;
+          }
         }
       }
     }
@@ -72,7 +79,7 @@ class SSE {
     if (
       bodyInit &&
       typeof bodyInit === 'object' &&
-      !ArrayBuffer.isView(bodyInit as any) &&
+      !ArrayBuffer.isView(bodyInit) &&
       !(bodyInit instanceof ArrayBuffer) &&
       !(bodyInit instanceof Blob) &&
       !(bodyInit instanceof FormData) &&
@@ -84,7 +91,7 @@ class SSE {
       ...requestOptions,
       method: axiosConfig.method,
       headers: merged,
-      body: bodyInit,
+      body: bodyInit as BodyInit | undefined,
     };
 
     const response = await fetch(safeJoinUrl(baseUrl, url), requestInit);

@@ -35,12 +35,6 @@ const Input = defineAsyncComponent(() => import('tdesign-vue-next/es/input'));
 const InputNumber = defineAsyncComponent(
   () => import('tdesign-vue-next/es/input-number'),
 );
-// const InputPassword = defineAsyncComponent(() =>
-//   import('tdesign-vue-next/es/input').then((res) => res.InputPassword),
-// );
-// const Mentions = defineAsyncComponent(
-//   () => import('tdesign-vue-next/es/mentions'),
-// );
 const Radio = defineAsyncComponent(() => import('tdesign-vue-next/es/radio'));
 const RadioGroup = defineAsyncComponent(() =>
   import('tdesign-vue-next/es/radio').then((res) => res.RadioGroup),
@@ -110,8 +104,6 @@ export type ComponentType =
   | 'IconPicker'
   | 'Input'
   | 'InputNumber'
-  // | 'InputPassword'
-  // | 'Mentions'
   | 'PrimaryButton'
   | 'Radio'
   | 'RadioGroup'
@@ -165,7 +157,13 @@ async function initComponentAdapter() {
     DatePicker,
     // 自定义默认按钮
     DefaultButton: (props, { attrs, slots }) => {
-      return h(Button, { ...props, attrs, theme: 'default' }, slots);
+      let ghost = false;
+      let variant = props.variant;
+      if (props.variant === 'ghost') {
+        ghost = true;
+        variant = 'base';
+      }
+      return h(Button, { ...props, ghost, variant, attrs, theme: 'default' }, slots);
     },
     Divider,
     IconPicker: withDefaultPlaceholder(IconPicker, 'select', {
@@ -175,8 +173,6 @@ async function initComponentAdapter() {
     }),
     Input: withDefaultPlaceholder(Input, 'input'),
     InputNumber: withDefaultPlaceholder(InputNumber, 'input'),
-    // InputPassword: withDefaultPlaceholder(InputPassword, 'input'),
-    // Mentions: withDefaultPlaceholder(Mentions, 'input'),
     // 自定义主要按钮
     PrimaryButton: (props, { attrs, slots }) => {
       let ghost = false;

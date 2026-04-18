@@ -4,6 +4,8 @@ import { readonly, ref } from 'vue';
 
 import { useAccessStore } from '@vben/stores';
 
+import { logger } from '#/utils/logger';
+
 export interface PusherConfig {
   appKey: string;
   wsHost?: string;
@@ -14,15 +16,15 @@ export interface PusherConfig {
   cluster?: string;
 }
 
-// Default config — matches hack/config.yaml pusher section
+// Default config — reads from env, falls back to sensible defaults
 const defaultConfig: PusherConfig = {
-  appKey: 'devinggo-app-key',
-  wsHost: window.location.hostname,
-  wsPort: 8070,
-  wssPort: 8070,
+  appKey: (import.meta.env.VITE_PUSHER_APP_KEY as string) || 'devinggo-app-key',
+  wsHost: (import.meta.env.VITE_PUSHER_WS_HOST as string) || window.location.hostname,
+  wsPort: (import.meta.env.VITE_PUSHER_WS_PORT as number) || 8070,
+  wssPort: (import.meta.env.VITE_PUSHER_WSS_PORT as number) || 8070,
   forceTLS: window.location.protocol === 'https:',
-  authEndpoint: '/system/pusher/auth',
-  cluster: 'local',
+  authEndpoint: '/api/system/pusher/auth',
+  cluster: (import.meta.env.VITE_PUSHER_CLUSTER as string) || 'local',
 };
 
 let pusherInstance: Pusher | null = null;
@@ -37,9 +39,6 @@ export function usePusher(config?: Partial<PusherConfig>) {
   function getInstance(): Pusher {
     if (pusherInstance) return pusherInstance;
 
-    const accessStore = useAccessStore();
-    const token = accessStore.accessToken ?? '';
-
     pusherInstance = new Pusher(merged.appKey, {
       cluster: merged.cluster || 'local',
       wsHost: merged.wsHost,
@@ -50,7 +49,11 @@ export function usePusher(config?: Partial<PusherConfig>) {
       authEndpoint: merged.authEndpoint,
       auth: {
         headers: {
-          Authorization: token,
+          // Read token dynamically so expired tokens are refreshed
+          get Authorization() {
+            const accessStore = useAccessStore();
+            return accessStore.accessToken ?? '';
+          },
         },
       },
     });
@@ -60,17 +63,12 @@ export function usePusher(config?: Partial<PusherConfig>) {
       'state_change',
       (states: { current: string; previous: string }) => {
         connectionState.value = states.current;
-        console.debug(
-          '[Pusher] state:',
-          states.previous,
-          '→',
-          states.current,
-        );
+        logger.debug('[Pusher] state:', states.previous, '→', states.current);
       },
     );
 
     pusherInstance.connection.bind('error', (err: Error) => {
-      console.error('[Pusher] connection error:', err);
+      logger.error('[Pusher] connection error:', err);
     });
 
     return pusherInstance;
@@ -103,10 +101,10 @@ export function usePusher(config?: Partial<PusherConfig>) {
   }
 
   /** Bind a callback to a channel event, returns unbind fn */
-  function bind(
+  function bind<T = unknown>(
     channel: Channel,
     event: string,
-    callback: (data: any) => void,
+    callback: (data: T) => void,
   ) {
     channel.bind(event, callback);
     return () => channel.unbind(event, callback);

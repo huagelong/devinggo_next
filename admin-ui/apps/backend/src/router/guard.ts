@@ -44,6 +44,8 @@ function setupCommonGuard(router: Router) {
  * 权限访问守卫配置
  * @param router
  */
+let accessGenerating: Promise<void> | null = null;
+
 function setupAccessGuard(router: Router) {
   router.beforeEach(async (to, from) => {
     const accessStore = useAccessStore();
@@ -90,26 +92,41 @@ function setupAccessGuard(router: Router) {
       return true;
     }
 
-    // 生成路由表
-    // 当前登录用户拥有的角色标识列表
-    const userInfo = userStore.userInfo || (await authStore.fetchUserInfo());
-    const userRoles = userInfo.roles ?? [];
+    // 防止并发导航时重复生成路由
+    if (accessGenerating) {
+      await accessGenerating;
+      return true;
+    }
 
-    // 生成菜单和路由
-    const { accessibleMenus, accessibleRoutes } = await generateAccess({
-      roles: userRoles,
-      router,
-      // 则会在菜单中显示，但是访问会被重定向到403
-      routes: accessRoutes,
-    });
+    accessGenerating = (async () => {
+      // 生成路由表
+      // 当前登录用户拥有的角色标识列表
+      const userInfo = userStore.userInfo || (await authStore.fetchUserInfo());
+      const userRoles = userInfo.roles ?? [];
 
-    // 保存菜单信息和路由信息
-    accessStore.setAccessMenus(accessibleMenus);
-    accessStore.setAccessRoutes(accessibleRoutes);
-    accessStore.setIsAccessChecked(true);
+      // 生成菜单和路由
+      const { accessibleMenus, accessibleRoutes } = await generateAccess({
+        roles: userRoles,
+        router,
+        // 则会在菜单中显示，但是访问会被重定向到403
+        routes: accessRoutes,
+      });
+
+      // 保存菜单信息和路由信息
+      accessStore.setAccessMenus(accessibleMenus as any[]);
+      accessStore.setAccessRoutes(accessibleRoutes);
+      accessStore.setIsAccessChecked(true);
+    })();
+
+    try {
+      await accessGenerating;
+    } finally {
+      accessGenerating = null;
+    }
+
     const redirectPath = (from.query.redirect ??
       (to.path === preferences.app.defaultHomePath
-        ? userInfo.homePath || preferences.app.defaultHomePath
+        ? userStore.userInfo?.homePath || preferences.app.defaultHomePath
         : to.fullPath)) as string;
 
     return {

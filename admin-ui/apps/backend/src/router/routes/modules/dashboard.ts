@@ -37,7 +37,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/dashboard/profile/index.vue'),
         meta: {
           icon: 'lucide:user',
-          title: '个人信息',
+          title: $t('page.dashboard.profile'),
         },
       },
       {
@@ -46,7 +46,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/dashboard/message/index.vue'),
         meta: {
           icon: 'lucide:bell',
-          title: '消息中心',
+          title: $t('page.dashboard.message'),
         },
       },
     ],

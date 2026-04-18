@@ -23,9 +23,8 @@ export function useRealtimeNotifications() {
   /** Start listening for real-time events */
   function start() {
     const userStore = useUserStore();
-    const userId =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (userStore.userInfo as any)?.userId || (userStore.userInfo as any)?.id;
+    const userInfo = userStore.userInfo as Record<string, unknown> | undefined;
+    const userId = (userInfo?.userId ?? userInfo?.id) as string | number | undefined;
 
     if (!userId) {
       console.warn(
@@ -81,8 +80,7 @@ export function useRealtimeNotifications() {
       bind(
         presenceChannel,
         Events.MEMBER_REMOVED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (member: any) => {
+        (member: PresenceMemberData) => {
           onlineUsers.value = onlineUsers.value.filter(
             (u) => String(u.id) !== String(member.id),
           );

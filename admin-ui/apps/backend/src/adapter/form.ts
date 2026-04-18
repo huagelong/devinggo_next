@@ -23,16 +23,20 @@ async function initSetupVbenForm() {
       },
     },
     defineRules: {
-      // 输入项目必填国际化适配
       required: (value, _params, ctx) => {
-        if (value === undefined || value === null || value.length === 0) {
+        if (value === undefined || value === null || value === '') {
+          return $t('ui.formRules.required', [ctx.label]);
+        }
+        if (Array.isArray(value) && value.length === 0) {
           return $t('ui.formRules.required', [ctx.label]);
         }
         return true;
       },
-      // 选择项目必填国际化适配
       selectRequired: (value, _params, ctx) => {
-        if (value === undefined || value === null) {
+        if (value === undefined || value === null || value === '') {
+          return $t('ui.formRules.selectRequired', [ctx.label]);
+        }
+        if (Array.isArray(value) && value.length === 0) {
           return $t('ui.formRules.selectRequired', [ctx.label]);
         }
         return true;

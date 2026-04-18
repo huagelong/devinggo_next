@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 import { message } from '#/adapter/tdesign';
 
 import {
@@ -30,6 +31,8 @@ import {
 } from '#/api/system/notice';
 import type { DictOption } from '#/composables/crud/use-dict-options';
 import { useDictOptions } from '#/composables/crud/use-dict-options';
+import { sanitizeHtml } from '#/utils/sanitize';
+import { logger } from '#/utils/logger';
 
 import NoticeModal from './components/notice-modal.vue';
 import type { NoticeListItem, NoticeTableColumn } from './model';
@@ -130,64 +133,64 @@ function handleEdit(row: NoticeListItem) {
 async function handleDelete(row: NoticeListItem) {
   try {
     await (isRecycleBin.value ? realDeleteNotice([row.id]) : deleteNotice([row.id]));
-    message.success('操作成功');
+    message.success($t('common.operationSuccess'));
     await fetchTableData();
   } catch (error) {
-    console.error(error);
-    message.error(isRecycleBin.value ? '彻底删除失败，请稍后重试' : '删除失败，请稍后重试');
+    logger.error(error);
+    message.error(isRecycleBin.value ? $t('common.permanentDeleteFailed') : $t('common.deleteFailed'));
   }
 }
 
 async function handleBatchDelete() {
   if (selectedRowKeys.value.length === 0) {
-    message.warning('请选择需要操作的数据');
+    message.warning($t('common.selectDataFirst'));
     return;
   }
   const ids = toIds(selectedRowKeys.value);
   if (ids.length === 0) {
-    message.warning('所选数据格式异常，请重试');
+    message.warning($t('common.invalidDataFormat'));
     return;
   }
   try {
     await (isRecycleBin.value ? realDeleteNotice(ids) : deleteNotice(ids));
-    message.success('操作成功');
+    message.success($t('common.operationSuccess'));
     clearSelectedRowKeys();
     await fetchTableData();
   } catch (error) {
-    console.error(error);
-    message.error(isRecycleBin.value ? '批量彻底删除失败，请稍后重试' : '批量删除失败，请稍后重试');
+    logger.error(error);
+    message.error(isRecycleBin.value ? $t('common.batchPermanentDeleteFailed') : $t('common.batchDeleteFailed'));
   }
 }
 
 async function handleRecovery(row: NoticeListItem) {
   try {
     await recoveryNotice([row.id]);
-    message.success('恢复成功');
+    message.success($t('common.recoverySuccess'));
     await fetchTableData();
   } catch (error) {
-    console.error(error);
-    message.error('恢复失败，请稍后重试');
+    logger.error(error);
+    message.error($t('common.recoveryFailed'));
   }
 }
 
 async function handleBatchRecovery() {
   if (selectedRowKeys.value.length === 0) {
-    message.warning('请选择需要操作的数据');
+    message.warning($t('common.selectDataFirst'));
     return;
   }
   const ids = toIds(selectedRowKeys.value);
   if (ids.length === 0) {
-    message.warning('所选数据格式异常，请重试');
+    message.warning($t('common.invalidDataFormat'));
     return;
   }
   try {
     await recoveryNotice(ids);
-    message.success('恢复成功');
+    message.success($t('common.recoverySuccess'));
     clearSelectedRowKeys();
     await fetchTableData();
   } catch (error) {
-    console.error(error);
-    message.error('批量恢复失败，请稍后重试');
+    logger.error(error);
+    message.error($t('common.batchRecoveryFailed'));
   }
 }
 
@@ -300,7 +303,7 @@ onMounted(() => {
           <template #content="{ row }">
             <span
               class="block max-w-[320px] truncate text-gray-600 text-sm"
-              v-html="row.content || '-'"
+              v-html="sanitizeHtml(row.content)"
             />
           </template>
 

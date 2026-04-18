@@ -27,7 +27,7 @@ export namespace UploadApi {
     chunkIndex: number;
     totalChunks: number;
     hash: string;
-    [key: string]: string | number | undefined;
+    [key: string]: string | number | File | undefined;
   }
 
   export interface SaveNetworkImageRequest {

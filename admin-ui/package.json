@@ -84,9 +84,9 @@
     "pnpm": ">=10.0.0"
   },
   "packageManager": "pnpm@10.32.1",
-  "dependencies": {
-    "@iconify-json/carbon": "^1.2.20",
-    "@iconify-json/lucide": "^1.2.102",
-    "@iconify-json/mdi": "^1.2.3"
+  "devDependencies": {
+    "@iconify-json/carbon": "catalog:",
+    "@iconify-json/lucide": "catalog:",
+    "@iconify-json/mdi": "catalog:"
   }
 }

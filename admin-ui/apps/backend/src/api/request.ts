@@ -18,27 +18,33 @@ import { useAuthStore } from '#/store';
 
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 
+const BUSINESS_CODE_UNAUTHORIZED = 1000;
+
+let isReAuthenticating = false;
+
 function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   const client = new RequestClient({
     ...options,
     baseURL,
   });
 
-  /**
-   * 重新认证逻辑
-   */
   async function doReAuthenticate() {
-    console.warn('Access token or refresh token is invalid or expired. ');
-    const accessStore = useAccessStore();
-    const authStore = useAuthStore();
-    accessStore.setAccessToken(null);
-    if (
-      preferences.app.loginExpiredMode === 'modal' &&
-      accessStore.isAccessChecked
-    ) {
-      accessStore.setLoginExpired(true);
-    } else {
-      await authStore.logout();
+    if (isReAuthenticating) return;
+    isReAuthenticating = true;
+    try {
+      const accessStore = useAccessStore();
+      const authStore = useAuthStore();
+      accessStore.setAccessToken(null);
+      if (
+        preferences.app.loginExpiredMode === 'modal' &&
+        accessStore.isAccessChecked
+      ) {
+        accessStore.setLoginExpired(true);
+      } else {
+        await authStore.logout();
+      }
+    } finally {
+      isReAuthenticating = false;
     }
   }
 
@@ -65,13 +71,12 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
       // Prevent FormData from being transformed into JSON by Axios when a
       // default JSON content-type header is present on the client.
       if (config.data instanceof FormData && config.headers) {
-        const headers = config.headers as any;
-        if (typeof headers.delete === 'function') {
-          headers.delete('Content-Type');
-          headers.delete('content-type');
+        if (typeof config.headers.delete === 'function') {
+          config.headers.delete('Content-Type');
+          config.headers.delete('content-type');
         } else {
-          delete headers['Content-Type'];
-          delete headers['content-type'];
+          delete (config.headers as Record<string, unknown>)['Content-Type'];
+          delete (config.headers as Record<string, unknown>)['content-type'];
         }
       }
       return config;
@@ -87,11 +92,11 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     }),
   );
 
-  // 处理业务 code 1000：未登录或 token 过期，直接跳转登录页
+  // 处理业务 code 1000：未登录或 token 过期
   client.addResponseInterceptor({
     rejected: async (error) => {
       const responseData = error?.response?.data ?? {};
-      if (responseData?.code === 1000) {
+      if (responseData?.code === BUSINESS_CODE_UNAUTHORIZED) {
         await doReAuthenticate();
       }
       throw error;

@@ -7,6 +7,7 @@ import { Page } from '@vben/common-ui';
 
 import { message } from '#/adapter/tdesign';
 import { getServerInfo } from '#/api/system/monitor';
+import { logger } from '#/utils/logger';
 
 import {
   CpuIcon,
@@ -55,12 +56,12 @@ async function fetchServerInfo() {
   try {
     const response = await getServerInfo();
     serverInfo.value = response;
-  } catch (error: any) {
-    if (error?.response?.status === 404) {
+  } catch (error: unknown) {
+    if ((error as { response?: { status?: number } })?.response?.status === 404) {
       hasServerApi.value = false;
       message.info('服务器监控接口暂未开放');
     } else {
-      console.error(error);
+      logger.error(error);
       message.error('获取服务器信息失败');
     }
   } finally {
@@ -169,13 +170,13 @@ onUnmounted(() => {
                 <Progress
                   :percentage="serverInfo?.cpu?.usage ?? 0"
                   :size="'large'"
-                  :theme="(
+                  :theme="((
                     serverInfo?.cpu?.usage ?? 0
                   ) > 80
                     ? 'danger'
                     : (serverInfo?.cpu?.usage ?? 0) > 60
                       ? 'warning'
-                      : 'default'"
+                      : 'primary') as any"
                   :label="`${(serverInfo?.cpu?.usage ?? 0).toFixed(1)}%`"
                 />
                 <div class="mt-4 text-sm text-gray-500">
@@ -196,13 +197,13 @@ onUnmounted(() => {
                 <Progress
                   :percentage="serverInfo?.memory?.usage ?? 0"
                   :size="'large'"
-                  :theme="(
+                  :theme="((
                     serverInfo?.memory?.usage ?? 0
                   ) > 80
                     ? 'danger'
                     : (serverInfo?.memory?.usage ?? 0) > 60
                       ? 'warning'
-                      : 'default'"
+                      : 'primary') as any"
                   :label="`${(serverInfo?.memory?.usage ?? 0).toFixed(1)}%`"
                 />
                 <div class="mt-4 text-sm text-gray-500">
@@ -237,13 +238,11 @@ onUnmounted(() => {
                 </div>
                 <Progress
                   :percentage="disk.usage"
-                  :theme="
-                    disk.usage > 80
+                  :theme="(disk.usage > 80
                       ? 'danger'
                       : disk.usage > 60
                         ? 'warning'
-                        : 'default'
-                  "
+                        : 'primary') as any"
                   :label="`${disk.usage.toFixed(1)}%`"
                 />
                 <div class="mt-2 text-xs text-gray-500">

@@ -20,6 +20,8 @@ import {
   TimelineItem,
 } from 'tdesign-vue-next';
 
+import { $t } from '@vben/locales';
+
 import {
   getLoginLogListApi,
   getOperationLogListApi,
@@ -28,6 +30,8 @@ import {
 } from '#/api/core/profile';
 import { getSystemInfoApi } from '#/api/core/user';
 import { uploadImageFileApi } from '#/api/system/upload';
+import { encryptPassword } from '#/store/auth';
+import { logger } from '#/utils/logger';
 
 const userStore = useUserStore();
 
@@ -57,7 +61,7 @@ const securityForm = reactive({
 const loginLogs = ref<LogApi.LoginLogItem[]>([]);
 const operationLogs = ref<LogApi.OperLogItem[]>([]);
 
-// 获取个人信息
+// 个人资料表单
 async function fetchUserInfo() {
   try {
     const res = await getSystemInfoApi();
@@ -70,7 +74,7 @@ async function fetchUserInfo() {
       userInfoForm.avatar = res.user.avatar || '';
     }
   } catch (error) {
-    console.error('获取个人信息失败', error);
+    logger.error('获取个人信息失败', error);
   }
 }
 
@@ -83,30 +87,35 @@ async function handleUpdateInfo() {
       email: userInfoForm.email,
       signed: userInfoForm.signed,
     });
-    MessagePlugin.success('个人资料更新成功');
+    MessagePlugin.success($t('common.profileUpdateSuccess'));
     // 更新完成后重新获取数据
     fetchUserInfo();
   } catch {
-    MessagePlugin.error('个人资料更新失败');
+    MessagePlugin.error($t('common.profileUpdateFailed'));
   }
 }
 
 // 提交修改密码
 async function handleUpdatePassword() {
   if (securityForm.newPassword !== securityForm.newPasswordConfirmation) {
-    MessagePlugin.error('两次输入的新密码不一致');
+    MessagePlugin.error($t('common.passwordMismatch'));
     return;
   }
   try {
-    await modifyPasswordApi(securityForm);
-    MessagePlugin.success('密码修改成功');
-    // 清空密码表单
+    const encrypted = {
+      oldPassword: await encryptPassword(securityForm.oldPassword),
+      newPassword: await encryptPassword(securityForm.newPassword),
+      newPasswordConfirmation: await encryptPassword(
+        securityForm.newPasswordConfirmation,
+      ),
+    };
+    await modifyPasswordApi(encrypted);
+    MessagePlugin.success($t('common.passwordChangeSuccess'));
     securityForm.oldPassword = '';
     securityForm.newPassword = '';
     securityForm.newPasswordConfirmation = '';
   } catch (error) {
-    // 错误在请求拦截器通常有提示
-    console.error('密码修改失败', error);
+    logger.error('密码修改失败', error);
   }
 }
 
@@ -115,12 +124,13 @@ function triggerUpload() {
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.accept = 'image/*';
+  fileInput.style.display = 'none';
+  document.body.appendChild(fileInput);
   fileInput.addEventListener('change', async (e: Event) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
     try {
       const res = await uploadImageFileApi(file);
-      // 根据后端的返回格式取图片 URL
       if (res && res.url) {
         userInfoForm.avatar = res.url;
         await updateUserInfoApi({
@@ -129,12 +139,14 @@ function triggerUpload() {
         userStore.setUserInfo({
           ...userStore.userInfo,
           avatar: res.url,
-        });
-        MessagePlugin.success('头像上传成功');
+        } as Parameters<typeof userStore.setUserInfo>[0]);
+        MessagePlugin.success($t('common.avatarUploadSuccess'));
       }
     } catch (error) {
-      console.error('上传失败', error);
-      MessagePlugin.error('头像上传失败');
+      logger.error('上传失败', error);
+      MessagePlugin.error($t('common.avatarUploadFailed'));
+    } finally {
+      fileInput.remove();
     }
   });
   fileInput.click();
@@ -153,7 +165,7 @@ async function fetchLogs() {
       operationLogs.value = opRes.items;
     }
   } catch (error) {
-    console.error('获取日志失败', error);
+    logger.error('获取日志失败', error);
   }
 }
 

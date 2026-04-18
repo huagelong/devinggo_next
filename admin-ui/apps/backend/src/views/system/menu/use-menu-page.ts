@@ -2,8 +2,11 @@ import type { MenuApi } from '#/api/system/menu';
 
 import { reactive, ref } from 'vue';
 
+import { $t } from '@vben/locales';
+
 import { message } from '#/adapter/tdesign';
 import { getMenuTreeList, getRecycleMenuTreeList } from '#/api/system/menu';
+import { logger } from '#/utils/logger';
 
 import { createMenuSearchForm } from './schemas';
 
@@ -13,6 +16,7 @@ export function useMenuPage() {
   const loading = ref(false);
   const isRecycleBin = ref(false);
   const selectedRowKeys = ref<Array<number | string>>([]);
+  let fetchRequestId = 0;
 
   function buildParams() {
     const params: Partial<MenuApi.ListQuery> = {};
@@ -27,17 +31,23 @@ export function useMenuPage() {
   }
 
   async function fetchTableData() {
+    const requestId = ++fetchRequestId;
     loading.value = true;
     try {
       const params = buildParams();
-      tableData.value = isRecycleBin.value
+      const result = isRecycleBin.value
         ? await getRecycleMenuTreeList(params)
         : await getMenuTreeList(params);
+      if (requestId !== fetchRequestId) return;
+      tableData.value = result;
     } catch (error) {
-      console.error(error);
-      message.error('菜单列表加载失败，请稍后重试');
+      if (requestId !== fetchRequestId) return;
+      logger.error(error);
+      message.error($t('common.listLoadFailed'));
     } finally {
-      loading.value = false;
+      if (requestId === fetchRequestId) {
+        loading.value = false;
+      }
     }
   }
 

@@ -10,6 +10,8 @@
   "dashboard": {
     "title": "Dashboard",
     "analytics": "Analytics",
-    "workspace": "Workspace"
+    "workspace": "Workspace",
+    "profile": "Profile",
+    "message": "Messages"
   }
 }

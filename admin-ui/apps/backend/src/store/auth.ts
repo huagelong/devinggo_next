@@ -17,7 +17,7 @@ import { $t } from '#/locales';
  * AES-ECB 加密密码（使用 SubtleCrypto 单块 CBC 模拟 ECB）
  * 与后端 secure.AESEncrypt 保持一致：ECB 模式 + PKCS7 填充 + Base64 编码
  */
-async function encryptPassword(password: string): Promise<string> {
+export async function encryptPassword(password: string): Promise<string> {
   const aesKey = import.meta.env.VITE_APP_AES_KEY as string;
   if (!aesKey) {
     throw new Error('VITE_APP_AES_KEY 未配置');

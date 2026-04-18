@@ -4,7 +4,7 @@ import type { PostApi } from '#/api/system/post';
 import type { RoleApi } from '#/api/system/role';
 import type { UserApi } from '#/api/system/user';
 
-import { defineComponent, h, nextTick } from 'vue';
+import { defineComponent, h, markRaw, nextTick } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
@@ -121,7 +121,7 @@ const [Form, formApi] = useVbenForm({
     {
       fieldName: 'avatar',
       label: '头像',
-      component: AvatarUpload,
+      component: markRaw(AvatarUpload),
       formItemClass: 'col-span-2',
     },
     {

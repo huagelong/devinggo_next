@@ -2,14 +2,18 @@ import type { UploadListItem, UploadSearchFormModel } from './model';
 
 import { reactive, ref } from 'vue';
 
+import { $t } from '@vben/locales';
+
 import { message } from '#/adapter/tdesign';
 
 import { downloadFileApi, getFileInfoApi } from '#/api/system/upload';
+import { logger } from '#/utils/logger';
 
 export function useUploadCrud() {
   const loading = ref(false);
   const tableData = ref<UploadListItem[]>([]);
   const selectedRowKeys = ref<Array<number | string>>([]);
+  let fetchRequestId = 0;
 
   const searchForm = reactive<UploadSearchFormModel>({
     origin_name: '',
@@ -24,30 +28,23 @@ export function useUploadCrud() {
     total: 0,
   });
 
-  // 模拟数据（实际应该调用API）
-  const mockData: UploadListItem[] = [];
-
   const fetchTableData = async () => {
+    const requestId = ++fetchRequestId;
     loading.value = true;
     try {
-      // TODO: 实际应该调用 upload API 获取文件列表
-      // const params = {
-      //   page: pagination.current,
-      //   pageSize: pagination.pageSize,
-      //   ...searchForm,
-      // };
-      // const res = await getUploadListApi(params);
-      // tableData.value = res?.items || [];
-      // pagination.total = res?.pageInfo?.total || 0;
-
-      // 临时使用模拟数据
-      tableData.value = mockData;
-      pagination.total = mockData.length;
+      // TODO: replace with actual API call when backend is ready
+      tableData.value = [];
+      pagination.total = 0;
     } catch (error) {
-      console.error(error);
-      message.error('获取文件列表失败');
+      if (requestId !== fetchRequestId) return;
+      if (import.meta.env.DEV) {
+        console.error(error);
+      }
+      message.error($t('common.listLoadFailed'));
     } finally {
-      loading.value = false;
+      if (requestId === fetchRequestId) {
+        loading.value = false;
+      }
     }
   };
 
@@ -87,37 +84,35 @@ export function useUploadCrud() {
       link.download = row.origin_name;
       link.click();
       window.URL.revokeObjectURL(url);
-      message.success('下载成功');
+      message.success($t('common.downloadSuccess'));
     } catch (error) {
-      console.error(error);
-      message.error('下载失败');
+      logger.error(error);
+      message.error($t('common.downloadFailed'));
     }
   };
 
   const handleView = async (row: UploadListItem) => {
     try {
-      const info = await getFileInfoApi({ id: row.id });
-      // 可以打开预览对话框
-      console.log('File info:', info);
+      await getFileInfoApi({ id: row.id });
     } catch (error) {
-      console.error(error);
-      message.error('获取文件信息失败');
+      logger.error(error);
+      message.error($t('common.listLoadFailed'));
     }
   };
 
   return {
-    loading,
-    tableData,
-    selectedRowKeys,
-    searchForm,
-    pagination,
-    fetchTableData,
-    handleSearch,
-    handleReset,
-    handlePageChange,
-    handleSelectChange,
     clearSelectedRowKeys,
+    fetchTableData,
     handleDownload,
+    handlePageChange,
+    handleReset,
+    handleSearch,
+    handleSelectChange,
+    loading,
+    pagination,
+    searchForm,
+    selectedRowKeys,
+    tableData,
     handleView,
   };
 }
