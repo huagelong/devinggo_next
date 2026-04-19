@@ -395,11 +395,11 @@ docker run -d \
 
 ```bash
 # 代码生成相关
-go run hack/generator/main.go crud:create --module=system --business=user --table=system_user   # 生成CRUD代码
-go run hack/generator/main.go worker:create --module=system --name=SendEmail --type=task        # 创建Worker任务
-go run hack/generator/main.go module:create --name=blog                                         # 创建新模块
-go run hack/generator/main.go module:export --name=system --output=./backup                     # 导出模块
-go run hack/generator/main.go module:import --file=./backup/system.zip                          # 导入模块
+go run hack/generator/main.go crud:generate -m=system -t=system_user -n=用户                    # 生成CRUD代码
+go run hack/generator/main.go worker:create -module=system -name=SendEmail -type=task            # 创建Worker任务
+go run hack/generator/main.go module:create -name=blog                                            # 创建新模块
+go run hack/generator/main.go module:export -name=blog                                            # 导出模块
+go run hack/generator/main.go module:import -file=blog.v1.0.0.zip                                 # 导入模块
 go run hack/generator/main.go -h                                                                # 查看所有生成器命令
 
 # 数据库迁移相关
@@ -449,12 +449,10 @@ modules/blog/
 
 ```bash
 # 生成system_user表的CRUD代码
-go run hack/generator/main.go crud:create \
-  --module=system \
-  --business=user \
-  --table=system_user \
-  --name="用户" \
-  --comment="系统用户管理"
+go run hack/generator/main.go crud:generate \
+  -m=system \
+  -t=system_user \
+  -n=用户
 ```
 
 将自动生成后端代码：
@@ -470,24 +468,24 @@ go run hack/generator/main.go crud:create \
 ```bash
 # 创建异步任务
 go run hack/generator/main.go worker:create \
-  --module=system \
-  --name=SendEmail \
-  --type=task \
-  --comment="发送邮件任务"
+  -module=system \
+  -name=SendEmail \
+  -type=task \
+  -desc="发送邮件任务"
 
 # 创建定时任务
 go run hack/generator/main.go worker:create \
-  --module=system \
-  --name=CleanLog \
-  --type=cron \
-  --comment="清理日志任务"
+  -module=system \
+  -name=CleanLog \
+  -type=cron \
+  -desc="清理日志任务"
 
 # 创建混合任务（既可异步调用，也可定时执行）
 go run hack/generator/main.go worker:create \
-  --module=system \
-  --name=DataSync \
-  --type=both \
-  --comment="数据同步任务"
+  -module=system \
+  -name=DataSync \
+  -type=both \
+  -desc="数据同步任务"
 ```
 
 ### 配置说明

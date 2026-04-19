@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"devinggo/hack/generator/internal/generator"
 	"devinggo/hack/generator/internal/scanner"
@@ -21,11 +20,8 @@ var (
 		Description: `
 创建一个新的模块，包含基本的目录结构和文件
 
-用法（命令行模式）:
-  go run hack/generator/main.go module:create -name 模块名称
-
-用法（交互式模式）:
-  go run hack/generator/main.go module:create
+用法:
+  go run hack/generator/main.go module:create -name 模块名称 [-output text|json]
 `,
 		Arguments: []gcmd.Argument{
 			{
@@ -35,15 +31,22 @@ var (
 				IsArg:  false,
 				Orphan: false,
 			},
+			{
+				Name:   "output",
+				Short:  "o",
+				Brief:  "输出格式(text/json)",
+				IsArg:  false,
+				Orphan: false,
+			},
 		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			outputFormat := utils.ParseOutputFormat(parser.GetOpt("output").String())
 			moduleName := parser.GetOpt("name").String()
 
-			// 交互式模式：未提供模块名称时
 			if moduleName == "" {
-				fmt.Println("\n🚀 DevingGo 模块创建向导")
-				fmt.Println("=" + strings.Repeat("=", 40))
-				moduleName = utils.PromptRequiredString("请输入模块名称")
+				result := utils.NewCommandResult(false, "缺少必填参数: -name")
+				result.Print(outputFormat)
+				return nil
 			}
 
 			g.Log().Infof(ctx, "开始创建模块: %s", moduleName)
@@ -51,12 +54,14 @@ var (
 			// 创建模块创建器
 			creator := generator.NewModuleCreator(ctx)
 			if err := creator.Create(moduleName); err != nil {
-				return fmt.Errorf("创建模块失败: %w", err)
+				result := utils.NewCommandResult(false, fmt.Sprintf("创建模块失败: %v", err))
+				result.Print(outputFormat)
+				return nil
 			}
 
 			g.Log().Infof(ctx, "模块 '%s' 创建成功！", moduleName)
-			fmt.Printf("\n✅ 模块 '%s' 创建成功！\n", moduleName)
-			fmt.Printf("💡 提示: 请运行 'go run main.go migrate:up' 命令开启应用\n\n")
+			result := utils.NewCommandResult(true, fmt.Sprintf("模块 '%s' 创建成功", moduleName))
+			result.Print(outputFormat)
 			return nil
 		},
 	}
@@ -68,11 +73,8 @@ var (
 		Description: `
 从现有模块快速克隆一个新模块
 
-用法（命令行模式）:
-  go run hack/generator/main.go module:clone -source 源模块 -target 目标模块
-
-用法（交互式模式）:
-  go run hack/generator/main.go module:clone
+用法:
+  go run hack/generator/main.go module:clone -source 源模块 -target 目标模块 [-output text|json]
 `,
 		Arguments: []gcmd.Argument{
 			{
@@ -89,44 +91,40 @@ var (
 				IsArg:  false,
 				Orphan: false,
 			},
+			{
+				Name:   "output",
+				Short:  "o",
+				Brief:  "输出格式(text/json)",
+				IsArg:  false,
+				Orphan: false,
+			},
 		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			outputFormat := utils.ParseOutputFormat(parser.GetOpt("output").String())
 			sourceModule := parser.GetOpt("source").String()
 			targetModule := parser.GetOpt("target").String()
 
-			// 交互式模式：未提供参数时
-			if sourceModule == "" || targetModule == "" {
-				fmt.Println("\n🔄 DevingGo 模块克隆向导")
-				fmt.Println("=" + strings.Repeat("=", 40))
-
-				// 获取现有模块列表供选择
-				modules, _ := scanner.ListModules()
-				if len(modules) == 0 {
-					return fmt.Errorf("没有可用的源模块，请先创建模块")
-				}
-
-				// 列出可用模块
-				moduleOptions := make([]string, len(modules))
-				for i, m := range modules {
-					moduleOptions[i] = fmt.Sprintf("%s (v%s)", m.Name, m.Version)
-				}
-
-				if sourceModule == "" {
-					idx := utils.PromptSelect("请选择源模块", moduleOptions, 0)
-					sourceModule = modules[idx].Name
-				}
-
-				if targetModule == "" {
-					targetModule = utils.PromptRequiredString("请输入目标模块名称")
-				}
+			if sourceModule == "" {
+				result := utils.NewCommandResult(false, "缺少必填参数: -source")
+				result.Print(outputFormat)
+				return nil
+			}
+			if targetModule == "" {
+				result := utils.NewCommandResult(false, "缺少必填参数: -target")
+				result.Print(outputFormat)
+				return nil
 			}
 
 			// 禁止克隆系统模块
 			if sourceModule == "system" {
-				return fmt.Errorf("系统模块不能被克隆")
+				result := utils.NewCommandResult(false, "系统模块不能被克隆")
+				result.Print(outputFormat)
+				return nil
 			}
 			if targetModule == "system" {
-				return fmt.Errorf("不能创建名为 'system' 的模块")
+				result := utils.NewCommandResult(false, "不能创建名为 'system' 的模块")
+				result.Print(outputFormat)
+				return nil
 			}
 
 			g.Log().Infof(ctx, "开始克隆模块: %s -> %s", sourceModule, targetModule)
@@ -134,13 +132,14 @@ var (
 			// 创建模块克隆器
 			cloner := generator.NewModuleCloner(ctx)
 			if err := cloner.Clone(sourceModule, targetModule); err != nil {
-				return fmt.Errorf("克隆模块失败: %w", err)
+				result := utils.NewCommandResult(false, fmt.Sprintf("克隆模块失败: %v", err))
+				result.Print(outputFormat)
+				return nil
 			}
 
 			g.Log().Infof(ctx, "模块 '%s' 克隆成功！", targetModule)
-			fmt.Printf("\n✅ 模块 '%s' 克隆成功！\n", targetModule)
-			fmt.Printf("📋 源模块: %s\n", sourceModule)
-			fmt.Printf("💡 提示: 请运行 'go run main.go migrate:up' 命令开启应用\n\n")
+			result := utils.NewCommandResult(true, fmt.Sprintf("模块 '%s' 克隆成功（源模块: %s）", targetModule, sourceModule))
+			result.Print(outputFormat)
 			return nil
 		},
 	}
@@ -151,7 +150,7 @@ var (
 		Brief: "导出模块为zip包",
 		Description: `
 将模块文件导出为zip压缩包
-用法: go run hack/generator/main.go module:export -name 模块名称
+用法: go run hack/generator/main.go module:export -name 模块名称 [-output text|json]
 `,
 		Arguments: []gcmd.Argument{
 			{
@@ -161,16 +160,28 @@ var (
 				IsArg:  false,
 				Orphan: false,
 			},
+			{
+				Name:   "output",
+				Short:  "o",
+				Brief:  "输出格式(text/json)",
+				IsArg:  false,
+				Orphan: false,
+			},
 		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			outputFormat := utils.ParseOutputFormat(parser.GetOpt("output").String())
 			moduleName := parser.GetOpt("name").String()
 			if moduleName == "" {
-				return fmt.Errorf("模块名称必须输入，使用 -name 参数指定")
+				result := utils.NewCommandResult(false, "缺少必填参数: -name")
+				result.Print(outputFormat)
+				return nil
 			}
 
 			// 禁止导出系统模块
 			if moduleName == "system" {
-				return fmt.Errorf("系统模块不能导出")
+				result := utils.NewCommandResult(false, "系统模块不能导出")
+				result.Print(outputFormat)
+				return nil
 			}
 
 			g.Log().Infof(ctx, "开始导出模块: %s", moduleName)
@@ -179,12 +190,15 @@ var (
 			exporter := generator.NewModuleExporter(ctx)
 			zipFile, err := exporter.Export(moduleName)
 			if err != nil {
-				return fmt.Errorf("导出模块失败: %w", err)
+				result := utils.NewCommandResult(false, fmt.Sprintf("导出模块失败: %v", err))
+				result.Print(outputFormat)
+				return nil
 			}
 
 			g.Log().Infof(ctx, "模块 '%s' 导出成功: %s", moduleName, zipFile)
-			fmt.Printf("\n✅ 模块 '%s' 导出成功！\n", moduleName)
-			fmt.Printf("📦 文件: %s\n\n", zipFile)
+			result := utils.NewCommandResult(true, fmt.Sprintf("模块 '%s' 导出成功", moduleName))
+			result.AddFile(zipFile)
+			result.Print(outputFormat)
 			return nil
 		},
 	}
@@ -196,11 +210,8 @@ var (
 		Description: `
 从zip压缩包导入模块
 
-用法（命令行模式）:
-  go run hack/generator/main.go module:import -file 模块zip文件路径
-
-用法（交互式模式）:
-  go run hack/generator/main.go module:import
+用法:
+  go run hack/generator/main.go module:import -file 模块zip文件路径 [-output text|json]
 `,
 		Arguments: []gcmd.Argument{
 			{
@@ -210,15 +221,22 @@ var (
 				IsArg:  false,
 				Orphan: false,
 			},
+			{
+				Name:   "output",
+				Short:  "o",
+				Brief:  "输出格式(text/json)",
+				IsArg:  false,
+				Orphan: false,
+			},
 		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			outputFormat := utils.ParseOutputFormat(parser.GetOpt("output").String())
 			zipPath := parser.GetOpt("file").String()
 
-			// 交互式模式：未提供文件路径时
 			if zipPath == "" {
-				fmt.Println("\n📦 DevingGo 模块导入向导")
-				fmt.Println("=" + strings.Repeat("=", 40))
-				zipPath = utils.PromptRequiredString("请输入模块zip文件路径")
+				result := utils.NewCommandResult(false, "缺少必填参数: -file")
+				result.Print(outputFormat)
+				return nil
 			}
 
 			g.Log().Infof(ctx, "开始导入模块: %s", zipPath)
@@ -227,12 +245,14 @@ var (
 			importer := generator.NewModuleImporter(ctx)
 			moduleName, err := importer.Import(zipPath)
 			if err != nil {
-				return fmt.Errorf("导入模块失败: %w", err)
+				result := utils.NewCommandResult(false, fmt.Sprintf("导入模块失败: %v", err))
+				result.Print(outputFormat)
+				return nil
 			}
 
 			g.Log().Infof(ctx, "模块 '%s' 导入成功！", moduleName)
-			fmt.Printf("\n✅ 模块 '%s' 导入成功！\n", moduleName)
-			fmt.Printf("💡 提示: 请运行 'go run main.go migrate:up' 命令开启应用\n\n")
+			result := utils.NewCommandResult(true, fmt.Sprintf("模块 '%s' 导入成功", moduleName))
+			result.Print(outputFormat)
 			return nil
 		},
 	}
@@ -243,32 +263,42 @@ var (
 		Brief: "列出所有已安装模块",
 		Description: `
 列出所有已安装的模块及其信息
-用法: go run hack/generator/main.go module:list
+用法: go run hack/generator/main.go module:list [-output text|json]
 `,
+		Arguments: []gcmd.Argument{
+			{
+				Name:   "output",
+				Short:  "o",
+				Brief:  "输出格式(text/json)",
+				IsArg:  false,
+				Orphan: false,
+			},
+		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			outputFormat := utils.ParseOutputFormat(parser.GetOpt("output").String())
+
 			modules, err := scanner.ListModules()
 			if err != nil {
-				return fmt.Errorf("列出模块失败: %w", err)
-			}
-
-			if len(modules) == 0 {
-				fmt.Println("\n暂无已安装模块\n")
+				result := utils.NewCommandResult(false, fmt.Sprintf("列出模块失败: %v", err))
+				result.Print(outputFormat)
 				return nil
 			}
 
-			fmt.Printf("\n📦 已安装模块 (%d个)\n\n", len(modules))
-			fmt.Println("┌────────────┬─────────┬──────────────┬─────────┐")
-			fmt.Println("│ 模块名称   │ 版本    │ 作者         │ 许可证  │")
-			fmt.Println("├────────────┼─────────┼──────────────┼─────────┤")
+			if len(modules) == 0 {
+				result := utils.NewCommandResult(true, "暂无已安装模块")
+				result.Print(outputFormat)
+				return nil
+			}
+
+			result := utils.NewCommandResult(true, fmt.Sprintf("已安装模块 (%d个)", len(modules)))
 			for _, module := range modules {
-				fmt.Printf("│ %-10s │ %-7s │ %-12s │ %-7s │\n",
+				result.AddFile(fmt.Sprintf("%-10s v%-7s %-12s %-7s",
 					truncateString(module.Name, 10),
 					truncateString(module.Version, 7),
 					truncateString(module.Author, 12),
-					truncateString(module.License, 7))
+					truncateString(module.License, 7)))
 			}
-			fmt.Println("└────────────┴─────────┴──────────────┴─────────┘")
-			fmt.Println()
+			result.Print(outputFormat)
 			return nil
 		},
 	}
@@ -279,7 +309,7 @@ var (
 		Brief: "验证模块完整性",
 		Description: `
 验证模块的完整性和配置正确性
-用法: go run hack/generator/main.go module:validate -name 模块名称
+用法: go run hack/generator/main.go module:validate -name 模块名称 [-output text|json]
 `,
 		Arguments: []gcmd.Argument{
 			{
@@ -289,44 +319,50 @@ var (
 				IsArg:  false,
 				Orphan: false,
 			},
+			{
+				Name:   "output",
+				Short:  "o",
+				Brief:  "输出格式(text/json)",
+				IsArg:  false,
+				Orphan: false,
+			},
 		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			outputFormat := utils.ParseOutputFormat(parser.GetOpt("output").String())
 			moduleName := parser.GetOpt("name").String()
 			if moduleName == "" {
-				return fmt.Errorf("模块名称必须输入，使用 -name 参数指定")
+				result := utils.NewCommandResult(false, "缺少必填参数: -name")
+				result.Print(outputFormat)
+				return nil
 			}
 
 			g.Log().Infof(ctx, "验证模块: %s", moduleName)
 
 			warnings, errors, err := scanner.ValidateModule(moduleName)
 			if err != nil {
-				return fmt.Errorf("验证模块失败: %w", err)
+				result := utils.NewCommandResult(false, fmt.Sprintf("验证模块失败: %v", err))
+				result.Print(outputFormat)
+				return nil
 			}
 
-			fmt.Printf("\n🔍 验证模块 '%s'\n\n", moduleName)
-
-			if len(errors) > 0 {
-				fmt.Println("❌ 错误:")
-				for _, e := range errors {
-					fmt.Printf("  - %s\n", e)
-				}
-				fmt.Println()
+			result := utils.NewCommandResult(true, fmt.Sprintf("验证模块 '%s'", moduleName))
+			for _, w := range warnings {
+				result.AddWarning(w)
 			}
-
-			if len(warnings) > 0 {
-				fmt.Println("⚠️  警告:")
-				for _, w := range warnings {
-					fmt.Printf("  - %s\n", w)
-				}
-				fmt.Println()
+			for _, e := range errors {
+				result.AddError(e)
 			}
-
 			if len(errors) == 0 && len(warnings) == 0 {
-				fmt.Println("✅ 模块验证通过，没有发现问题\n")
+				result.Message = fmt.Sprintf("模块 '%s' 验证通过，没有发现问题", moduleName)
 			} else {
-				fmt.Printf("📊 验证结果: %d个错误，%d个警告\n\n", len(errors), len(warnings))
+				result.Success = len(errors) == 0
+				if len(errors) > 0 {
+					result.Message = fmt.Sprintf("模块 '%s' 验证发现 %d 个错误，%d 个警告", moduleName, len(errors), len(warnings))
+				} else {
+					result.Message = fmt.Sprintf("模块 '%s' 验证通过，但有 %d 个警告", moduleName, len(warnings))
+				}
 			}
-
+			result.Print(outputFormat)
 			return nil
 		},
 	}

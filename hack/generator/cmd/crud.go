@@ -9,17 +9,16 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcmd"
 
+	"devinggo/hack/generator/internal/config"
 	"devinggo/hack/generator/internal/generator"
 	"devinggo/hack/generator/internal/utils"
 )
 
 var (
-	// CrudGenerate CRUD代码生成命令
 	CrudGenerate = &gcmd.Command{
 		Name:        "crud:generate",
 		Brief:       "生成CRUD代码（API、Model、Controller、Logic）",
@@ -43,75 +42,190 @@ var (
 				Brief: "资源中文名称（例如：用户）",
 				IsArg: false,
 			},
+			{
+				Name:  "output",
+				Short: "o",
+				Brief: "输出格式(text/json)",
+				IsArg: false,
+			},
+			{
+				Name:  "force",
+				Short: "f",
+				Brief: "覆盖已存在的文件",
+				IsArg: false,
+				Orphan: true,
+			},
+			{
+				Name:  "dry-run",
+				Short: "d",
+				Brief: "仅预览，不实际生成文件",
+				IsArg: false,
+				Orphan: true,
+			},
+			{
+				Name:  "config",
+				Short: "c",
+				Brief: "批量生成配置文件(generator.yaml)",
+				IsArg: false,
+			},
 		},
 		Func: runCrudGenerate,
 		Examples: `
 生成system模块的system_user表的CRUD代码：
   go run main.go crud:generate -m=system -t=system_user -n=用户
 
-生成system模块的system_dept表的CRUD代码：
-  go run main.go crud:generate -m=system -t=system_dept -n=部门
+预览生成（不实际写入文件）：
+  go run main.go crud:generate -m=system -t=system_user -n=用户 --dry-run
+
+强制覆盖已存在的文件：
+  go run main.go crud:generate -m=system -t=system_user -n=用户 --force
+
+使用配置文件批量生成：
+  go run main.go crud:generate -c=generator.yaml
+
+JSON格式输出：
+  go run main.go crud:generate -m=system -t=system_user -n=用户 -o=json
 `,
 	}
 )
 
-// runCrudGenerate 执行CRUD代码生成
 func runCrudGenerate(ctx context.Context, parser *gcmd.Parser) (err error) {
-	// 获取参数
+	outputFormat := utils.ParseOutputFormat(parser.GetOpt("output").String())
+	force := parser.GetOpt("force").Bool()
+	dryRun := parser.GetOpt("dry-run").Bool()
+	configPath := parser.GetOpt("config").String()
+
+	if configPath != "" {
+		return runBatchGenerate(ctx, configPath, force, dryRun, outputFormat)
+	}
+
+	return runSingleGenerate(ctx, parser, force, dryRun, outputFormat)
+}
+
+func runSingleGenerate(ctx context.Context, parser *gcmd.Parser, force bool, dryRun bool, outputFormat utils.OutputFormat) error {
 	moduleName := parser.GetOpt("module", "").String()
 	tableName := parser.GetOpt("table", "").String()
 	chineseName := parser.GetOpt("name", "").String()
 
-	// 交互式模式：参数为空时
+	result := utils.NewCommandResult(true, "CRUD代码生成")
+
 	if moduleName == "" || tableName == "" || chineseName == "" {
-		fmt.Println("\n📊 DevingGo CRUD 代码生成向导")
-		fmt.Println("=" + strings.Repeat("=", 40))
-
-		if moduleName == "" {
-			moduleName = utils.PromptString("请输入模块名称", "system")
-		}
-
-		if tableName == "" {
-			tableName = utils.PromptRequiredString("请输入数据库表名（例如：system_user）")
-		}
-
-		if chineseName == "" {
-			chineseName = utils.PromptRequiredString("请输入资源中文名称（例如：用户）")
-		}
+		result.Success = false
+		result.Message = "缺少必要参数：-m (模块名), -t (表名), -n (中文名) 为必填项"
+		result.Print(outputFormat)
+		return nil
 	}
 
-	// 打印生成信息
 	g.Log().Infof(ctx, "开始生成CRUD代码...")
 	g.Log().Infof(ctx, "  模块名: %s", moduleName)
 	g.Log().Infof(ctx, "  表名: %s", tableName)
 	g.Log().Infof(ctx, "  中文名: %s", chineseName)
+	if dryRun {
+		g.Log().Infof(ctx, "  模式: dry-run (仅预览)")
+	}
+	if force {
+		g.Log().Infof(ctx, "  模式: force (覆盖已有文件)")
+	}
 	fmt.Println()
 
-	// 创建生成器
 	gen, err := generator.NewCRUDGenerator(moduleName, tableName, chineseName)
 	if err != nil {
-		return fmt.Errorf("创建CRUD生成器失败：%v", err)
+		result.Success = false
+		result.Message = fmt.Sprintf("创建CRUD生成器失败：%v", err)
+		result.Print(outputFormat)
+		return nil
 	}
 
-	// 执行生成
+	gen.SetForce(force)
+	gen.SetDryRun(dryRun)
+
 	if err := gen.Generate(); err != nil {
-		return fmt.Errorf("生成CRUD代码失败：%v", err)
+		result.Success = false
+		result.Message = fmt.Sprintf("生成CRUD代码失败：%v", err)
+		result.Print(outputFormat)
+		return nil
 	}
 
-	// 打印成功信息
-	fmt.Println()
-	g.Log().Infof(ctx, "CRUD代码生成成功！")
-	g.Log().Info(ctx, "生成的文件：")
-	g.Log().Infof(ctx, "  1. modules/%s/api/%s/%s.go", moduleName, moduleName, gen.VarName)
-	g.Log().Infof(ctx, "  2. modules/%s/model/req/%s.go", moduleName, tableName)
-	g.Log().Infof(ctx, "  3. modules/%s/model/res/%s.go", moduleName, tableName)
-	g.Log().Infof(ctx, "  4. modules/%s/controller/%s/%s.go", moduleName, moduleName, gen.VarName)
-	g.Log().Infof(ctx, "  5. modules/%s/logic/%s/%s.go", moduleName, moduleName, tableName)
-	fmt.Println()
-	g.Log().Info(ctx, "下一步操作：")
-	g.Log().Info(ctx, "  1. 运行 gf gen service 生成Service接口")
-	g.Log().Info(ctx, "  2. 在Router中注册Controller")
-	g.Log().Info(ctx, "  3. 根据需要调整生成的代码")
+	for _, f := range gen.GeneratedFiles {
+		result.AddFile(f)
+	}
+	for _, f := range gen.SkippedFiles {
+		result.AddWarning(fmt.Sprintf("跳过已存在的文件: %s", f))
+	}
 
+	result.Print(outputFormat)
+	return nil
+}
+
+func runBatchGenerate(ctx context.Context, configPath string, force bool, dryRun bool, outputFormat utils.OutputFormat) error {
+	result := utils.NewCommandResult(true, "批量CRUD代码生成")
+
+	cfg, err := config.LoadGeneratorConfig(configPath)
+	if err != nil {
+		result.Success = false
+		result.Message = fmt.Sprintf("加载配置文件失败：%v", err)
+		result.Print(outputFormat)
+		return nil
+	}
+
+	g.Log().Infof(ctx, "批量生成CRUD代码，模块: %s，共 %d 张表", cfg.Module, len(cfg.Tables))
+	if dryRun {
+		g.Log().Infof(ctx, "  模式: dry-run (仅预览)")
+	}
+	if force {
+		g.Log().Infof(ctx, "  模式: force (覆盖已有文件)")
+	}
+	fmt.Println()
+
+	for _, table := range cfg.Tables {
+		business := table.Business
+		if business == "" {
+			business = table.Table
+		}
+
+		description := table.Description
+		if description == "" {
+			description = business
+		}
+
+		g.Log().Infof(ctx, "正在处理表: %s (%s)", table.Table, description)
+		fmt.Println()
+
+		gen, err := generator.NewCRUDGenerator(cfg.Module, table.Table, description)
+		if err != nil {
+			errMsg := fmt.Sprintf("表 %s 创建生成器失败：%v", table.Table, err)
+			result.AddError(errMsg)
+			g.Log().Errorf(ctx, errMsg)
+			continue
+		}
+
+		gen.SetForce(force)
+		gen.SetDryRun(dryRun)
+
+		if err := gen.Generate(); err != nil {
+			errMsg := fmt.Sprintf("表 %s 生成失败：%v", table.Table, err)
+			result.AddError(errMsg)
+			g.Log().Errorf(ctx, errMsg)
+			continue
+		}
+
+		for _, f := range gen.GeneratedFiles {
+			result.AddFile(f)
+		}
+		for _, f := range gen.SkippedFiles {
+			result.AddWarning(fmt.Sprintf("[%s] 跳过: %s", table.Table, f))
+		}
+
+		fmt.Println()
+	}
+
+	if len(result.Errors) > 0 {
+		result.Success = false
+		result.Message = fmt.Sprintf("批量生成完成，%d 个失败", len(result.Errors))
+	} else {
+		result.Message = fmt.Sprintf("批量生成完成，共处理 %d 张表", len(cfg.Tables))
+	}
+
+	result.Print(outputFormat)
 	return nil
 }

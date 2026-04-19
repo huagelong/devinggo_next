@@ -9,12 +9,10 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"devinggo/hack/generator/internal/generator"
 	"devinggo/hack/generator/internal/utils"
 
-	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/os/gcmd"
 )
 
@@ -31,7 +29,7 @@ var (
 - cron: 仅创建定时任务
 - both: 同时创建任务和定时任务（数据结构共享）
 
-使用示例（命令行模式）:
+使用示例:
   # 创建发送邮件任务（默认both类型）
   go run hack/generator/main.go worker:create -name send_email -desc "发送邮件"
 
@@ -44,9 +42,6 @@ var (
   # 在指定模块中创建
   go run hack/generator/main.go worker:create -name notify_user -module custom -desc "用户通知"
 
-使用示例（交互式模式）:
-  go run hack/generator/main.go worker:create
-
 命令选项:
   -name   任务名称（必填），建议使用下划线命名，如: send_email
   -module 模块名称（可选，默认: system）
@@ -55,6 +50,7 @@ var (
           cron: 仅创建定时任务
           both: 同时创建任务和定时任务
   -desc   任务描述（可选），用于生成注释
+  -output 输出格式（可选，默认: text）text|json
 
 生成的文件:
   • modules/{module}/worker/cron/{name}_cron.go        (定时任务文件)
@@ -66,33 +62,29 @@ var (
   2. 目标模块必须已存在
   3. 不能创建重复的任务名称
   4. 生成后需要重启 worker 服务以加载新任务
-		`,
+`,
+		Arguments: []gcmd.Argument{
+			{
+				Name:   "output",
+				Short:  "o",
+				Brief:  "输出格式(text/json)",
+				IsArg:  false,
+				Orphan: false,
+			},
+		},
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			outputFormat := utils.ParseOutputFormat(parser.GetOpt("output").String())
+
 			// 获取参数
 			name := parser.GetOpt("name").String()
 			moduleName := parser.GetOpt("module", "system").String()
 			workerType := parser.GetOpt("type", "both").String()
 			description := parser.GetOpt("desc").String()
 
-			// 交互式模式：未提供任务名称时
 			if name == "" {
-				fmt.Println("\n🔧 DevingGo Worker 任务创建向导")
-				fmt.Println("=" + strings.Repeat("=", 40))
-
-				name = utils.PromptRequiredString("请输入任务名称（建议使用下划线命名，如: send_email）")
-
-				moduleName = utils.PromptString("请输入所属模块名称", "system")
-
-				// 选择任务类型
-				typeIndex := utils.PromptSelect("请选择任务类型", []string{
-					"both - 同时创建异步任务和定时任务（推荐）",
-					"task - 仅创建异步任务",
-					"cron - 仅创建定时任务",
-				}, 0)
-				workerTypes := []string{"both", "task", "cron"}
-				workerType = workerTypes[typeIndex]
-
-				description = utils.PromptString("请输入任务描述", name)
+				result := utils.NewCommandResult(false, "缺少必填参数: -name")
+				result.Print(outputFormat)
+				return nil
 			}
 
 			// 转换类型
@@ -105,14 +97,24 @@ var (
 			case "both":
 				wType = generator.WorkerTypeBoth
 			default:
-				return gerror.Newf("类型必须是 task、cron 或 both，当前值: %s", workerType)
+				result := utils.NewCommandResult(false, fmt.Sprintf("类型必须是 task、cron 或 both，当前值: %s", workerType))
+				result.Print(outputFormat)
+				return nil
 			}
 
 			// 创建生成器
 			gen := generator.NewWorkerGenerator(ctx, moduleName, name, description, wType)
 
 			// 执行生成
-			return gen.Generate()
+			if err := gen.Generate(); err != nil {
+				result := utils.NewCommandResult(false, fmt.Sprintf("创建Worker任务失败: %v", err))
+				result.Print(outputFormat)
+				return nil
+			}
+
+			result := utils.NewCommandResult(true, fmt.Sprintf("Worker任务 '%s' 创建成功", name))
+			result.Print(outputFormat)
+			return nil
 		},
 	}
 )
