@@ -19,6 +19,7 @@ import {
 import {
   Button,
   DateRangePicker,
+  Dialog,
   Form,
   FormItem,
   Input,
@@ -63,6 +64,7 @@ const currentApi = ref<ApiListItem | null>(null);
 const currentType = ref<ApiColumnType>(1);
 
 const importInputRef = ref<HTMLInputElement>();
+const importDialogVisible = ref(false);
 const importLoading = ref(false);
 const exportLoading = ref(false);
 const templateLoading = ref(false);
@@ -251,14 +253,25 @@ async function handleStatusChange(row: ApiColumnListItem, checked: boolean) {
   }
 }
 
+function openImportDialog() {
+  importDialogVisible.value = true;
+}
+
 function triggerImport() {
   importInputRef.value?.click();
+}
+
+async function handleImportChangeWithClose(event: Event) {
+  const success = await handleImportChange(event);
+  if (success) {
+    importDialogVisible.value = false;
+  }
 }
 
 async function handleImportChange(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
-  if (!file || !currentApiId.value) return;
+  if (!file || !currentApiId.value) return false;
   importLoading.value = true;
   try {
     await importApiColumnFile(file, {
@@ -267,9 +280,11 @@ async function handleImportChange(event: Event) {
     });
     message.success($t('common.importSuccess'));
     await fetchTableData();
+    return true;
   } catch (error) {
     logger.error(error);
     message.error($t('common.importFailed'));
+    return false;
   } finally {
     importLoading.value = false;
     input.value = '';
@@ -402,17 +417,9 @@ defineExpose({
                 <template #icon><DeleteIcon /></template>
                 {{ $t('common.delete') }}
               </Button>
-              <Button variant="outline" :loading="importLoading" @click="triggerImport">
+              <Button variant="outline" :loading="importLoading" @click="openImportDialog">
                 <template #icon><UploadIcon /></template>
                 {{ $t('common.import') }}
-              </Button>
-              <Button
-                variant="outline"
-                :loading="templateLoading"
-                @click="handleDownloadTemplate"
-              >
-                <template #icon><DownloadIcon /></template>
-                {{ $t('common.importTemplate') }}
               </Button>
               <Button variant="outline" :loading="exportLoading" @click="handleExport">
                 <template #icon><DownloadIcon /></template>
@@ -511,8 +518,47 @@ defineExpose({
       type="file"
       accept=".xlsx,.xls,.csv"
       class="hidden"
-      @change="handleImportChange"
+      @change="handleImportChangeWithClose"
     />
+
+    <Dialog
+      v-model:visible="importDialogVisible"
+      width="420px"
+      :header="$t('common.import')"
+      destroy-on-close
+      :close-on-overlay-click="true"
+    >
+      <div class="flex flex-col gap-4">
+        <p class="text-sm text-text-2">
+          {{ $t('common.importDialogDescription') }}
+        </p>
+        <div class="flex flex-col gap-3">
+          <Button
+            variant="outline"
+            :loading="templateLoading"
+            @click="handleDownloadTemplate"
+          >
+            <template #icon><DownloadIcon /></template>
+            {{ $t('common.importTemplate') }}
+          </Button>
+          <Button
+            theme="primary"
+            :loading="importLoading"
+            @click="triggerImport"
+          >
+            <template #icon><UploadIcon /></template>
+            {{ $t('common.import') }}
+          </Button>
+        </div>
+      </div>
+      <template #footer>
+        <div class="flex justify-end">
+          <Button theme="default" @click="importDialogVisible = false">
+            {{ $t('common.cancel') }}
+          </Button>
+        </div>
+      </template>
+    </Dialog>
 
     <ApiColumnModal ref="apiColumnModalRef" @success="fetchTableData" />
   </Modal>
