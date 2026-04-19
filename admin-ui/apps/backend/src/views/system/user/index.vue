@@ -64,6 +64,7 @@ type UserModalInstance = {
 const userModalRef = ref<UserModalInstance>();
 const tableContainerRef = ref<HTMLElement>();
 const isFullscreen = ref(false);
+const importDialogVisible = ref(false);
 
 const roleOptions = ref<RoleApi.ListItem[]>([]);
 const postOptions = ref<PostApi.ListItem[]>([]);
@@ -179,6 +180,17 @@ async function fetchOptions() {
 
 function handleAdd() {
   userModalRef.value?.open();
+}
+
+function openImportDialog() {
+  importDialogVisible.value = true;
+}
+
+async function handleImportChangeWithClose(event: Event) {
+  const success = await handleImportChange(event);
+  if (success) {
+    importDialogVisible.value = false;
+  }
 }
 
 function handleEdit(row: UserListItem) {
@@ -332,17 +344,9 @@ onUnmounted(() => {
                   <template #icon><DeleteIcon /></template>
                   {{ $t('common.delete') }}
                 </Button>
-                <Button variant="outline" :loading="importLoading" @click="triggerImport">
+                <Button variant="outline" :loading="importLoading" @click="openImportDialog">
                   <template #icon><UploadIcon /></template>
                   {{ $t('common.import') }}
-                </Button>
-                <Button
-                  variant="outline"
-                  :loading="templateLoading"
-                  @click="handleDownloadTemplate"
-                >
-                  <template #icon><DownloadIcon /></template>
-                  {{ $t('common.importTemplate') }}
                 </Button>
                 <Button variant="outline" :loading="exportLoading" @click="handleExport">
                   <template #icon><DownloadIcon /></template>
@@ -482,8 +486,47 @@ onUnmounted(() => {
       type="file"
       accept=".xlsx,.xls,.csv"
       class="hidden"
-      @change="handleImportChange"
+      @change="handleImportChangeWithClose"
     />
+
+    <Dialog
+      v-model:visible="importDialogVisible"
+      width="420px"
+      :header="$t('common.import')"
+      destroy-on-close
+      :close-on-overlay-click="true"
+    >
+      <div class="flex flex-col gap-4">
+        <p class="text-sm text-text-2">
+          {{ $t('common.importDialogDescription') }}
+        </p>
+        <div class="flex flex-col gap-3">
+          <Button
+            variant="outline"
+            :loading="templateLoading"
+            @click="handleDownloadTemplate"
+          >
+            <template #icon><DownloadIcon /></template>
+            {{ $t('common.importTemplate') }}
+          </Button>
+          <Button
+            theme="primary"
+            :loading="importLoading"
+            @click="triggerImport"
+          >
+            <template #icon><UploadIcon /></template>
+            {{ $t('common.import') }}
+          </Button>
+        </div>
+      </div>
+      <template #footer>
+        <div class="flex justify-end">
+          <Button theme="default" @click="importDialogVisible = false">
+            {{ $t('common.cancel') }}
+          </Button>
+        </div>
+      </template>
+    </Dialog>
 
     <Dialog
       v-model:visible="setHomePageVisible"

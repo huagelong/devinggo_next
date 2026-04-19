@@ -101,6 +101,7 @@
   "exportFailed": "Export failed, please try again later",
   "templateDownloadSuccess": "Template downloaded successfully",
   "templateDownloadFailed": "Template download failed, please try again later",
+  "importDialogDescription": "Download the template or select a file to import.",
   "configDataLoadFailed2": "Failed to load config list, please try again later",
   "configUpdateSuccess": "Config updated successfully",
   "configUpdateFailed": "Failed to update config, please try again later",

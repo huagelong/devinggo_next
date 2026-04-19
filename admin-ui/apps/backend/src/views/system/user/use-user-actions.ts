@@ -172,16 +172,18 @@ export function useUserActions(options: UseUserActionsOptions) {
   async function handleImportChange(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
+    if (!file) return false;
 
     importLoading.value = true;
     try {
       await importUserFile(file);
       message.success($t('common.importSuccess'));
       options.fetchTableData();
+      return true;
     } catch (error) {
       logger.error(error);
       message.error($t('common.importFailed'));
+      return false;
     } finally {
       importLoading.value = false;
       input.value = '';

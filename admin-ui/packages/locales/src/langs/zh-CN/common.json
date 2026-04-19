@@ -101,6 +101,7 @@
   "exportFailed": "导出失败，请稍后重试",
   "templateDownloadSuccess": "模板下载成功",
   "templateDownloadFailed": "模板下载失败，请稍后重试",
+  "importDialogDescription": "下载模板或选择文件进行导入。",
   "configDataLoadFailed2": "配置列表加载失败，请稍后重试",
   "configUpdateSuccess": "配置更新成功",
   "configUpdateFailed": "配置更新失败，请稍后重试",
