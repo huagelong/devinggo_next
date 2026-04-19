@@ -29,7 +29,7 @@ const treeKeys = {
 
 // 展开的节点
 const expanded = ref<IdType[]>([]);
-const isFolding = ref(false);
+const isFolding = ref(true);
 
 const filter = computed(() => {
   if (!searchText.value) {
@@ -52,6 +52,18 @@ async function fetchDeptTree() {
         children: res || [],
       },
     ];
+    // 默认展开所有节点
+    const ids: IdType[] = [];
+    const traverse = (nodes: DeptApi.TreeNode[]) => {
+      nodes.forEach((node) => {
+        ids.push(node.id);
+        if (node.children) {
+          traverse(node.children);
+        }
+      });
+    };
+    traverse(treeData.value);
+    expanded.value = ids;
   } catch (error) {
     logger.error('Failed to fetch dept tree', error);
   }
@@ -97,7 +109,7 @@ function filterTreeNode(node: unknown) {
     <div
       class="flex items-center justify-between gap-2 border-b border-gray-100 p-3"
     >
-      <Input v-model="searchText" :placeholder="$t('system.user.searchDept')" class="flex-1">
+      <Input v-model="searchText" :placeholder="$t('system.user.searchDept')" class="flex-1 min-w-0">
         <template #prefixIcon>
           <SearchIcon />
         </template>
