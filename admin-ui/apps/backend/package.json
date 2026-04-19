@@ -16,10 +16,10 @@
   },
   "type": "module",
   "scripts": {
-    "build": "pnpm vite build --mode production",
-    "build:analyze": "pnpm vite build --mode analyze",
-    "dev": "pnpm vite --mode development",
-    "preview": "vite preview",
+    "build": "pnpm exec vite build --mode production",
+    "build:analyze": "pnpm exec vite build --mode analyze",
+    "dev": "pnpm exec vite --mode development",
+    "preview": "pnpm exec vite preview",
     "typecheck": "vue-tsc --noEmit --skipLibCheck"
   },
   "imports": {
@@ -54,6 +54,8 @@
   },
   "devDependencies": {
     "@types/dompurify": "^3.2.0",
+    "@vben/vite-config": "workspace:*",
+    "vite": "catalog:",
     "vue-tsc": "catalog:"
   }
 }

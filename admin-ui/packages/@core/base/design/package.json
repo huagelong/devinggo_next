@@ -45,6 +45,7 @@
     "@iconify/json": "catalog:",
     "@iconify/tailwind4": "catalog:",
     "@tailwindcss/typography": "catalog:",
+    "tailwindcss": "catalog:",
     "tw-animate-css": "catalog:"
   }
 }
