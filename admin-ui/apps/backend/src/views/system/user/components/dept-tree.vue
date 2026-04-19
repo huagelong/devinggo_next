@@ -3,7 +3,7 @@ import { logger } from '#/utils/logger';
 import type { DeptApi } from '#/api/system/dept';
 import type { IdType } from '#/types/common';
 
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import { $t } from '#/locales';
 
@@ -28,8 +28,19 @@ const treeKeys = {
 };
 
 // 展开的节点
-const expanded = ref<IdType[]>([-1]);
+const expanded = ref<IdType[]>([]);
 const isFolding = ref(false);
+
+const filter = computed(() => {
+  if (!searchText.value) {
+    return null;
+  }
+
+  return (node: { label?: string }) => {
+    const label = node.label ?? '';
+    return label.includes(searchText.value);
+  };
+});
 
 async function fetchDeptTree() {
   try {
@@ -54,9 +65,8 @@ function handleNodeClick(context: unknown) {
 
 function toggleExpand() {
   if (isFolding.value) {
-    expanded.value = [-1]; // Root node id is usually needed, fallback to root
+    expanded.value = [];
   } else {
-    // Collect all ids
     const ids: IdType[] = [];
     const traverse = (nodes: DeptApi.TreeNode[]) => {
       nodes.forEach((node) => {
@@ -103,12 +113,12 @@ function filterTreeNode(node: unknown) {
       <Tree
         v-model:expanded="expanded"
         :data="treeData"
-        :filter="filterTreeNode"
+        :filter="filter"
         :keys="treeKeys"
         hover
         activable
-        expand-all
         line
+        allow-fold-node-on-filter
         @click="handleNodeClick"
       >
         <template #icon="{ node }">
