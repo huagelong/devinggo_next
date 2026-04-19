@@ -40,5 +40,8 @@
     "@vueuse/core": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:"
+  },
+  "devDependencies": {
+    "@vben/tsconfig": "workspace:*"
   }
 }

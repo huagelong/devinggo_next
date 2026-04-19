@@ -1368,6 +1368,10 @@ importers:
       vue-router:
         specifier: 'catalog:'
         version: 5.0.3(@vue/compiler-sfc@3.5.30)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.30(typescript@5.9.3)))(vue@3.5.30(typescript@5.9.3))
+    devDependencies:
+      '@vben/tsconfig':
+        specifier: workspace:*
+        version: link:../../../internal/tsconfig
 
   packages/effects/plugins:
     dependencies:
