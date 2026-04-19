@@ -8,6 +8,7 @@ package system
 
 import (
 	"context"
+	"strings"
 	"devinggo/internal/dao"
 	"devinggo/internal/model/entity"
 	"devinggo/modules/system/api/system"
@@ -123,6 +124,9 @@ func (c *userController) IndexUser(ctx context.Context, in *system.IndexUserReq)
 			item.RoleIds, _ = service.SystemUserRole().GetRoleIdsByUserId(ctx, item.Id)
 			//获取用户所属岗位
 			item.PostIds, _ = service.SystemUserPost().GetPostIdsByUserId(ctx, item.Id)
+			if err = c.fillUserRelatedNames(ctx, item); err != nil {
+				return
+			}
 
 			out.Items = append(out.Items, *item)
 		}
@@ -150,6 +154,55 @@ func (c *userController) IndexOnlineUser(ctx context.Context, in *system.IndexOn
 	return
 }
 
+func (c *userController) fillUserRelatedNames(ctx context.Context, item *res.SystemUser) (err error) {
+	if !g.IsEmpty(item.DeptIds) {
+		var deptList []*entity.SystemDept
+		err = service.SystemDept().Model(ctx).Fields(dao.SystemDept.Columns().Name).WhereIn(dao.SystemDept.Columns().Id, item.DeptIds).Scan(&deptList)
+		if utils.IsError(err) {
+			return
+		}
+		if !g.IsEmpty(deptList) {
+			deptNames := make([]string, 0, len(deptList))
+			for _, dept := range deptList {
+				deptNames = append(deptNames, dept.Name)
+			}
+			item.DeptName = strings.Join(deptNames, ",")
+		}
+	}
+
+	if !g.IsEmpty(item.RoleIds) {
+		var roleList []*entity.SystemRole
+		roleList, err = service.SystemRole().GetByIds(ctx, item.RoleIds)
+		if err != nil {
+			return
+		}
+		if !g.IsEmpty(roleList) {
+			roleNames := make([]string, 0, len(roleList))
+			for _, role := range roleList {
+				roleNames = append(roleNames, role.Name)
+			}
+			item.RoleName = strings.Join(roleNames, ",")
+		}
+	}
+
+	if !g.IsEmpty(item.PostIds) {
+		var postList []*entity.SystemPost
+		err = service.SystemPost().Model(ctx).Fields(dao.SystemPost.Columns().Name).WhereIn(dao.SystemPost.Columns().Id, item.PostIds).Scan(&postList)
+		if utils.IsError(err) {
+			return
+		}
+		if !g.IsEmpty(postList) {
+			postNames := make([]string, 0, len(postList))
+			for _, post := range postList {
+				postNames = append(postNames, post.Name)
+			}
+			item.PostName = strings.Join(postNames, ",")
+		}
+	}
+
+	return
+}
+
 func (c *userController) KickUser(ctx context.Context, in *system.KickUserReq) (out *system.KickUserRes, err error) {
 	out = &system.KickUserRes{}
 	r := request.GetHttpRequest(ctx)
@@ -171,6 +224,12 @@ func (c *userController) RecycleUser(ctx context.Context, in *system.RecycleUser
 
 	if !g.IsEmpty(items) {
 		for _, item := range items {
+			item.DeptIds, _ = service.SystemUserDept().GetDeptIdsByUserId(ctx, item.Id)
+			item.RoleIds, _ = service.SystemUserRole().GetRoleIdsByUserId(ctx, item.Id)
+			item.PostIds, _ = service.SystemUserPost().GetPostIdsByUserId(ctx, item.Id)
+			if err = c.fillUserRelatedNames(ctx, item); err != nil {
+				return
+			}
 			out.Items = append(out.Items, *item)
 		}
 	} else {

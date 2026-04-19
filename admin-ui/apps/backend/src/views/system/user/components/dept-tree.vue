@@ -49,13 +49,7 @@ const expandButtonText = computed(() =>
 async function fetchDeptTree() {
   try {
     const res = await getDeptTree();
-    treeData.value = [
-      {
-        id: -1,
-        label: $t('system.user.allDepts'),
-        children: res || [],
-      },
-    ];
+    treeData.value = res || [];
     // 默认展开所有节点
     const ids: IdType[] = [];
     const traverse = (nodes: DeptApi.TreeNode[]) => {
@@ -76,7 +70,7 @@ async function fetchDeptTree() {
 function handleNodeClick(context: unknown) {
   const nodeValue =
     (context as { node?: { value?: IdType } })?.node?.value ?? '';
-  emit('select', nodeValue === -1 ? '' : nodeValue);
+  emit('select', nodeValue);
 }
 
 function toggleExpand() {

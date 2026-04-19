@@ -50,3 +50,4 @@ func (s *sSystemUserPost) GetPostIdsByUserId(ctx context.Context, userId int64) 
 	}
 	return
 }
+
