@@ -42,6 +42,7 @@ const deptOptions = ref<Array<{ label: string; value: number }>>([]);
 const roleOptions = ref<Array<{ label: string; value: number }>>([]);
 const postOptions = ref<Array<{ label: string; value: number }>>([]);
 const candidateColumns = [
+  { colKey: 'row-select', type: 'multiple', width: 50 },
   { colKey: 'username', title: $t('system.user.username'), minWidth: 120 },
   { colKey: 'nickname', title: $t('system.user.nickname'), minWidth: 120 },
   { colKey: 'phone', title: $t('system.user.phone'), minWidth: 140 },
@@ -92,6 +93,7 @@ const statusOptions = [
 ];
 
 const leaderColumns = [
+  { colKey: 'row-select', type: 'multiple', width: 50 },
   { colKey: 'username', title: $t('system.dept.username'), minWidth: 140 },
   { colKey: 'nickname', title: $t('system.dept.nickname'), minWidth: 140 },
   { colKey: 'phone', title: $t('system.dept.phone'), minWidth: 140 },
@@ -437,7 +439,6 @@ defineExpose({
           :loading="loading"
           :pagination="leaderPagination"
           :selected-row-keys="selectedLeaderKeys"
-          :row-selection="{ type: 'checkbox', showCheckedAll: true }"
           row-key="id"
           hover
           stripe
@@ -551,7 +552,6 @@ defineExpose({
               :loading="candidateLoading"
               :pagination="candidatePagination"
               :selected-row-keys="selectedCandidateIds"
-              :row-selection="{ type: 'checkbox', showCheckedAll: true }"
               row-key="id"
               hover
               stripe

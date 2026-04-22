@@ -318,14 +318,14 @@ func (s *sSystemDept) AddLeader(ctx context.Context, in *req.SystemDeptAddLeader
 	users := in.Users
 	deptId := in.Id
 	for _, user := range users {
-		count, err := service.SystemDeptLeader().Model(ctx).Where("dept_id", deptId).Where("user_id", user.Id).Count()
+		count, err := service.SystemDeptLeader().Model(ctx).Where("dept_id", deptId).Where("user_id", user.UserId).Count()
 		if utils.IsError(err) {
 			return err
 		}
 		if count == 0 {
 			saveData := do.SystemDeptLeader{
 				DeptId:    deptId,
-				UserId:    user.Id,
+				UserId:    user.UserId,
 				Username:  user.Username,
 				CreatedAt: gtime.Now(),
 			}

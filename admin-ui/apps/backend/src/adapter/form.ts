@@ -41,6 +41,17 @@ async function initSetupVbenForm() {
         }
         return true;
       },
+      pattern: (value, params, ctx) => {
+        if (value === undefined || value === null || value === '') {
+          return true;
+        }
+        const [patternStr, message] = params.split('#');
+        const regex = new RegExp(patternStr);
+        if (!regex.test(String(value))) {
+          return message || $t('ui.formRules.formatInvalid', [ctx.label]);
+        }
+        return true;
+      },
     },
   });
 }

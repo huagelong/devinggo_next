@@ -9,7 +9,8 @@
     "startWith": "{0} must start with `{1}`",
     "invalidURL": "Please input a valid URL",
     "sizeLimit": "The file size cannot exceed {0}MB",
-    "previewWarning": "Unable to open the file, there is no available URL or preview address"
+    "previewWarning": "Unable to open the file, there is no available URL or preview address",
+    "formatInvalid": "Invalid format for {0}"
   },
   "actionTitle": {
     "edit": "Modify {0}",

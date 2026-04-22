@@ -52,7 +52,7 @@ func (s *sSystemDeptLeader) GetPageList(ctx context.Context, req *model.PageList
 	if !g.IsEmpty(search.Status) {
 		m = m.Where("system_user.status = ?", search.Status)
 	}
-	err = orm.NewQuery(m).WithPageListReq(req).ScanAndCount(&res, &total)
+	err = orm.NewQuery(m).WithPageListReq(req).WithOrder("system_user.id", "desc").ScanAndCount(&res, &total)
 	if utils.IsError(err) {
 		return nil, 0, err
 	}
