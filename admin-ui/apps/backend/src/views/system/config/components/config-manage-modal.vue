@@ -37,13 +37,6 @@ const searchForm = reactive({
 });
 const tableData = ref<ConfigApi.ConfigItem[]>([]);
 const loading = ref(false);
-const pagination = reactive({
-  current: 1,
-  pageSize: 20,
-  total: 0,
-  showJumper: true,
-  showPageSize: true,
-});
 const currentGroupId = ref<number>();
 const groupOptions = ref<DictOption<number>[]>([]);
 
@@ -55,8 +48,6 @@ const [Modal, modalApi] = useVbenModal({
 function buildParams() {
   const params: ConfigApi.ConfigListQuery = {
     group_id: currentGroupId.value,
-    page: pagination.current,
-    pageSize: pagination.pageSize,
   };
   if (searchForm.name) params.name = searchForm.name;
   if (searchForm.key) params.key = searchForm.key;
@@ -67,9 +58,8 @@ async function fetchTableData() {
   if (!currentGroupId.value) return;
   loading.value = true;
   try {
-    const response = await getConfigList(buildParams());
-    tableData.value = response.items ?? [];
-    pagination.total = Number(response?.pageInfo?.total || response?.total || 0);
+    const list = await getConfigList(buildParams());
+    tableData.value = list;
   } catch (error) {
     logger.error(error);
     MessagePlugin.error($t('common.configDataLoadFailed2'));
@@ -87,20 +77,12 @@ async function fetchGroupOptions() {
 }
 
 function handleSearch() {
-  pagination.current = 1;
   void fetchTableData();
 }
 
 function handleReset() {
   searchForm.key = '';
   searchForm.name = '';
-  pagination.current = 1;
-  void fetchTableData();
-}
-
-function handlePageChange(pageInfo: { current: number; pageSize: number }) {
-  pagination.current = pageInfo.current;
-  pagination.pageSize = pageInfo.pageSize;
   void fetchTableData();
 }
 
@@ -133,7 +115,6 @@ async function handleDelete(row: ConfigApi.ConfigItem) {
 
 async function open(groupId: number) {
   currentGroupId.value = groupId;
-  pagination.current = 1;
   searchForm.key = '';
   searchForm.name = '';
   await fetchGroupOptions();
@@ -205,12 +186,10 @@ defineExpose({
           ]"
           :data="tableData"
           :loading="loading"
-          :pagination="pagination"
           row-key="id"
           hover
           stripe
           table-layout="fixed"
-          @page-change="handlePageChange"
         >
           <template #action="{ row }">
             <div class="flex items-center justify-center gap-2">

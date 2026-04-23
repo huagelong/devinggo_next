@@ -131,12 +131,11 @@ async function fetchGroups() {
 
 async function fetchGroupConfigs(groupId: number) {
   try {
-    const response = await getConfigList({
+    const items = await getConfigList({
       group_id: groupId,
       orderBy: 'sort',
       orderType: 'asc',
     });
-    const items = response.items ?? response.data ?? [];
     const fields: ConfigFieldMeta[] = [];
     const form: ConfigFormModel = {};
     items.forEach((item) => {

@@ -107,7 +107,7 @@ export function deleteConfigGroup(data: ConfigApi.DeletePayload) {
 }
 
 export function getConfigList(params: ConfigApi.ConfigListQuery) {
-  return requestClient.get<ConfigApi.ConfigListResponse>(
+  return requestClient.get<ConfigApi.ConfigItem[]>(
     '/system/setting/config/index',
     { params },
   );
