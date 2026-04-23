@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { h } from 'vue';
+import { h, markRaw } from 'vue';
 
 import { alert, prompt, useAlertContext, VbenButton } from '@vben/common-ui';
 
@@ -53,7 +53,7 @@ function showSlotsPrompt() {
 
 function showSelectPrompt() {
   prompt({
-    component: Select,
+    component: markRaw(Select),
     componentProps: {
       options: [
         { label: 'Option A', value: 'Option A' },
@@ -91,7 +91,7 @@ function showAsyncPrompt() {
         }
       }
     },
-    component: RadioGroup,
+    component: markRaw(RadioGroup),
     componentProps: {
       class: 'flex flex-col',
       options: [
