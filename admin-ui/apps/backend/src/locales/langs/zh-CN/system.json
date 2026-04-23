@@ -73,6 +73,7 @@
   "api": {
     "name": "接口名称",
     "code": "接口标识",
+    "codePlaceholder": "请输入接口标识",
     "group": "所属组",
     "requestMode": "请求模式",
     "authMode": "认证模式",
@@ -86,6 +87,7 @@
     "dataType": "数据类型",
     "fieldType": "字段类型",
     "defaultValue": "默认值",
+    "fieldDescription": "字段描述",
     "editTitle": "编辑接口",
     "createTitle": "新增接口",
     "confirmDelete": "确认删除该接口吗？",

@@ -73,6 +73,7 @@
   "api": {
     "name": "API Name",
     "code": "API Code",
+    "codePlaceholder": "Please enter API code",
     "group": "Group",
     "requestMode": "Request Mode",
     "authMode": "Auth Mode",
@@ -86,6 +87,7 @@
     "dataType": "Data Type",
     "fieldType": "Field Type",
     "defaultValue": "Default Value",
+    "fieldDescription": "Field Description",
     "editTitle": "Edit API",
     "createTitle": "New API",
     "confirmDelete": "Are you sure to delete this API?",

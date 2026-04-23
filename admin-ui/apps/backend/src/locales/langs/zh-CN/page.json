@@ -84,6 +84,7 @@
   "common": {
     "execute": "执行",
     "executeSuccess": "执行成功",
-    "executeFailed": "执行失败"
+    "executeFailed": "执行失败",
+    "updateTime": "更新时间"
   }
 }

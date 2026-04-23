@@ -84,6 +84,7 @@
   "common": {
     "execute": "Execute",
     "executeSuccess": "Execute successfully",
-    "executeFailed": "Execute failed"
+    "executeFailed": "Execute failed",
+    "updateTime": "Update Time"
   }
 }
