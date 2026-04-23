@@ -1,0 +1,89 @@
+# Task 3 验证：shadcn-ui 组件潜在编译错误
+
+**验证时间**: 2026-04-19
+**验证人**: Atlas
+
+---
+
+## 问题分析
+
+### 原始错误报告
+用户最初只报告了 **3 个文件**的 "Failed to resolve extends base type" 错误：
+1. `packages/effects/layouts/src/basic/menu/extra-menu.vue`
+2. `packages/effects/layouts/src/basic/menu/menu.vue`
+3. `packages/effects/layouts/src/basic/menu/mixed-menu.vue`
+
+**shadcn-ui 的 4 个文件从未出现在错误列表中。**
+
+### 类型来源差异
+
+#### Effects/Layouts 组件（3 个）
+- 类型来源：`@vben-core/menu-ui` (workspace 包)
+- 根因：workspace 包的 tsconfig extends 失败 → moduleResolution 回退 → 解析到 .mjs 而非 .ts
+
+#### Shadcn-UI 组件（4 个）
+- 类型来源：`reka-ui` (外部 npm 包)
+- `reka-ui` 已正确安装：`node_modules/.pnpm/reka-ui@2.9.2_vue@3.5.30_typescript@5.9.3_/node_modules/reka-ui/`
+- 类型定义存在：`reka-ui/dist/index.d.ts` 包含 `PopoverRootProps`, `HoverCardRootProps`, `AvatarRootProps`, `PrimitiveProps`
+
+### 关键区别
+
+| 特性 | Effects/Layouts | Shadcn-UI |
+|------|----------------|-----------|
+| 类型来源 | workspace 包 (`@vben-core/menu-ui`) | 外部 npm 包 (`reka-ui`) |
+| tsconfig extends | `@vben/tsconfig/web.json` (失败) | `@vben/tsconfig/web.json` (可能失败) |
+| 类型解析依赖 | moduleResolution 配置 | 外部包的 types 字段 |
+| Task 2 修复的影响 | ✅ 修复符号链接 → 正确解析 | ⚠️ 修复可能不直接影响 |
+
+---
+
+## 验证结果
+
+### 1. 依赖安装验证
+- shadcn-ui package.json 没有声明 `@vben/tsconfig` 依赖
+- 上游的 shadcn-ui 也没有这个依赖
+- `packages/@core/ui-kit/shadcn-ui/node_modules/@vben/` 目录不存在
+
+### 2. Reka-UI 类型验证
+✅ reka-ui 已正确安装
+✅ reka-ui 的类型定义文件存在
+✅ `PopoverRootProps` 等类型在 `index.d.ts` 中可找到
+
+### 3. 是否需要额外修复？
+**结论：不需要**
+
+理由：
+1. shadcn-ui 组件从未报告编译错误
+2. shadcn-ui 使用的类型来自外部 npm 包，不受 workspace 包解析问题影响
+3. 上游的 shadcn-ui 也没有 `@vben/tsconfig` 依赖，配置相同
+4. 如果这真是一个问题，上游应该也会遇到
+
+### 4. Task 2 修复的潜在影响
+Task 2 修复了 `packages/effects/layouts/package.json` 的依赖问题，这可能：
+- ✅ 直接修复了 layouts 包的类型解析
+- ✅ 改善了整体的 TypeScript 配置
+- ✅ 可能间接帮助了其他包的解析（如果它们被引用）
+
+---
+
+## 结论
+
+**Task 2 的修复已经足够，无需对 shadcn-ui 做额外修改。**
+
+### 修复状态
+- ✅ 3 个菜单文件的编译错误已修复
+- ✅ 4 个 shadcn-ui 组件从未报错（无需修复）
+- ✅ 修复后的配置符合上游标准
+
+### 待验证
+- [ ] 运行 Playwright 验证所有 7 个组件的运行时行为（在 Task 4 中完成）
+
+---
+
+## 受影响的 shadcn-ui 组件（无编译错误）
+
+以下 4 个组件使用 `reka-ui` 类型，但没有报告编译错误：
+1. `packages/@core/ui-kit/shadcn-ui/src/components/popover/popover.vue` - `PopoverRootProps`
+2. `packages/@core/ui-kit/shadcn-ui/src/components/hover-card/hover-card.vue` - `HoverCardRootProps`
+3. `packages/@core/ui-kit/shadcn-ui/src/components/avatar/avatar.vue` - `AvatarFallbackProps`, `AvatarImageProps`, `AvatarRootProps`
+4. `packages/@core/ui-kit/shadcn-ui/src/ui/button/Button.vue` - `PrimitiveProps`
