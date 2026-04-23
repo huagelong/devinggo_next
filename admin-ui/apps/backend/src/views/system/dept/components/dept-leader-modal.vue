@@ -20,6 +20,7 @@ import {
   Space,
   Table,
 } from 'tdesign-vue-next';
+import type { PrimaryTableCol, TableRowData } from 'tdesign-vue-next/es/table/type';
 
 import {
   addDeptLeader,
@@ -50,7 +51,7 @@ const candidateColumns = [
   { colKey: 'dept_name', title: $t('system.user.dept'), minWidth: 160 },
   { colKey: 'role_name', title: $t('system.user.role'), minWidth: 140 },
   { colKey: 'post_name', title: $t('system.user.post'), minWidth: 140 },
-];
+] satisfies PrimaryTableCol<TableRowData>[];
 const candidatePagination = reactive({
   current: 1,
   pageSize: 10,
@@ -106,7 +107,7 @@ const leaderColumns = [
     align: 'center' as const,
   },
   { colKey: 'action', title: $t('common.action'), width: 120, align: 'center' as const },
-];
+] satisfies PrimaryTableCol<TableRowData>[];
 
 function handleLeaderSelectChange(keys: Array<number | string>) {
   selectedLeaderKeys.value = keys;
@@ -151,7 +152,9 @@ async function fetchCandidateUsers(page = 1) {
       role_id: candidateSearchForm.role_id,
       post_id: candidateSearchForm.post_id,
     };
-    const response = await getUserList(params as unknown as UserApi.ListQuery);
+    const response = await getUserList(params as unknown as UserApi.ListQuery, {
+      timeout: 30_000,
+    });
     candidateUsers.value = response.items ?? [];
     candidatePagination.total = Number(response.pageInfo?.total || response.total || 0);
   } catch (error) {

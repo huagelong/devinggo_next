@@ -1,4 +1,5 @@
 import { requestClient } from '#/api/request';
+import type { RequestClientConfig } from '@vben/request';
 import type { BatchIdsPayload, IdType, StatusValue } from '#/types/common';
 import type { PageQuery, PageResponse } from '#/types/paging';
 
@@ -90,8 +91,14 @@ export namespace UserApi {
   export type ListResponse = PageResponse<ListItem>;
 }
 
-export function getUserList(params: UserApi.ListQuery) {
-  return requestClient.get<UserApi.ListResponse>('/system/user/index', { params });
+export function getUserList(
+  params: UserApi.ListQuery,
+  config?: RequestClientConfig,
+) {
+  return requestClient.get<UserApi.ListResponse>('/system/user/index', {
+    ...config,
+    params,
+  });
 }
 
 export function getRecycleUserList(params: UserApi.ListQuery) {

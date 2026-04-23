@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@types/dompurify": "^3.2.0",
+    "@vben/tsconfig": "workspace:*",
     "@vben/vite-config": "workspace:*",
     "vite": "catalog:",
     "vue-tsc": "catalog:"
