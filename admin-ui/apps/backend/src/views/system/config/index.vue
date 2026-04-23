@@ -64,11 +64,20 @@ function normalizeOptions(data: unknown): ConfigFieldMeta['config_select_data'] 
 }
 
 function normalizeSwitchValues(value: unknown) {
-  if (typeof value === 'string') {
-    return { checked: 'true', unchecked: 'false' };
+  if (typeof value === 'boolean') {
+    return { checked: true, unchecked: false };
   }
   if (typeof value === 'number') {
     return { checked: 1, unchecked: 0 };
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === '1' || normalized === '0') {
+      return { checked: '1', unchecked: '0' };
+    }
+    if (normalized === 'true' || normalized === 'false') {
+      return { checked: 'true', unchecked: 'false' };
+    }
   }
   return { checked: true, unchecked: false };
 }
