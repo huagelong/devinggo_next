@@ -274,13 +274,13 @@ onMounted(() => {
         >
           <template #type="{ row }">
             <Tag theme="primary">
-              {{ row.type === 1 ? $t('system.crontab.typeInterval') : $t('system.crontab.typeCron') }}
+              {{ row?.type === 1 ? $t('system.crontab.typeInterval') : $t('system.crontab.typeCron') }}
             </Tag>
           </template>
 
           <template #is_finally="{ row }">
-            <Tag :theme="row.is_finally === 1 ? 'success' : 'default'">
-              {{ row.is_finally === 1 ? $t('common.yes') : $t('common.no') }}
+            <Tag :theme="row?.is_finally === 1 ? 'success' : 'default'">
+              {{ row?.is_finally === 1 ? $t('common.yes') : $t('common.no') }}
             </Tag>
           </template>
 

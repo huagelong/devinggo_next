@@ -341,12 +341,12 @@ onMounted(() => {
           @select-change="handleTableSelectChange"
         >
           <template #data_scope="{ row }">
-            <span>{{ getRoleDataScopeLabel(row.data_scope) }}</span>
+            <span>{{ getRoleDataScopeLabel(row?.data_scope) }}</span>
           </template>
 
           <template #sort="{ row }">
             <InputNumber
-              :value="row.sort"
+              :value="row?.sort"
               :min="0"
               :max="1000"
               size="small"
@@ -356,8 +356,8 @@ onMounted(() => {
 
           <template #status="{ row }">
             <Switch
-              :disabled="isRecycleBin || row.code === 'superAdmin'"
-              :value="Number(row.status) === 1"
+              :disabled="isRecycleBin || row?.code === 'superAdmin'"
+              :value="Number(row?.status) === 1"
               @change="(value: unknown) => handleStatusSwitchChange(row, value)"
             />
           </template>
@@ -365,7 +365,7 @@ onMounted(() => {
           <template #action="{ row }">
             <div class="flex items-center justify-center gap-1">
               <template v-if="!isRecycleBin">
-                <template v-if="row.code !== 'superAdmin'">
+                <template v-if="row?.code !== 'superAdmin'">
                   <Button
                     size="small"
                     theme="primary"

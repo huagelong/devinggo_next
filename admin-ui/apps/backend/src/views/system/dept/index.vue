@@ -319,10 +319,10 @@ onMounted(() => {
           stripe
           @expanded-tree-nodes-change="handleExpandedTreeNodesChange"
           @select-change="handleSelectChange"
-        >
+          >
           <template #sort="{ row }">
             <InputNumber
-              :value="row.sort"
+              :value="row?.sort"
               :min="0"
               :max="1000"
               size="small"
@@ -333,7 +333,7 @@ onMounted(() => {
           <template #status="{ row }">
             <Switch
               :disabled="isRecycleBin"
-              :value="Number(row.status) === 1"
+              :value="Number(row?.status) === 1"
               @change="(value: unknown) => handleStatusSwitchChange(row, value)"
             />
           </template>

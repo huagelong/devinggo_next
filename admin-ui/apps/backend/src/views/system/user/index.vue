@@ -394,8 +394,8 @@ onUnmounted(() => {
           >
             <template #avatar="{ row }">
               <img
-                v-if="row.avatar"
-                :src="row.avatar"
+                v-if="row?.avatar"
+                :src="row?.avatar"
                 class="mx-auto h-8 w-8 rounded-full object-cover"
                 alt="avatar"
               />
@@ -405,7 +405,7 @@ onUnmounted(() => {
             <template #status="{ row }">
               <Switch
                 :disabled="isRecycleBin || isSuperAdmin(row)"
-                :value="row.status === 1"
+                :value="row?.status === 1"
                 @change="(value: unknown) => handleStatusSwitchChange(row, value)"
               />
             </template>

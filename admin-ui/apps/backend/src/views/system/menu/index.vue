@@ -299,19 +299,19 @@ onMounted(() => {
           stripe
           table-layout="fixed"
           @select-change="handleSelectChange"
-        >
+          >
           <template #type="{ row }">
             <Tag
               size="small"
-              :theme="menuTypeTagMap[row.type]?.theme ?? 'default'"
+              :theme="menuTypeTagMap[row?.type]?.theme ?? 'default'"
             >
-              {{ menuTypeTagMap[row.type]?.label ?? row.type }}
+              {{ menuTypeTagMap[row?.type]?.label ?? row?.type }}
             </Tag>
           </template>
 
           <template #sort="{ row }">
             <InputNumber
-              :value="row.sort"
+              :value="row?.sort"
               :min="0"
               :max="1000"
               size="small"
@@ -323,7 +323,7 @@ onMounted(() => {
           <template #status="{ row }">
             <Switch
               :disabled="isRecycleBin"
-              :value="Number(row.status) === 1"
+              :value="Number(row?.status) === 1"
               @change="(value: unknown) => handleStatusSwitchChange(row, value)"
             />
           </template>
@@ -332,7 +332,7 @@ onMounted(() => {
             <div class="flex items-center justify-center gap-1">
               <template v-if="!isRecycleBin">
                 <Button
-                  v-if="row.type === 'M'"
+                  v-if="row?.type === 'M'"
                   size="small"
                   theme="default"
                   variant="outline"

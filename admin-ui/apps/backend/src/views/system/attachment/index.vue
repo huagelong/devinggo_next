@@ -303,21 +303,21 @@ onMounted(() => {
             <template #url="{ row }">
               <div class="flex items-center justify-center">
                 <img
-                  v-if="isImageType(row.mime_type)"
-                  :src="row.url"
-                  :alt="row.origin_name"
+                  v-if="isImageType(row?.mime_type)"
+                  :src="row?.url"
+                  :alt="row?.origin_name"
                   class="h-10 w-10 cursor-zoom-in rounded object-cover transition hover:opacity-80"
-                  @click="handlePreviewImage(row.url)"
+                  @click="handlePreviewImage(row?.url)"
                 />
                 <Tag v-else theme="default">
-                  {{ getFileExtension(row.mime_type) }}
+                  {{ getFileExtension(row?.mime_type) }}
                 </Tag>
               </div>
             </template>
 
             <template #storage_mode="{ row }">
-              <Tag :theme="row.storage_mode === 1 ? 'primary' : 'warning'">
-                {{ row.storage_mode === 1 ? $t('common.local') : $t('common.cloudStorage') }}
+              <Tag :theme="row?.storage_mode === 1 ? 'primary' : 'warning'">
+                {{ row?.storage_mode === 1 ? $t('common.local') : $t('common.cloudStorage') }}
               </Tag>
             </template>
 

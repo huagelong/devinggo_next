@@ -291,24 +291,24 @@ onMounted(() => {
           @select-change="handleTableSelectChange"
         >
           <template #type="{ row }">
-            <span>{{ resolveNoticeTypeLabel(row.type) }}</span>
+            <span>{{ resolveNoticeTypeLabel(row?.type) }}</span>
           </template>
 
           <template #remark="{ row }">
             <span class="block max-w-[320px] truncate">
-              {{ row.remark || '-' }}
+              {{ row?.remark || '-' }}
             </span>
           </template>
 
           <template #content="{ row }">
             <span
               class="block max-w-[320px] truncate text-gray-600 text-sm"
-              v-html="sanitizeHtml(row.content)"
+              v-html="sanitizeHtml(row?.content)"
             />
           </template>
 
           <template #created_at="{ row }">
-            <span>{{ row.created_at || '-' }}</span>
+            <span>{{ row?.created_at || '-' }}</span>
           </template>
 
           <template #action="{ row }">

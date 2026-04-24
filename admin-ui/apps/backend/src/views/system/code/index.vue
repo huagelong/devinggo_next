@@ -243,8 +243,8 @@ onMounted(() => {
           @select-change="handleSelectChangeFn"
         >
           <template #type="{ row }">
-            <Tag :theme="row.type === 'single' ? 'primary' : 'warning'">
-              {{ row.type === 'single' ? $t('system.code.singleCrud') : $t('system.code.treeCrud') }}
+            <Tag :theme="row?.type === 'single' ? 'primary' : 'warning'">
+              {{ row?.type === 'single' ? $t('system.code.singleCrud') : $t('system.code.treeCrud') }}
             </Tag>
           </template>
 

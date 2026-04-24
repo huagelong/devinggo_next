@@ -323,7 +323,7 @@ watch(latestNotification, (notification) => {
           table-layout="fixed"
         >
           <template #content_type="{ row }">
-            {{ getTypeName(row.content_type) }}
+            {{ getTypeName(row?.content_type) }}
           </template>
           <template #action="{ row }">
             <div class="flex gap-4 items-center justify-center">

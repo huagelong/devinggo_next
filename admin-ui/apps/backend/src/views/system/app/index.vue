@@ -269,7 +269,7 @@ onMounted(() => {
           <template #status="{ row }">
             <Switch
               :disabled="isRecycleBin"
-              :value="Number(row.status) === 1"
+              :value="Number(row?.status) === 1"
               @change="(value: unknown) => handleStatusSwitchChange(row, value)"
             />
           </template>

@@ -385,22 +385,22 @@ onMounted(() => {
           @select-change="handleTableSelectChange"
         >
           <template #group_name="{ row }">
-            {{ resolveGroupLabel(row.group_id) }}
+            {{ resolveGroupLabel(row?.group_id) }}
           </template>
 
           <template #request_mode="{ row }">
-            {{ resolveRequestModeLabel(row.request_mode) }}
+            {{ resolveRequestModeLabel(row?.request_mode) }}
           </template>
 
           <template #auth_mode="{ row }">
-            {{ resolveAuthModeLabel(row.auth_mode) }}
+            {{ resolveAuthModeLabel(row?.auth_mode) }}
           </template>
 
           <template #status="{ row }">
             <div class="flex items-center justify-center">
               <Switch
                 :disabled="isRecycleBin"
-                :value="row.status === 1"
+                :value="row?.status === 1"
                 @change="(value: unknown) => handleStatusSwitchChange(row, value)"
               />
             </div>
@@ -408,7 +408,7 @@ onMounted(() => {
 
           <template #remark="{ row }">
             <span class="block max-w-[240px] truncate">
-              {{ row.remark || '-' }}
+              {{ row?.remark || '-' }}
             </span>
           </template>
 
