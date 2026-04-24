@@ -25,7 +25,6 @@ import (
 	"devinggo/modules/system/pkg/utils/secure"
 	"devinggo/modules/system/pkg/utils/slice"
 	"devinggo/modules/system/service"
-	"fmt"
 
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/database/gdb"
@@ -59,7 +58,7 @@ func (s *sSystemUser) GetPageList(ctx context.Context, req *model.PageListReq) (
 
 func (s *sSystemUser) GetPageListForSearch(ctx context.Context, req *model.PageListReq, in *req.SystemUserSearch) (res []*res.SystemUser, total int, err error) {
 	m := s.handleUserSearch(ctx, in)
-	req.OrderBy = fmt.Sprintf(`"%s"."%s"`, dao.SystemUser.Table(), dao.SystemUser.Columns().Id)
+	req.OrderBy = dao.SystemUser.Columns().Id
 	err = orm.NewQuery(m).WithPageListReq(req).ScanAndCount(&res, &total)
 	if utils.IsError(err) {
 		return nil, 0, err
@@ -83,8 +82,8 @@ func (s *sSystemUser) GetOnlineUserPageListForSearch(ctx context.Context, req *m
 		userIds = append(userIds, userApp.UserId)
 		userAppMap[userApp.UserId] = userApp.AppId
 	}
-	m = m.WhereIn(dao.SystemUser.Table()+".id", userIds)
-	req.OrderBy = fmt.Sprintf(`"%s"."%s"`, dao.SystemUser.Table(), dao.SystemUser.Columns().Id)
+	m = m.WhereIn(dao.SystemUser.Columns().Id, userIds)
+	req.OrderBy = dao.SystemUser.Columns().Id
 	err = orm.NewQuery(m).WithPageListReq(req).ScanAndCount(&res, &total)
 	if utils.IsError(err) {
 		return nil, 0, err

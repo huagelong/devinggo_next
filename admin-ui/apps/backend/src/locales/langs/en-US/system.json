@@ -63,10 +63,13 @@
     "editTitle": "Edit Dictionary",
     "createTitle": "New Dictionary",
     "editDataTitle": "Edit Dictionary Data",
+    "editDictData": "Edit Dictionary Data",
     "createDataTitle": "New \"{0}\" Data",
     "maintainDataTitle": "Manage \"{0}\" Dictionary Data",
+    "maintainDictData": "Manage Dictionary Data",
     "currentDict": "Current Dictionary",
     "confirmDelete": "Are you sure to delete this dictionary?",
+    "confirmDeleteData": "Are you sure to delete this dictionary data?",
     "confirmRecovery": "Are you sure to recover this dictionary?",
     "confirmPermanentDelete": "Are you sure to permanently delete this dictionary?"
   },
@@ -440,13 +443,32 @@
       "title": "Cache Info",
       "viewKey": "View Key Content",
       "deleteByKey": "Delete Cache by Key",
-      "clearAll": "Clear All Cache"
+      "clearAll": "Clear All Cache",
+      "keyName": "Key Name",
+      "redisInfo": "Redis Info",
+      "redisVersion": "Redis Version",
+      "clientConnections": "Client Connections",
+      "runMode": "Run Mode",
+      "runDays": "Run Days",
+      "port": "Port",
+      "aofStatus": "AOF Status",
+      "expiredKeys": "Expired Keys",
+      "systemUsedKeys": "System Used Keys",
+      "dataManagement": "Cache Data Management",
+      "searchKeyPlaceholder": "Please enter key name",
+      "contentPlaceholder": "Please select a key to view its content"
     },
     "server": {
       "title": "Server Monitor"
     },
     "onlineUser": {
-      "title": "Online Users"
+      "title": "Online Users",
+      "username": "Username",
+      "nickname": "Nickname",
+      "loginIp": "Login IP",
+      "loginTime": "Login Time",
+      "searchPlaceholder": "Please enter username",
+      "forceLogout": "Force Logout"
     }
   },
   "logs": {

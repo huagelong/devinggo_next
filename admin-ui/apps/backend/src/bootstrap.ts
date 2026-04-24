@@ -23,33 +23,21 @@ import 'tdesign-vue-next/es/style/index.css';
 async function bootstrap(namespace: string) {
   // 初始化组件适配器
   await initComponentAdapter();
-
-  // 初始化表单组件
+  // 初始化表单组件适配器
   await initSetupVbenForm();
-
-  // // 设置弹窗的默认配置
-  // setDefaultModalProps({
-  //   fullscreenButton: false,
-  // });
-  // // 设置抽屉的默认配置
-  // setDefaultDrawerProps({
-  //   zIndex: 1020,
-  // });
 
   const app = createApp(App);
 
-  // 注册v-loading指令
+  // 注册 v-loading 指令
   registerLoadingDirective(app, {
-    loading: 'loading', // 在这里可以自定义指令名称，也可以明确提供false表示不注册这个指令
+    loading: 'loading',
     spinning: 'spinning',
   });
 
   // 国际化 i18n 配置
   await setupI18n(app);
-
-  // 配置 pinia-tore
+  // 配置 pinia store
   await initStores(app, { namespace });
-
   // 安装权限指令
   registerAccessDirective(app);
 
@@ -60,7 +48,7 @@ async function bootstrap(namespace: string) {
   // 配置路由及路由守卫
   app.use(router);
 
-  // 配置Motion插件
+  // 配置 Motion 插件
   const { MotionPlugin } = await import('@vben/plugins/motion');
   app.use(MotionPlugin);
 
