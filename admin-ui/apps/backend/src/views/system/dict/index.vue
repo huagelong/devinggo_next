@@ -294,15 +294,15 @@ onMounted(() => {
         >
           <template #code="{ row }">
             <Button v-if="!isRecycleBin" theme="primary" variant="text" @click="handleOpenData(row)">
-              {{ row.code }}
+              {{ row?.code }}
             </Button>
-            <span v-else>{{ row.code }}</span>
+            <span v-else>{{ row?.code }}</span>
           </template>
 
           <template #status="{ row }">
             <Switch
               :disabled="isRecycleBin"
-              :value="Number(row.status) === 1"
+              :value="Number(row?.status) === 1"
               @change="(value: unknown) => handleStatusSwitchChange(row, value)"
             />
           </template>
