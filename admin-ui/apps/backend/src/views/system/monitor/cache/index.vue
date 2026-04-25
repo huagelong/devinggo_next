@@ -220,7 +220,7 @@ onMounted(() => {
                     size="small"
                     theme="primary"
                     variant="outline"
-                    @click="handleViewKey(row.name)"
+                    @click="handleViewKey(row?.name)"
                   >
                     <template #icon><BrowseIcon /></template>
                     {{ $t('common.detail') }}
@@ -229,7 +229,7 @@ onMounted(() => {
                     size="small"
                     theme="danger"
                     variant="outline"
-                    @click="handleDeleteKey(row.name)"
+                    @click="handleDeleteKey(row?.name)"
                   >
                     <template #icon><DeleteIcon /></template>
                     {{ $t('common.delete') }}

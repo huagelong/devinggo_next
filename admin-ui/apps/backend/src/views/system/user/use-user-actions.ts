@@ -45,6 +45,22 @@ export function useUserActions(options: UseUserActionsOptions) {
   const selectedHomePage = ref('');
   const selectedHomePageUserId = ref<null | number>(null);
 
+  function normalizeDashboardValue(value?: string) {
+    if (!value) {
+      return '';
+    }
+
+    if (value === '/analytics') {
+      return 'statistics';
+    }
+
+    if (value === '/workspace') {
+      return 'work';
+    }
+
+    return value;
+  }
+
   function isSuperAdmin(row: UserActionRow) {
     return Number(row?.id) === 1;
   }
@@ -225,7 +241,7 @@ export function useUserActions(options: UseUserActionsOptions) {
     }
 
     selectedHomePageUserId.value = Number(row.id);
-    selectedHomePage.value = row.dashboard || '';
+    selectedHomePage.value = normalizeDashboardValue(row.dashboard);
     setHomePageVisible.value = true;
   }
 
@@ -235,7 +251,8 @@ export function useUserActions(options: UseUserActionsOptions) {
       return;
     }
 
-    if (!selectedHomePage.value) {
+    const dashboard = normalizeDashboardValue(selectedHomePage.value);
+    if (!dashboard) {
       message.warning($t('common.selectUserHome'));
       return;
     }
@@ -243,7 +260,7 @@ export function useUserActions(options: UseUserActionsOptions) {
     setHomePageLoading.value = true;
     try {
       await setHomePage({
-        dashboard: selectedHomePage.value,
+        dashboard,
         id: selectedHomePageUserId.value,
       });
       message.success($t('common.setHomeSuccess'));

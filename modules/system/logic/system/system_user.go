@@ -25,6 +25,7 @@ import (
 	"devinggo/modules/system/pkg/utils/secure"
 	"devinggo/modules/system/pkg/utils/slice"
 	"devinggo/modules/system/service"
+	"strings"
 
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/database/gdb"
@@ -347,7 +348,23 @@ func (s *sSystemUser) Update(ctx context.Context, req *req.SystemUser, userId ..
 	return
 }
 
+func normalizeDashboard(ctx context.Context, dashboard string) (string, error) {
+	switch strings.TrimSpace(dashboard) {
+	case "statistics", "/analytics":
+		return "statistics", nil
+	case "work", "/workspace":
+		return "work", nil
+	default:
+		return "", myerror.ValidationFailed(ctx, "invalid dashboard")
+	}
+}
+
 func (s *sSystemUser) SetHomePage(ctx context.Context, id int64, dashboard string) (out sql.Result, err error) {
+	dashboard, err = normalizeDashboard(ctx, dashboard)
+	if err != nil {
+		return
+	}
+
 	systemUser := &do.SystemUser{
 		Dashboard: dashboard,
 	}

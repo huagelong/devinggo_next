@@ -8,7 +8,7 @@ import type {
   SupportedLanguagesType,
 } from './typing';
 
-import { unref } from 'vue';
+import { nextTick, unref } from 'vue';
 import { createI18n } from 'vue-i18n';
 
 import { useSimpleLocale } from '@vben-core/composables';
@@ -93,7 +93,20 @@ function loadLocalesMapFromDir(
  * Set i18n language
  * @param locale
  */
-function setI18nLanguage(locale: Locale) {
+async function waitForDomStable() {
+  await nextTick();
+  if (
+    typeof window !== 'undefined' &&
+    typeof window.requestAnimationFrame === 'function'
+  ) {
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
+  }
+}
+
+async function setI18nLanguage(locale: Locale) {
+  await waitForDomStable();
   i18n.global.locale.value = locale;
 
   document?.querySelector('html')?.setAttribute('lang', locale);
