@@ -27,6 +27,7 @@ const { getDictOptions } = useDictOptions();
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: { labelWidth: 100 },
+  wrapperClass: 'grid-cols-1 gap-x-4 md:grid-cols-2',
   schema: [
     {
       component: 'Input',
@@ -97,6 +98,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Textarea',
       componentProps: { placeholder: $t('system.config.placeholder.enterRemark') },
       fieldName: 'remark',
+      formItemClass: 'md:col-span-2',
       label: $t('common.remark'),
     },
     {
@@ -111,6 +113,7 @@ const [Form, formApi] = useVbenForm({
         triggerFields: ['input_type'],
       },
       fieldName: 'config_select_data',
+      formItemClass: 'md:col-span-2',
       label: $t('system.config.options'),
     },
   ],
@@ -163,7 +166,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[920px] max-w-[92vw]',
+  class: 'w-[980px] max-w-[94vw]',
 });
 
 interface OpenOptions {
@@ -235,6 +238,30 @@ defineExpose({
 
 <template>
   <Modal>
-    <Form />
+    <div class="config-form-modal">
+      <Form />
+    </div>
   </Modal>
 </template>
+
+<style scoped>
+.config-form-modal {
+  padding: 2px;
+}
+
+.config-form-modal :deep(.t-form__item) {
+  margin-bottom: 14px;
+}
+
+.config-form-modal :deep(.t-form__label) {
+  color: var(--td-text-color-secondary, #6b7280);
+  font-weight: 500;
+}
+
+.config-form-modal :deep(.t-input),
+.config-form-modal :deep(.t-textarea__inner),
+.config-form-modal :deep(.t-select),
+.config-form-modal :deep(.t-select__wrap) {
+  border-radius: 8px;
+}
+</style>

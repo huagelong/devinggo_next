@@ -48,7 +48,7 @@ const switchValues = computed(() => {
 </script>
 
 <template>
-  <div>
+  <div class="config-field-renderer">
     <Input
       v-if="field.input_type === 'input'"
       v-model="innerValue"
@@ -116,3 +116,21 @@ const switchValues = computed(() => {
     />
   </div>
 </template>
+
+<style scoped>
+.config-field-renderer :deep(.t-input),
+.config-field-renderer :deep(.t-textarea),
+.config-field-renderer :deep(.t-select),
+.config-field-renderer :deep(.t-tree-select),
+.config-field-renderer :deep(.t-date-picker),
+.config-field-renderer :deep(.t-range-input) {
+  width: 100%;
+}
+
+.config-field-renderer :deep(.t-input),
+.config-field-renderer :deep(.t-textarea__inner),
+.config-field-renderer :deep(.t-select),
+.config-field-renderer :deep(.t-select__wrap) {
+  border-radius: 8px;
+}
+</style>

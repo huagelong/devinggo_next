@@ -42,22 +42,22 @@ function handleUpdate(index: number, field: keyof KeyValueItem, value: string) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
+  <div class="key-value-editor flex flex-col gap-3">
     <div
       v-for="(item, index) in items"
       :key="index"
-      class="flex items-center gap-2"
+      class="kv-row"
     >
       <Input
         v-model="item.key"
         :placeholder="$t('common.key')"
-        class="flex-1"
+        class="kv-input"
         @change="(val) => handleUpdate(index, 'key', val as string)"
       />
       <Input
         v-model="item.value"
         :placeholder="$t('common.value')"
-        class="flex-1"
+        class="kv-input"
         @change="(val) => handleUpdate(index, 'value', val as string)"
       />
       <Button
@@ -77,3 +77,26 @@ function handleUpdate(index: number, field: keyof KeyValueItem, value: string) {
     </Space>
   </div>
 </template>
+
+<style scoped>
+.kv-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.kv-input {
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .kv-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kv-row :deep(.t-button) {
+    width: 100%;
+  }
+}
+</style>

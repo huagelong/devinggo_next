@@ -20,6 +20,7 @@ const emit = defineEmits(['success']);
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: { labelWidth: 90 },
+  wrapperClass: 'grid-cols-1 gap-x-4 md:grid-cols-2',
   schema: [
     {
       component: 'Input',
@@ -45,6 +46,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Textarea',
       componentProps: { placeholder: $t('system.config.placeholder.enterRemark') },
       fieldName: 'remark',
+      formItemClass: 'md:col-span-2',
       label: $t('common.remark'),
     },
   ],
@@ -67,7 +69,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[760px] max-w-[92vw]',
+  class: 'w-[820px] max-w-[94vw]',
 });
 
 async function open() {
@@ -86,6 +88,28 @@ defineExpose({
 
 <template>
   <Modal>
-    <Form />
+    <div class="config-group-modal">
+      <Form />
+    </div>
   </Modal>
 </template>
+
+<style scoped>
+.config-group-modal {
+  padding: 2px;
+}
+
+.config-group-modal :deep(.t-form__item) {
+  margin-bottom: 14px;
+}
+
+.config-group-modal :deep(.t-form__label) {
+  color: var(--td-text-color-secondary, #6b7280);
+  font-weight: 500;
+}
+
+.config-group-modal :deep(.t-input),
+.config-group-modal :deep(.t-textarea__inner) {
+  border-radius: 8px;
+}
+</style>

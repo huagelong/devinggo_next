@@ -116,7 +116,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[760px] max-w-[92vw]',
+  class: 'w-[840px] max-w-[94vw]',
 });
 
 async function open(data?: Partial<SystemModulesApi.SubmitPayload>) {

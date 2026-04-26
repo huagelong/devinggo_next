@@ -42,7 +42,7 @@ const groupOptions = ref<DictOption<number>[]>([]);
 
 const [Modal, modalApi] = useVbenModal({
   footer: false,
-  class: 'w-[1000px]',
+  class: 'w-[1120px] max-w-[96vw]',
 });
 
 function buildParams() {
@@ -132,9 +132,15 @@ defineExpose({
 
 <template>
   <Modal>
-    <div class="flex flex-col gap-4">
-      <Form :data="searchForm" label-width="90px" layout="inline" colon>
-        <div class="grid grid-cols-3 gap-x-4 gap-y-3">
+    <div class="config-manage-modal flex flex-col gap-4">
+      <Form
+        :data="searchForm"
+        class="config-search-form"
+        label-width="90px"
+        layout="inline"
+        colon
+      >
+        <div class="grid grid-cols-1 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-3">
           <FormItem :label="$t('system.config.name')" name="name">
             <Input
               v-model="searchForm.name"
@@ -153,13 +159,13 @@ defineExpose({
             <Select
               v-model="currentGroupId"
               :options="groupOptions"
-               :placeholder="$t('system.config.placeholder.selectGroup')"
+              :placeholder="$t('system.config.placeholder.selectGroup')"
               class="w-full"
               @change="handleSearch"
             />
           </FormItem>
         </div>
-        <div class="flex justify-end gap-2 pt-2">
+        <div class="config-search-actions">
           <Button theme="default" @click="handleReset">{{ $t('common.reset') }}</Button>
           <Button theme="primary" @click="handleSearch">
             <template #icon><SearchIcon /></template>
@@ -168,7 +174,7 @@ defineExpose({
         </div>
       </Form>
 
-      <div class="rounded-md bg-white p-4">
+      <div class="manage-table-card">
         <div class="mb-3 flex items-center justify-between">
           <Space>
             <Button theme="primary" @click="handleAdd">{{ $t('system.config.addConfigTitle') }}</Button>
@@ -210,3 +216,48 @@ defineExpose({
     <ConfigFormModal ref="configFormModalRef" @success="fetchTableData" />
   </Modal>
 </template>
+
+<style scoped>
+.config-manage-modal {
+  padding: 2px 2px 6px;
+}
+
+.config-search-form {
+  border: 1px solid var(--td-component-border, #e7e7e7);
+  border-radius: 10px;
+  padding: 14px 14px 10px;
+  background: #fafcff;
+}
+
+.config-search-form :deep(.t-form__item) {
+  width: 100%;
+  margin-right: 0;
+  margin-bottom: 0;
+}
+
+.config-search-form :deep(.t-form__controls) {
+  flex: 1;
+  min-width: 0;
+}
+
+.config-search-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+.manage-table-card {
+  border: 1px solid var(--td-component-border, #e7e7e7);
+  border-radius: 10px;
+  background: #fff;
+  padding: 14px;
+}
+
+@media (max-width: 1023px) {
+  .config-search-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+</style>

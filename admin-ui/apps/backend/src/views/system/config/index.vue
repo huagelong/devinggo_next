@@ -249,10 +249,10 @@ onMounted(() => {
 
 <template>
   <Page auto-content-height>
-    <div class="flex h-full flex-col gap-4">
-      <div class="flex flex-col gap-4 lg:flex-row">
-        <div class="rounded-md bg-white p-4 lg:w-1/2">
-          <div class="mb-3 flex items-center justify-between">
+    <div class="flex h-full flex-col gap-5">
+      <div class="flex flex-col gap-5 lg:flex-row">
+        <div class="config-card lg:w-1/2">
+          <div class="config-toolbar flex items-center justify-between">
             <Space>
               <Button
                 theme="primary"
@@ -284,7 +284,7 @@ onMounted(() => {
               </Button>
             </Space>
           </div>
-          <div v-if="hasGroups" class="min-h-[400px]">
+          <div v-if="hasGroups" class="config-content">
             <Tabs
               v-model="activeGroupKey"
               :loading="groupLoading"
@@ -300,15 +300,16 @@ onMounted(() => {
                 <Form
                   v-if="configFormMap[group.id]"
                   :data="configFormMap[group.id]!"
+                  class="config-edit-form"
                   label-width="120px" layout="inline" colon
                 >
-                  <div class="flex flex-col gap-4">
+                  <div class="config-form-list">
                     <FormItem
                       v-for="field in configFieldsMap[group.id] ?? []"
                       :key="field.id"
                       :label="field.label"
                       :name="field.key"
-                      class="border-b border-gray-50 pb-3"
+                      class="config-field-item"
                     >
                       <ConfigFieldRenderer
                         v-model="configFormMap[group.id]![field.key]"
@@ -322,7 +323,7 @@ onMounted(() => {
                       </div>
                     </FormItem>
                   </div>
-                  <div class="mt-4 flex justify-end">
+                  <div class="config-save-bar">
                     <Button theme="primary" @click="handleSubmit(group.id)">
                       {{ $t('system.config.saveConfig') }}
                     </Button>
@@ -345,17 +346,21 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="rounded-md bg-white p-4 lg:w-1/2">
-          <div class="mb-4 flex items-center justify-between">
+        <div class="config-card lg:w-1/2">
+          <div class="config-right-head flex items-center justify-between">
             <h3 class="text-lg font-semibold">{{ $t('system.config.addConfigTitle') }}</h3>
             <Button theme="primary" @click="configFormModalRef?.open()">
               <template #icon><AddIcon /></template>
               {{ $t('common.create') }}
             </Button>
           </div>
-          <p class="text-sm text-gray-500">
+          <p class="config-add-tip text-sm">
             {{ $t('system.config.addConfigTip') }}
           </p>
+          <div class="config-empty-state">
+            <InfoCircleIcon class="config-empty-icon" />
+            <span>{{ $t('system.config.addConfigTitle') }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -365,3 +370,117 @@ onMounted(() => {
     <ConfigManageModal ref="configManageModalRef" />
   </Page>
 </template>
+
+<style scoped>
+.config-card {
+  border: 1px solid var(--td-component-border, #e7e7e7);
+  border-radius: 10px;
+  background: #fff;
+  padding: 16px 18px;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 4%);
+}
+
+.config-toolbar {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--td-component-stroke, #f0f1f2);
+}
+
+.config-toolbar :deep(.t-space) {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.config-content {
+  min-height: 420px;
+}
+
+.config-form-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.config-field-item {
+  margin-bottom: 0 !important;
+  padding: 12px 8px;
+  border-bottom: 1px dashed #f0f2f5;
+}
+
+.config-field-item:last-child {
+  border-bottom: none;
+}
+
+.config-edit-form :deep(.t-form__item) {
+  width: 100%;
+  margin-right: 0;
+}
+
+.config-edit-form :deep(.t-form__label) {
+  padding-right: 12px;
+  color: var(--td-text-color-secondary, #6b7280);
+  font-weight: 500;
+  line-height: 40px;
+}
+
+.config-edit-form :deep(.t-form__controls) {
+  flex: 1;
+  min-width: 0;
+}
+
+.config-edit-form :deep(.t-input),
+.config-edit-form :deep(.t-textarea__inner),
+.config-edit-form :deep(.t-select),
+.config-edit-form :deep(.t-select__wrap) {
+  border-radius: 8px;
+}
+
+.config-save-bar {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.config-right-head {
+  margin-bottom: 16px;
+}
+
+.config-add-tip {
+  margin: 0;
+  color: var(--td-text-color-secondary, #6b7280);
+  line-height: 1.7;
+}
+
+.config-empty-state {
+  margin-top: 20px;
+  min-height: 320px;
+  border: 1px dashed #d9e3f3;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #5f6f85;
+}
+
+.config-empty-icon {
+  font-size: 24px;
+  color: #3b82f6;
+}
+
+@media (max-width: 1023px) {
+  .config-card {
+    padding: 14px;
+  }
+
+  .config-content {
+    min-height: auto;
+  }
+
+  .config-empty-state {
+    min-height: 200px;
+  }
+}
+</style>

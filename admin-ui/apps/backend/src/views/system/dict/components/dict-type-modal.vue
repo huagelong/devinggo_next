@@ -26,6 +26,7 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     labelWidth: 90,
   },
+  wrapperClass: 'grid-cols-1 md:grid-cols-2',
   schema: [
     {
       component: 'Input',
@@ -59,6 +60,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Textarea',
       componentProps: { placeholder: $t('ui.placeholder.input') },
       fieldName: 'remark',
+      formItemClass: 'md:col-span-2',
       label: $t('common.remark'),
     },
   ],
@@ -88,7 +90,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[760px] max-w-[92vw]',
+  class: 'w-[840px] max-w-[94vw]',
 });
 
 async function open(data?: DictApi.DictTypeSubmitPayload) {

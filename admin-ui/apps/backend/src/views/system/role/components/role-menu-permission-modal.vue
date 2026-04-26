@@ -107,7 +107,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[760px]',
+  class: 'w-[960px] max-w-[94vw]',
 });
 
 async function open(role: RoleApi.ListItem) {
@@ -149,7 +149,13 @@ defineExpose({
 
 <template>
   <Modal>
-    <Form :data="currentRole ?? {}" label-width="100px" layout="inline" colon>
+    <Form
+      :data="currentRole ?? {}"
+      class="permission-form"
+      label-width="100px"
+      layout="inline"
+      colon
+    >
       <FormItem :label="$t('system.role.name')" name="name">
         <Input :model-value="currentRole?.name ?? ''" disabled />
       </FormItem>
@@ -200,6 +206,16 @@ defineExpose({
 </template>
 
 <style scoped>
+.permission-form :deep(.t-form__item) {
+  width: 100%;
+  margin-right: 0;
+}
+
+.permission-form :deep(.t-form__controls) {
+  flex: 1;
+  min-width: 0;
+}
+
 .tree-container {
   border: 1px solid var(--td-component-border);
   border-radius: 6px;

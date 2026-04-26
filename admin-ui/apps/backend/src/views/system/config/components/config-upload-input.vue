@@ -53,12 +53,12 @@ async function handleFileChange(event: Event) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
-    <Space>
+  <div class="config-upload-input flex flex-col gap-2">
+    <Space class="upload-row">
       <Input
         :model-value="modelValue"
         :placeholder="placeholder ?? $t('common.uploadLinkPlaceholder')"
-        class="w-80"
+        class="upload-url-input"
         @change="(value) => handleInput(value as string)"
       />
       <Button :loading="uploading" variant="outline" @click="triggerUpload">
@@ -82,3 +82,32 @@ async function handleFileChange(event: Event) {
     />
   </div>
 </template>
+
+<style scoped>
+.upload-row :deep(.t-space-item:first-child) {
+  flex: 1;
+  min-width: 0;
+}
+
+.upload-url-input {
+  width: 100%;
+}
+
+.config-upload-input :deep(.t-space) {
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .upload-row :deep(.t-space) {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .upload-row :deep(.t-space-item:last-child .t-button) {
+    width: 100%;
+  }
+}
+</style>
