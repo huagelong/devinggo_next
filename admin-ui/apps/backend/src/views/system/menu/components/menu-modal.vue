@@ -163,7 +163,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Textarea',
       componentProps: { placeholder: $t('ui.placeholder.input') },
       fieldName: 'remark',
-      formItemClass: 'col-span-2',
+      formItemClass: 'md:col-span-2',
       label: $t('common.remark'),
     },
   ],
@@ -200,7 +200,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[920px] max-w-[92vw]',
+  class: 'w-[980px] max-w-[94vw]',
 });
 
 function isFieldVisible(field: string, type?: string) {

@@ -24,6 +24,38 @@ const statusOptions = ref<DictOption[]>([]);
 
 const { getDictOptions } = useDictOptions();
 
+const fallbackStatusOptions: DictOption[] = [
+  { label: $t('common.statusEnabled'), value: 1 },
+  { label: $t('common.statusDisabled'), value: 2 },
+];
+
+function normalizeStatusOptionValue(value: unknown) {
+  if (value === '1' || value === 1) return 1;
+  if (value === '2' || value === 2) return 2;
+  return value as string | number;
+}
+
+function normalizeStatusOptions(options: DictOption[]) {
+  const fallbackLabelMap = new Map([
+    ['1', String(fallbackStatusOptions[0]?.label ?? '启用')],
+    ['2', String(fallbackStatusOptions[1]?.label ?? '禁用')],
+  ]);
+  return options.map((option) => {
+    const normalizedValue = normalizeStatusOptionValue(option.value);
+    const valueText = String(normalizedValue ?? '').trim();
+    const labelText = String(option.label ?? '').trim();
+    const normalizedLabel =
+      !labelText || labelText === valueText
+        ? (fallbackLabelMap.get(valueText) ?? labelText)
+        : labelText;
+    return {
+      ...option,
+      label: normalizedLabel,
+      value: normalizedValue,
+    };
+  });
+}
+
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: { labelWidth: 100 },
@@ -188,11 +220,11 @@ async function fetchGroupOptions() {
 }
 
 async function fetchStatusOptions() {
+  const options = await getDictOptions('data_status');
   statusOptions.value =
-    (await getDictOptions('data_status')) || [
-      { label: $t('common.statusEnabled'), value: 1 },
-      { label: $t('common.statusDisabled'), value: 2 },
-    ];
+    options && options.length > 0
+      ? normalizeStatusOptions(options)
+      : fallbackStatusOptions;
   formApi.updateSchema([
     {
       fieldName: 'status',

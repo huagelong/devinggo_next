@@ -89,7 +89,7 @@ const [Form, formApi] = useVbenForm({
         accept: 'image/*',
         placeholder: $t('system.demo.uploadImage'),
       },
-      formItemClass: 'col-span-2',
+      formItemClass: 'md:col-span-2',
     },
     {
       component: 'Input',
@@ -126,7 +126,7 @@ const [Form, formApi] = useVbenForm({
         placeholder: $t('system.demo.enterRemark'),
         autosize: { minRows: 3, maxRows: 6 },
       },
-      formItemClass: 'col-span-2',
+      formItemClass: 'md:col-span-2',
     },
   ],
 });
@@ -155,7 +155,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[900px] max-w-[92vw]',
+  class: 'w-[980px] max-w-[94vw]',
 });
 
 async function open(data?: Partial<DemoApi.SubmitPayload & { id?: number }>) {

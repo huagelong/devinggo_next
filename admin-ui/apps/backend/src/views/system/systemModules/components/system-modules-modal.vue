@@ -78,7 +78,7 @@ const [Form, formApi] = useVbenForm({
         placeholder: $t('ui.placeholder.input'),
       },
       fieldName: 'remark',
-      formItemClass: 'col-span-2',
+      formItemClass: 'md:col-span-2',
       label: $t('common.remark'),
     },
   ],

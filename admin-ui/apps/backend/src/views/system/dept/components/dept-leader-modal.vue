@@ -330,7 +330,7 @@ function handleCandidateSelectChange(keys: Array<number | string>) {
 
 const [Modal, modalApi] = useVbenModal({
   footer: false,
-  class: 'w-[1400px] h-[700px]',
+  class: 'w-[1400px] max-w-[96vw] h-[700px] max-h-[88vh]',
 });
 
 async function open(row: { id: number; name?: string }) {

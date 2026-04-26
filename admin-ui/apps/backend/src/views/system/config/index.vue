@@ -301,7 +301,7 @@ onMounted(() => {
                   v-if="configFormMap[group.id]"
                   :data="configFormMap[group.id]!"
                   class="config-edit-form"
-                  label-width="120px" layout="inline" colon
+                  label-width="200px" layout="inline" colon
                 >
                   <div class="config-form-list">
                     <FormItem
@@ -317,7 +317,7 @@ onMounted(() => {
                       />
                       <div
                         v-if="field.remark"
-                        class="mt-1 text-xs text-gray-500"
+                        class="config-field-remark"
                       >
                         {{ field.remark }}
                       </div>
@@ -401,10 +401,21 @@ onMounted(() => {
   gap: 6px;
 }
 
+.config-edit-form {
+  display: block;
+}
+
 .config-field-item {
   margin-bottom: 0 !important;
   padding: 12px 8px;
   border-bottom: 1px dashed #f0f2f5;
+}
+
+.config-field-remark {
+  margin-left: 10px;
+  font-size: 13px;
+  color: #8a94a6;
+  line-height: 1.5;
 }
 
 .config-field-item:last-child {

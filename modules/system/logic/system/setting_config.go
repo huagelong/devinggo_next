@@ -15,14 +15,15 @@ import (
 	"devinggo/modules/system/model"
 	"devinggo/modules/system/model/req"
 	"devinggo/modules/system/model/res"
+	"devinggo/modules/system/myerror"
 	"devinggo/modules/system/pkg/hook"
 	"devinggo/modules/system/pkg/orm"
 	"devinggo/modules/system/pkg/utils"
 	"devinggo/modules/system/service"
+	"strings"
 
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sSettingConfig struct {
@@ -92,6 +93,16 @@ func (s *sSettingConfig) GetList(ctx context.Context, in *req.SettingConfigSearc
 }
 
 func (s *sSettingConfig) SaveConfig(ctx context.Context, data *req.SettingConfigSave) (id int64, err error) {
+	exists, checkErr := s.checkConfigKey(ctx, data.Key)
+	if checkErr != nil {
+		err = checkErr
+		return
+	}
+	if exists {
+		err = myerror.ValidationFailed(ctx, "配置标识已存在")
+		return
+	}
+
 	saveData := do.SettingConfig{
 		Name:             data.Name,
 		GroupId:          data.GroupId,
@@ -104,14 +115,30 @@ func (s *sSettingConfig) SaveConfig(ctx context.Context, data *req.SettingConfig
 	}
 	rs, err := s.Model(ctx).Data(saveData).Insert()
 	if utils.IsError(err) {
+		if isDuplicateKeyError(err) {
+			err = myerror.ValidationFailed(ctx, "配置标识已存在")
+		}
 		return
 	}
-	tmpId, err := rs.LastInsertId()
-	if err != nil {
-		return
-	}
-	id = gconv.Int64(tmpId)
+	_, _ = rs.RowsAffected()
+	id = 0
 	return
+}
+
+func (s *sSettingConfig) checkConfigKey(ctx context.Context, key string) (exists bool, err error) {
+	count, err := dao.SettingConfig.Ctx(ctx).Where(dao.SettingConfig.Columns().Key, key).Count()
+	if utils.IsError(err) {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func isDuplicateKeyError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "duplicate key") || strings.Contains(msg, "unique constraint")
 }
 
 func (s *sSettingConfig) UpdateConfig(ctx context.Context, data *req.SettingConfigUpdate) (err error) {

@@ -124,7 +124,7 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'avatar',
       label: $t('system.user.avatar'),
       component: markRaw(AvatarUpload),
-      formItemClass: 'col-span-2',
+      formItemClass: 'md:col-span-2',
     },
     {
       fieldName: 'username',
@@ -211,7 +211,7 @@ const [Form, formApi] = useVbenForm({
           { label: $t('common.statusDisabled'), value: 2 },
         ],
       },
-      formItemClass: 'col-span-2',
+      formItemClass: 'md:col-span-2',
     },
     {
       fieldName: 'user_type',
@@ -223,13 +223,13 @@ const [Form, formApi] = useVbenForm({
         placeholder: $t('ui.placeholder.select', [$t('system.user.userType')]),
       },
       rules: 'required',
-      formItemClass: 'col-span-2',
+      formItemClass: 'md:col-span-2',
     },
     {
       fieldName: 'remark',
       label: $t('common.remark'),
       component: 'Textarea',
-      formItemClass: 'col-span-2',
+      formItemClass: 'md:col-span-2',
       componentProps: { placeholder: $t('ui.placeholder.input', [$t('common.remark')]) },
     },
   ],
@@ -255,7 +255,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[920px] max-w-[92vw]',
+  class: 'w-[1000px] max-w-[94vw]',
 });
 
 async function open(data?: UserModalOpenData) {

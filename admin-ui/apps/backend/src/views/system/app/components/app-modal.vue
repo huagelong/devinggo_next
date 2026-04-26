@@ -81,7 +81,7 @@ const [Form, formApi] = useVbenForm({
         placeholder: $t('ui.placeholder.input'),
       },
       fieldName: 'remark',
-      formItemClass: 'col-span-2',
+      formItemClass: 'md:col-span-2',
       label: $t('common.remark'),
     },
   ],
@@ -119,7 +119,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[820px] max-w-[92vw]',
+  class: 'w-[900px] max-w-[94vw]',
 });
 
 async function open(data?: Partial<AppApi.SubmitPayload>) {
