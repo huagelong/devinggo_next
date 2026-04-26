@@ -41,30 +41,20 @@ const emit = defineEmits<{
 const loading = ref(false);
 const submitLoading = ref(false);
 const activeTab = ref('base_config');
-
-// 表基本信息
 const tableName = ref('');
 const tableComment = ref('');
 const remark = ref('');
-
-// 生成配置
 const moduleName = ref('');
 const type = ref<'single' | 'tree'>('single');
 const menuName = ref('');
 const componentType = ref<number>(1);
 const tplType = ref('default');
-
-// 树表配置
 const treeId = ref('');
 const treeParentId = ref('');
 const treeName = ref('');
-
-// Tag页配置
 const tagId = ref('');
 const tagName = ref('');
 const tagViewName = ref('');
-
-// 字段配置
 const fieldColumns = [
   { colKey: 'sort', title: $t('system.code.field.sort'), width: 70 },
   { colKey: 'column_name', title: $t('system.code.field.name'), width: 150 },
@@ -82,15 +72,12 @@ const fieldColumns = [
 ];
 
 const fieldList = ref<FieldConfigRow[]>([]);
-
-// 菜单配置
 const menuButtons = ref<string[]>(['save', 'update', 'read', 'delete']);
 
 async function open(id: number) {
   loading.value = true;
   try {
     await readTable(id);
-    // 模拟数据加载
     tableName.value = '';
     tableComment.value = '';
     fieldList.value = [];
@@ -126,7 +113,7 @@ async function handleSubmit() {
   submitLoading.value = true;
   try {
     const payload: any = {
-      id: 0, // 需要从列表中获取
+      id: 0,
       type: type.value,
       menu_buttons: menuButtons.value,
       fields: fieldList.value,
@@ -155,10 +142,9 @@ defineExpose({ open });
   <Modal>
     <div class="flex flex-col gap-4">
       <Tabs v-model:value="activeTab">
-        <!-- 基础配置 -->
         <TabPanel value="base_config" :label="$t('system.code.baseConfig')">
-          <Form :label-width="120" colon>
-            <div class="grid grid-cols-2 gap-x-4">
+          <Form :label-width="120" layout="inline" colon>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-3">
               <FormItem :label="$t('system.code.tableName')">
                 <Input v-model="tableName" disabled />
               </FormItem>
@@ -184,12 +170,10 @@ defineExpose({ open });
                 <Select v-model="tplType" :options="tplTypeOptions" />
               </FormItem>
             </div>
-
-            <!-- 树表配置 -->
             <template v-if="type === 'tree'">
               <div class="mt-4 border-t pt-4">
                 <div class="mb-2 text-sm font-medium text-gray-500">{{ $t('system.code.treeConfig') }}</div>
-                <div class="grid grid-cols-3 gap-x-4">
+                <div class="grid grid-cols-3 gap-x-4 gap-y-3">
                   <FormItem :label="$t('system.code.treeId')" name="tree_id">
                     <Input v-model="treeId" :placeholder="$t('ui.placeholder.input')" />
                   </FormItem>
@@ -202,12 +186,10 @@ defineExpose({ open });
                 </div>
               </div>
             </template>
-
-            <!-- Tag页配置 -->
             <template v-if="componentType === 3">
               <div class="mt-4 border-t pt-4">
                 <div class="mb-2 text-sm font-medium text-gray-500">{{ $t('system.code.tagConfig') }}</div>
-                <div class="grid grid-cols-3 gap-x-4">
+                <div class="grid grid-cols-3 gap-x-4 gap-y-3">
                   <FormItem :label="$t('system.code.tagId')" name="tag_id">
                     <Input v-model="tagId" :placeholder="$t('ui.placeholder.input')" />
                   </FormItem>
@@ -222,8 +204,6 @@ defineExpose({ open });
             </template>
           </Form>
         </TabPanel>
-
-        <!-- 字段配置 -->
         <TabPanel value="field_config" :label="$t('system.code.fieldConfig')">
           <div class="mb-2 flex items-center gap-2">
             <Checkbox
@@ -304,8 +284,6 @@ defineExpose({ open });
             </template>
           </Table>
         </TabPanel>
-
-        <!-- 菜单配置 -->
         <TabPanel value="menu_config" :label="$t('system.code.menuConfig')">
           <div class="py-4">
             <CheckboxGroup v-model="menuButtons" :options="menuButtonOptions" />

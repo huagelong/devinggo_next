@@ -133,8 +133,8 @@ defineExpose({
 <template>
   <Modal>
     <div class="flex flex-col gap-4">
-      <Form :data="searchForm" label-width="90px" colon>
-        <div class="grid grid-cols-3 gap-x-4">
+      <Form :data="searchForm" label-width="90px" layout="inline" colon>
+        <div class="grid grid-cols-3 gap-x-4 gap-y-3">
           <FormItem :label="$t('system.config.name')" name="name">
             <Input
               v-model="searchForm.name"

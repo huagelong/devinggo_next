@@ -109,7 +109,7 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     labelWidth: 80,
   },
-  wrapperClass: 'grid-cols-2',
+  wrapperClass: 'grid-cols-1 md:grid-cols-2',
   schema: [
     {
       fieldName: 'id',
@@ -255,7 +255,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[800px]',
+  class: 'w-[920px] max-w-[92vw]',
 });
 
 async function open(data?: UserModalOpenData) {

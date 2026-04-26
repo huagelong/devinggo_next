@@ -43,12 +43,11 @@ export namespace CrontabApi {
 
   export interface LogItem {
     created_at?: string;
-    id: number;
-    crontab_id?: number;
-    crontab_name?: string;
-    duration?: number;
     end_time?: string;
     error?: string;
+    id: number;
+    crontab_id?: number;
+    name?: string;
     output?: string;
     start_time?: string;
     status?: number;

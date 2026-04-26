@@ -28,6 +28,9 @@ type SettingCrontabLogColumns struct {
 	Parameter     string //
 	ExceptionInfo string //
 	Status        string //
+	StartTime     string //
+	EndTime       string //
+	Output        string //
 	CreatedAt     string //
 }
 
@@ -40,6 +43,9 @@ var settingCrontabLogColumns = SettingCrontabLogColumns{
 	Parameter:     "parameter",
 	ExceptionInfo: "exception_info",
 	Status:        "status",
+	StartTime:     "start_time",
+	EndTime:       "end_time",
+	Output:        "output",
 	CreatedAt:     "created_at",
 }
 

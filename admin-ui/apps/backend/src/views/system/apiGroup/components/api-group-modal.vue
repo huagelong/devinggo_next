@@ -82,7 +82,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[520px]',
+  class: 'w-[760px] max-w-[92vw]',
 });
 
 async function fetchStatusOptions() {

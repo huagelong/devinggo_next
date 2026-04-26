@@ -145,7 +145,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[600px]',
+  class: 'w-[860px] max-w-[92vw]',
 });
 
 function updateFormSchemas() {

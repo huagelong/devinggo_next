@@ -22,6 +22,7 @@ import (
 
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
@@ -75,7 +76,7 @@ func (s *sSettingCrontabLog) Delete(ctx context.Context, ids []int64) (err error
 	return
 }
 
-func (s *sSettingCrontabLog) AddLog(ctx context.Context, id int64, status int, exceptionInfo string) (err error) {
+func (s *sSettingCrontabLog) AddLog(ctx context.Context, id int64, status int, exceptionInfo string, startTime *gtime.Time, endTime *gtime.Time, output string) (err error) {
 	var entity *entity.SettingCrontab
 	err = service.SettingCrontab().Model(ctx).Where("id", id).Scan(&entity)
 	if utils.IsError(err) {
@@ -88,6 +89,9 @@ func (s *sSettingCrontabLog) AddLog(ctx context.Context, id int64, status int, e
 		Parameter:     entity.Parameter,
 		Status:        status,
 		ExceptionInfo: exceptionInfo,
+		StartTime:     startTime,
+		EndTime:       endTime,
+		Output:        output,
 	})
 	if utils.IsError(err) {
 		return err

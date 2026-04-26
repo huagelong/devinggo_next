@@ -288,8 +288,8 @@ defineExpose({
       </div>
 
       <div class="rounded-md bg-white p-4">
-        <Form :data="searchForm" label-width="90px" colon>
-          <div class="grid grid-cols-4 gap-x-4">
+        <Form :data="searchForm" label-width="90px" layout="inline" colon>
+          <div class="grid grid-cols-4 gap-x-4 gap-y-3">
             <FormItem :label="$t('system.dict.label')" name="label">
               <Input
                 v-model="searchForm.label"

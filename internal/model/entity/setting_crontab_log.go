@@ -17,5 +17,8 @@ type SettingCrontabLog struct {
 	Parameter     string      `json:"parameter"     orm:"parameter"      description:""` //
 	ExceptionInfo string      `json:"exceptionInfo" orm:"exception_info" description:""` //
 	Status        int         `json:"status"        orm:"status"         description:""` //
+	StartTime     *gtime.Time `json:"startTime"     orm:"start_time"     description:""` //
+	EndTime       *gtime.Time `json:"endTime"       orm:"end_time"       description:""` //
+	Output        string      `json:"output"        orm:"output"         description:""` //
 	CreatedAt     *gtime.Time `json:"createdAt"     orm:"created_at"     description:""` //
 }

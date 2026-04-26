@@ -240,8 +240,8 @@ onUnmounted(() => {
 
       <div class="flex h-full min-w-0 flex-1 flex-col gap-3 overflow-hidden">
         <div class="rounded-md bg-white p-4">
-          <Form :data="searchForm" label-width="80px" colon>
-            <div class="grid grid-cols-3 gap-x-4">
+          <Form :data="searchForm" label-width="80px" layout="inline" colon>
+            <div class="grid grid-cols-3 gap-x-4 gap-y-3">
               <FormItem :label="$t('system.user.username')" name="username">
                 <Input
                   v-model="searchForm.username"
@@ -534,7 +534,7 @@ onUnmounted(() => {
       :header="$t('system.user.setHomePage')"
       destroy-on-close
     >
-      <Form label-width="90px">
+      <Form label-width="90px" layout="inline">
         <FormItem :label="$t('system.user.selectHomePage')">
           <Select
             v-model="selectedHomePage"

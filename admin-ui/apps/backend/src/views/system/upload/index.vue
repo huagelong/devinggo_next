@@ -159,8 +159,8 @@ onMounted(() => {
 
         <!-- Search Form -->
         <div class="rounded-md bg-white p-4">
-          <Form :data="searchForm" label-width="80px" colon>
-            <div class="grid grid-cols-4 gap-x-4">
+          <Form :data="searchForm" label-width="80px" layout="inline" colon>
+            <div class="grid grid-cols-4 gap-x-4 gap-y-3">
               <FormItem :label="$t('system.upload.fileName')" name="origin_name">
                 <Input
                   v-model="searchForm.origin_name"
@@ -217,7 +217,7 @@ onMounted(() => {
               class="flex h-full items-center justify-center text-gray-400"
             >
               <div class="text-center">
-                <div class="mb-4 text-6xl">📁</div>
+                <div class="mb-4 text-6xl">馃搧</div>
                 <div class="text-lg">{{ $t('system.upload.noFile') }}</div>
                 <div class="text-sm">{{ $t('system.upload.clickToUpload') }}</div>
               </div>

@@ -23,6 +23,7 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     labelWidth: 90,
   },
+  wrapperClass: 'grid-cols-1 md:grid-cols-2',
   schema: [
     {
       component: 'Input',
@@ -118,7 +119,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[560px]',
+  class: 'w-[820px] max-w-[92vw]',
 });
 
 async function open(data?: Partial<AppApi.SubmitPayload>) {

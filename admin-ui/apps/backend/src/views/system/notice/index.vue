@@ -212,8 +212,8 @@ onMounted(() => {
   <Page auto-content-height>
     <div class="flex h-full flex-col gap-3">
       <div class="rounded-md bg-white p-4">
-        <Form :data="searchForm" label-width="80px" colon>
-          <div class="grid grid-cols-4 gap-x-4">
+        <Form :data="searchForm" label-width="80px" layout="inline" colon>
+          <div class="grid grid-cols-4 gap-x-4 gap-y-3">
             <FormItem :label="$t('system.notice.title')" name="title">
               <Input
                 v-model="searchForm.title"

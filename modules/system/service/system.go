@@ -15,6 +15,7 @@ import (
 
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/gtime"
 )
 
 type (
@@ -85,7 +86,7 @@ type (
 		Model(ctx context.Context) *gdb.Model
 		GetPageList(ctx context.Context, req *model.PageListReq, in *req.SettingCrontabLogSearch) (rs []*res.SettingCrontabLog, total int, err error)
 		Delete(ctx context.Context, ids []int64) (err error)
-		AddLog(ctx context.Context, id int64, status int, exceptionInfo string) (err error)
+		AddLog(ctx context.Context, id int64, status int, exceptionInfo string, startTime *gtime.Time, endTime *gtime.Time, output string) (err error)
 	}
 	ISystemApi interface {
 		Model(ctx context.Context) *gdb.Model

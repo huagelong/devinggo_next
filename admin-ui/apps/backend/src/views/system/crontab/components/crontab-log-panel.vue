@@ -40,9 +40,9 @@ const searchForm = ref<CrontabLogQuery>({
 
 const logColumns = [
   { colKey: 'id', title: 'ID', width: 80 },
+  { colKey: 'name', title: $t('system.crontab.name'), width: 120 },
   { colKey: 'start_time', title: $t('common.startTime'), width: 180 },
   { colKey: 'end_time', title: $t('common.endTime'), width: 180 },
-  { colKey: 'duration', title: $t('system.crontab.duration'), width: 100 },
   { colKey: 'status', title: $t('system.crontab.executeResult'), width: 100 },
   { colKey: 'output', title: $t('system.crontab.executeOutput'), width: 180 },
   { colKey: 'error', title: $t('system.crontab.errorInfo'), width: 180 },
@@ -104,7 +104,7 @@ async function handleDeleteLog() {
 }
 
 function showErrorDetail(row: CrontabApi.LogItem) {
-  modalApi.setState({ title: `${$t('system.crontab.errorInfo')} - ${row.crontab_name || row.id}` });
+  modalApi.setState({ title: `${$t('system.crontab.errorInfo')} - ${row.name || row.id}` });
   // Show error in a simple message box - in real implementation could use a detail modal
   message.info(row.error || $t('system.crontab.noErrorInfo'));
 }
@@ -145,8 +145,8 @@ defineExpose({
   <Modal>
     <div class="flex flex-col gap-3">
       <div class="rounded-md bg-white p-4">
-        <Form label-width="80px" colon>
-          <div class="grid grid-cols-4 gap-x-4">
+        <Form label-width="80px" layout="inline" colon>
+          <div class="grid grid-cols-4 gap-x-4 gap-y-3">
             <FormItem :label="$t('common.createTime')" name="created_at" class="col-span-2">
               <DateRangePicker
                 v-model="searchForm.created_at"

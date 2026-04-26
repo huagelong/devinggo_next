@@ -88,7 +88,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[560px]',
+  class: 'w-[760px] max-w-[92vw]',
 });
 
 async function open(data?: DictApi.DictTypeSubmitPayload) {

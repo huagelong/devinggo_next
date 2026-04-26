@@ -19,6 +19,7 @@ import App from './app.vue';
 import { router } from './router';
 
 import 'tdesign-vue-next/es/style/index.css';
+import './styles/tdesign-overrides.css';
 
 async function bootstrap(namespace: string) {
   // 初始化组件适配器

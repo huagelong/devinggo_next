@@ -163,7 +163,7 @@ const [Modal, modalApi] = useVbenModal({
       modalApi.setState({ confirmLoading: false });
     }
   },
-  class: 'w-[640px]',
+  class: 'w-[920px] max-w-[92vw]',
 });
 
 interface OpenOptions {

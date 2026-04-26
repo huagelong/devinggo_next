@@ -154,7 +154,7 @@ defineExpose({
 
 <template>
   <Modal>
-    <Form :data="currentRole ?? {}" label-width="100px" colon>
+    <Form :data="currentRole ?? {}" label-width="100px" layout="inline" colon>
       <FormItem :label="$t('system.role.name')" name="name">
         <Input :model-value="currentRole?.name ?? ''" disabled />
       </FormItem>

@@ -300,8 +300,7 @@ onMounted(() => {
                 <Form
                   v-if="configFormMap[group.id]"
                   :data="configFormMap[group.id]!"
-                  label-width="120px"
-                  colon
+                  label-width="120px" layout="inline" colon
                 >
                   <div class="flex flex-col gap-4">
                     <FormItem
