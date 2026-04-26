@@ -4,7 +4,7 @@ import { computed } from 'vue';
 import { $t } from '@vben/locales';
 
 import Editor from '@tinymce/tinymce-vue';
-import tinymce from 'tinymce/tinymce';
+import tinymce from 'tinymce';
 
 import 'tinymce/icons/default';
 import 'tinymce/models/dom';
